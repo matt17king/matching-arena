@@ -662,7 +662,14 @@ export async function createArena(canvas, o = {}) {
     (o.kit || []).forEach((kt, k) => {
       const [c, g] = cnv(1024, 480); g.fillStyle = '#0b0a0a'; g.fillRect(0, 0, 1024, 480); g.fillStyle = RED; g.fillRect(0, 0, 1024, 14);
       LS(g, '6px'); g.font = FONT(800, 30); g.fillStyle = 'rgba(243,242,242,0.7)'; g.textBaseline = 'alphabetic'; g.fillText(`GARAGE ${String(k + 1).padStart(2, '0')} — ${kt.tag}`, 44, 84);
-      LS(g, '-2px'); const ft = fitText(g, kt.title.toUpperCase(), 930, 2, 96, 50); g.fillStyle = CHALK; ft.L.forEach((l, i) => g.fillText(l, 44, 200 + i * ft.fs * 0.95));
+      LS(g, '-2px'); const ft = fitText(g, kt.title.toUpperCase(), 620, 2, 96, 50); g.fillStyle = CHALK; ft.L.forEach((l, i) => g.fillText(l, 44, 200 + i * ft.fs * 0.95));
+      { const cx = 840, cy = 210; g.save(); g.lineWidth = 10; g.strokeStyle = CHALK; g.fillStyle = RED;
+        if (/PIT/.test(kt.tag)) [[-62, -62], [62, -62], [-62, 62], [62, 62]].forEach(([dx, dy], q) => { g.beginPath(); g.arc(cx + dx, cy + dy, 48, 0, 7); g.fillStyle = '#1b1a19'; g.fill(); g.strokeStyle = q === 0 ? RED : CHALK; g.stroke(); g.beginPath(); g.arc(cx + dx, cy + dy, 18, 0, 7); g.fillStyle = q === 0 ? RED : 'rgba(243,242,242,0.6)'; g.fill(); });
+        else if (/DRIVER/.test(kt.tag)) { g.beginPath(); g.arc(cx, cy, 110, 0, 7); g.stroke(); g.beginPath(); g.moveTo(cx - 110, cy + 6); g.lineTo(cx - 34, cy + 6); g.moveTo(cx + 34, cy + 6); g.lineTo(cx + 110, cy + 6); g.moveTo(cx, cy + 40); g.lineTo(cx, cy + 110); g.stroke(); g.beginPath(); g.arc(cx, cy + 6, 34, 0, 7); g.fill(); g.fillRect(cx - 10, cy - 116, 20, 26); }
+        else { g.strokeStyle = 'rgba(243,242,242,0.3)'; g.lineWidth = 3; for (let q = 0; q < 5; q++) { g.beginPath(); g.moveTo(cx - 150, cy - 100 + q * 50); g.lineTo(cx + 150, cy - 100 + q * 50); g.stroke(); }
+          const P = [-150, 60, -110, 40, -70, 70, -30, 10, 10, 30, 50, -30, 90, -10, 130, -80, 150, -95]; g.strokeStyle = RED; g.lineWidth = 9; g.lineJoin = 'round'; g.beginPath(); for (let q = 0; q < P.length; q += 2) q ? g.lineTo(cx + P[q], cy + P[q + 1]) : g.moveTo(cx + P[q], cy + P[q + 1]); g.stroke();
+          g.beginPath(); g.arc(cx + 150, cy - 95, 14, 0, 7); g.fillStyle = CHALK; g.fill(); }
+        g.restore(); }
       LS(g, '3px'); g.font = FONT(800, 28); g.fillStyle = '#ff7a5e'; wrapT(g, kt.tools.toUpperCase(), 930).slice(0, 2).forEach((l, i) => g.fillText(l, 44, 380 + i * 40));
       const m = new THREE.MeshBasicMaterial({ map: texOf(c), color: C('#ffffff').multiplyScalar(0.2) });
       const pl = new THREE.Mesh(new THREE.PlaneGeometry(8.2, 3.85), m); pl.position.set((k - 1) * 21, 2.8, fz * 6.3); pl.rotation.y = fz > 0 ? 0 : Math.PI; pg.add(pl); kitLED.push(m);
@@ -779,8 +786,18 @@ export async function createArena(canvas, o = {}) {
     LS(g, '-3px'); const ft = fitText(g, it.name.toUpperCase(), 920, 2, 150, 60); g.fillStyle = CHALK; const lh = ft.fs * 0.9; ft.L.forEach((l, k) => g.fillText(l, 48, 300 + (k - (ft.L.length - 1)) * lh + (ft.L.length > 1 ? lh * 0.5 : 0)));
     LS(g, '3px'); g.font = FONT(800, 30); g.fillStyle = '#ff7a5e'; wrapT(g, it.role.toUpperCase(), 920).slice(0, 2).forEach((l, k) => g.fillText(l, 48, 440 + k * 42));
     if (it.logo && logoImgs['career-' + it.logo]) logoTile(g, logoImgs['career-' + it.logo], 1024 - 48 - 150, 44, 150);
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(12, 6.75), new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, opacity: 0, depthWrite: false }));
-    m.position.set(Math.min(DX[i] + 14, 44), 4.6, 9); m.rotation.y = -Math.PI / 2 - 0.35; m.renderOrder = 6; m.visible = false; scene.add(m); return m;
+    const n = (o.drive || []).length, sw = (928 - (n - 1) * 8) / n;
+    for (let k = 0; k < n; k++) { g.fillStyle = k < i ? 'rgba(243,242,242,0.75)' : k === i ? RED : 'rgba(243,242,242,0.16)'; g.fillRect(48 + k * (sw + 8), 516, sw, 12); }
+    const grp = new THREE.Group(); grp.position.set(Math.min(DX[i] + 14, 44), 4.6, 9); grp.rotation.y = -Math.PI / 2 - 0.35; grp.visible = false; scene.add(grp);
+    const face = new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, opacity: 0, depthWrite: false });
+    const fm = new THREE.Mesh(new THREE.PlaneGeometry(12, 6.75), face); fm.position.z = 0.02; fm.renderOrder = 6; grp.add(fm);
+    const shell = new THREE.MeshStandardMaterial({ color: C('#151414'), roughness: 0.5, metalness: 0.4, transparent: true, opacity: 0 });
+    const lip = new THREE.MeshBasicMaterial({ color: C(RED).multiplyScalar(1.6), transparent: true, opacity: 0 });
+    const bk = new THREE.Mesh(new THREE.BoxGeometry(12.5, 7.25, 0.34), shell); bk.position.z = -0.18; grp.add(bk);
+    const tp = new THREE.Mesh(new THREE.BoxGeometry(12.5, 0.16, 0.38), lip); tp.position.set(0, 3.7, -0.16); grp.add(tp);
+    for (const lx of [-4.2, 4.2]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.14, 4.6, 10), shell); leg.position.set(lx, -5.9, -0.2); grp.add(leg); }
+    [bk, tp, ...grp.children.slice(3)].forEach(m => { m.userData.noCast = true; });
+    return { grp, mats: [face, shell, lip] };
   });
   const pigskin = new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 12), new THREE.MeshStandardMaterial({ color: C('#5e2618'), roughness: 0.6 })); pigskin.scale.set(1.9, 1, 1); pigskin.position.y = 0.16; scene.add(pigskin);
   box(pigskin, 0.12, 0.02, 0.03, 0, 0.14, 0, 'white');
@@ -862,7 +879,7 @@ export async function createArena(canvas, o = {}) {
   });
   let fans = null;
   {
-    const src = vT.crowdPts, nSrc = Math.floor(src.length / 3), n = Math.min(LOWQ ? 1400 : 2600, nSrc * 4);
+    const src = vT.crowdPts, nSrc = Math.floor(src.length / 3), n = Math.min(LOWQ ? 3000 : 5600, nSrc * 8);
     const [, g] = cnv(512, 220); const ftx = o.fansText || 'NEW'; let ffs = 200; g.fillStyle = '#fff'; g.font = FONT(800, ffs); LS(g, '-6px'); while (g.measureText(ftx).width > 490 && ffs > 80) { ffs -= 8; g.font = FONT(800, ffs); } g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ftx, 256, 118);
     const d = g.getImageData(0, 0, 512, 220).data, cand = []; for (let y = 0; y < 220; y += 2) for (let x = 0; x < 512; x += 2) if (d[(y * 512 + x) * 4 + 3] > 128) cand.push([x, y]);
     if (nSrc && cand.length) {
@@ -872,7 +889,7 @@ export async function createArena(canvas, o = {}) {
       fans = new THREE.Points(fg, new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 }, uTime: { value: 0 }, uOp: { value: 0 }, uA: { value: C(RED).multiplyScalar(1.4) }, uB: { value: C(CHALK) } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
         vertexShader: `attribute vec3 aTo; attribute float aPh; uniform float uT; uniform float uTime; varying float vA; varying float vPh; varying float vM;
           void main(){ float m=smoothstep(aPh*0.45,aPh*0.45+0.55,uT); vec3 p=mix(position,aTo,m); p.y+=sin(m*3.14159)*(14.0+16.0*aPh);
-            vA=0.65+0.35*sin(uTime*3.0+aPh*30.0); vPh=aPh; vM=m; vec4 mv=modelViewMatrix*vec4(p,1.0); gl_PointSize=(1.1+0.9*m)*(300.0/-mv.z); gl_Position=projectionMatrix*mv; }`,
+            vA=0.65+0.35*sin(uTime*3.0+aPh*30.0); vPh=aPh; vM=m; vec4 mv=modelViewMatrix*vec4(p,1.0); gl_PointSize=(1.2+1.5*m)*(300.0/-mv.z); gl_Position=projectionMatrix*mv; }`,
         fragmentShader: `uniform float uOp; uniform vec3 uA; uniform vec3 uB; varying float vA; varying float vPh; varying float vM;
           void main(){ vec2 d=gl_PointCoord-0.5; float r=length(d); if(r>0.5) discard; vec3 c=mix(uA,uB,step(0.8,vPh)); gl_FragColor=vec4(c,uOp*vA*(1.0-r*2.0)*(0.5+0.5*vM));
             #include <colorspace_fragment>
@@ -1189,7 +1206,7 @@ export async function createArena(canvas, o = {}) {
       const xp = k ? DX[k - 1] : DX[0] - 12, xl = xp + (DX[k] - xp) * ss(loc / 0.3);
       fdLine.visible = on > 0.001; fdLine.material.opacity = on * 0.95; fdLine.position.x = Math.min(xl, 45.72);
       pigskin.visible = on > 0.001; pigskin.position.x = xl - 1.2; pigskin.position.y = 0.16 + Math.max(0, Math.sin(clamp(loc / 0.3) * Math.PI)) * 6 * (k ? 1 : 0); pigskin.rotation.z = -clamp(loc / 0.3) * Math.PI * 4;
-      drivePlates.forEach((m, i) => { const a = i === k ? on * RO(loc, 0.22, 0.4) * (1 - R(loc, 0.94, 1)) : 0; m.visible = a > 0.001; m.material.opacity = a; m.position.y = 4.6 - (1 - a) * 1.5; }); }
+      drivePlates.forEach((pl, i) => { const a = i === k ? on * RO(loc, 0.22, 0.4) * (1 - R(loc, 0.94, 1)) : 0; pl.grp.visible = a > 0.001; pl.mats.forEach(m => { m.opacity = a; }); pl.grp.position.y = 4.6 - (1 - ss(a)) * 7.5; }); }
     { const on = id === 'nfl' ? R(t, CH.XI[0] - 0.01, CH.XI[0] + 0.015) * (1 - R(t, CH.XI[1], CH.XI[1] + 0.02)) : 0; play.visible = on > 0.001; play.material.opacity = on;
       if (play.visible) { const n = routes.length, f = clamp((t - CH.XI[0]) / (CH.XI[1] - CH.XI[0])) * n, step = Math.min(n - 1, Math.floor(f)), u = Math.min(1, f - step), key = `${step}|${Math.round(u * 40)}|${highlight}`;
         if (key !== playKey) { drawPlay(step, u, highlight === step ? -1 : highlight); playTex.needsUpdate = true; playKey = key; } } }
