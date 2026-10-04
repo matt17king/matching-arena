@@ -54,18 +54,19 @@ function nfl() {
 }
 
 export const TN = 3.5; // tennis display scale
-// k shortens the left half (x < 0): 0.91 is the Battle of the Sexes court, where Sabalenka's side was about 9% smaller
+// k shrinks the left half (x < 0) in length and width: 0.91 is the Battle of the Sexes court, where Sabalenka's side was about 9% smaller.
+// Lines that cross the net carry a point either side of it, so the narrower half steps in at the net instead of tapering.
 export function tennis(k = 1) {
-  const L = 11.885, W = 5.485, Ws = 4.115, SL = 6.4, S = [];
-  S.push({ pts: rect(-L, -W, L, W), t: [0, 0.35], closed: true });
+  const L = 11.885, W = 5.485, Ws = 4.115, SL = 6.4, e = 1e-3, S = [];
+  S.push({ pts: [[-L, W], [-e, W], [e, W], [L, W], [L, -W], [e, -W], [-e, -W], [-L, -W], [-L, W]], t: [0, 0.35], closed: true });
   S.push({ pts: [[-SL, 0], [SL, 0]], t: [0.6, 0.75] });
-  S.push({ pts: [[-L, Ws], [L, Ws]], t: [0.3, 0.55] });
-  S.push({ pts: [[L, -Ws], [-L, -Ws]], t: [0.3, 0.55] });
+  S.push({ pts: [[-L, Ws], [-e, Ws], [e, Ws], [L, Ws]], t: [0.3, 0.55] });
+  S.push({ pts: [[L, -Ws], [e, -Ws], [-e, -Ws], [-L, -Ws]], t: [0.3, 0.55] });
   for (const sx of [-1, 1]) {
     S.push({ pts: [[sx * SL, Ws], [sx * SL, -Ws]], t: [0.5, 0.65] });
     S.push({ pts: [[sx * L, 0], [sx * (L - 0.3), 0]], t: [0.7, 0.75] });
   }
-  return scl(S.map(st => ({ ...st, pts: st.pts.map(([x, z]) => [x < 0 ? x * k : x, z]) })), TN).map(s => ({ ...s, hw: 0.2 }));
+  return scl(S.map(st => ({ ...st, pts: st.pts.map(([x, z]) => x < 0 ? [x * k, z * k] : [x, z]) })), TN).map(s => ({ ...s, hw: 0.2 }));
 }
 
 // ---------- circuit (centripetal Catmull-Rom through control points, closed)

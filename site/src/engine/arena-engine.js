@@ -900,22 +900,24 @@ export async function createArena(canvas, o = {}) {
   // ---------- chapter: exhibitions that changed the court (tennis, overhead)
   // Battle of the Surfaces (2007): half grass, half clay. Battle of the Sexes (2025): one half about 9% smaller.
   const CTL = 11.885 * TN, CTW = 5.485 * TN;
-  const clayTex = (() => { const [c, g] = cnv(512, 512); g.fillStyle = '#b4532a'; g.fillRect(0, 0, 512, 512);
-    for (let i = 0; i < 9000; i++) { const v = Math.random(); g.fillStyle = v < 0.5 ? `rgba(120,46,18,${0.08 + Math.random() * 0.12})` : `rgba(226,140,96,${0.05 + Math.random() * 0.1})`; g.fillRect(Math.random() * 512, Math.random() * 512, 1 + Math.random() * 2, 1 + Math.random() * 2); }
+  const clayTex = (() => { const [c, g] = cnv(512, 512); g.fillStyle = '#d8743a'; g.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 9000; i++) { const v = Math.random(); g.fillStyle = v < 0.5 ? `rgba(150,62,24,${0.08 + Math.random() * 0.12})` : `rgba(246,170,116,${0.06 + Math.random() * 0.12})`; g.fillRect(Math.random() * 512, Math.random() * 512, 1 + Math.random() * 2, 1 + Math.random() * 2); }
     for (let x = 0; x < 512; x += 64) { g.fillStyle = 'rgba(255,190,150,0.035)'; g.fillRect(x, 0, 32, 512); }
     const t = texOf(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4, 4); return t; })();
-  const clay = new THREE.Mesh(new THREE.PlaneGeometry(63.6, 63.2), new THREE.MeshStandardMaterial({ map: clayTex, roughness: 0.95, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }));
+  const clay = new THREE.Mesh(new THREE.PlaneGeometry(63.6, 63.2), new THREE.MeshStandardMaterial({ map: clayTex, color: C('#ffb48a'), emissive: C('#c4581f'), emissiveIntensity: 0.45, emissiveMap: clayTex, roughness: 0.95, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }));
   clay.rotation.x = -Math.PI / 2; clay.position.set(31.8, 0.02, 0); clay.renderOrder = 1; clay.visible = false; clay.userData.noCast = true; scene.add(clay);
-  const cut = (() => { const [c, g] = cnv(128, 512); g.fillStyle = 'rgba(236,48,19,0.28)'; g.fillRect(0, 0, 128, 512); g.strokeStyle = 'rgba(236,48,19,0.95)'; g.lineWidth = 10; for (let y = -128; y < 640; y += 48) { g.beginPath(); g.moveTo(0, y); g.lineTo(128, y + 128); g.stroke(); }
-    const w = CTL * 0.09; const m = new THREE.Mesh(new THREE.PlaneGeometry(w, CTW * 2), new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, opacity: 0, depthWrite: false }));
-    m.rotation.x = -Math.PI / 2; m.position.set(-CTL + w / 2, 0.05, 0); m.renderOrder = 3; m.visible = false; scene.add(m); return m; })();
+  const cut = (() => { const k = 0.91, [c, g] = cnv(512, 512), X = x => (x + CTL) / CTL * 512, Y = z => (z + CTW) / (2 * CTW) * 512;
+    g.fillStyle = 'rgba(236,48,19,0.28)'; g.fillRect(0, 0, 512, 512); g.strokeStyle = 'rgba(236,48,19,0.95)'; g.lineWidth = 6; for (let d = -512; d < 1024; d += 28) { g.beginPath(); g.moveTo(d, 0); g.lineTo(d + 512, 512); g.stroke(); }
+    g.clearRect(X(-CTL * k), Y(-CTW * k), X(0) - X(-CTL * k), Y(CTW * k) - Y(-CTW * k));
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(CTL, CTW * 2), new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, opacity: 0, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2; m.position.set(-CTL / 2, 0.05, 0); m.renderOrder = 3; m.visible = false; scene.add(m); return m; })();
   const groundLabel = (top, sub, x, z, red) => { const [c, g] = cnv(1024, 200); g.textBaseline = 'alphabetic'; g.textAlign = 'center';
     g.font = FONT(800, 92); LS(g, '-2px'); g.lineJoin = 'round'; g.lineWidth = 16; g.strokeStyle = 'rgba(11,10,10,0.85)'; g.strokeText(top, 512, 100); g.fillStyle = CHALK; g.fillText(top, 512, 100);
     g.font = FONT(800, 40); LS(g, '8px'); g.lineWidth = 12; g.strokeText(sub, 512, 168); g.fillStyle = red ? '#ff7a5e' : 'rgba(243,242,242,0.85)'; g.fillText(sub, 512, 168);
     const m = new THREE.Mesh(new THREE.PlaneGeometry(30, 5.86), new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, opacity: 0, depthWrite: false }));
     m.rotation.x = -Math.PI / 2; m.position.set(x, 0.08, z); m.renderOrder = 7; m.visible = false; scene.add(m); return m; };
   const surfLab = [groundLabel('FEDERER', 'GRASS', -CTL / 2, -CTW - 9.1), groundLabel('NADAL', 'CLAY', CTL / 2, -CTW - 9.1, true)];
-  const sexLab = [groundLabel('SABALENKA', 'HER HALF ~9% SMALLER', -CTL / 2, -CTW - 9.1, true), groundLabel('KYRGIOS', 'FULL-SIZE HALF', CTL / 2, -CTW - 9.1)];
+  const sexLab = [groundLabel('SABALENKA', 'SHORTER & NARROWER', -CTL / 2, -CTW - 9.1, true), groundLabel('KYRGIOS', 'FULL-SIZE HALF', CTL / 2, -CTW - 9.1)];
 
   // ---------- fireworks: GPU shells (full time over the circuit, touchdown, goal)
   const FW_N = 8, FW_P = LOWQ ? 120 : 260;
@@ -1064,7 +1066,7 @@ export async function createArena(canvas, o = {}) {
     return { pos: [-15, 58 - 3 * u, 12], tgt: [-15, 0, 11], fov: 40 }; };
   const mixPose = (A, B, u) => { const L = (p, q) => p.map((v, j) => v + (q[j] - v) * u); return { pos: L(A.pos, B.pos), tgt: L(A.tgt, B.tgt), fov: A.fov + (B.fov - A.fov) * u }; };
   CAM.nfl = t => { const t0 = CH.XI[0] - 0.045; if (t < t0) return lin(nflK, t); const hp = huddlePose(Math.max(t, CH.XI[0])); return t >= CH.XI[0] ? hp : mixPose(lin(nflK, t0), hp, ss((t - t0) / (CH.XI[0] - t0))); };
-  const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.COL[0] + 0.08, pos: [0, 28, 40], tgt: [2, 9, 0], fov: 52 }, { t: CH.COL[1] - 0.02, pos: [7, 28, 37], tgt: [2, 9, 0], fov: 52 }, { t: CH.SURF[0], pos: [0, 96, 20], tgt: [0, 0, 0], fov: 44 }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
+  const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.COL[0] + 0.08, pos: [0, 28, 40], tgt: [2, 9, 0], fov: 52 }, { t: CH.COL[1] - 0.02, pos: [7, 28, 37], tgt: [2, 9, 0], fov: 52 }, { t: CH.SURF[0], pos: [0, 96, 20], tgt: [0, 0, 0], fov: 44 }, { t: CH.FANS[0], pos: [0, 96, 20], tgt: [0, 0, 0], fov: 44 }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
   CAM.tennis = t => lin(tenK, t);
   const rAt3 = (s, y) => { const [x, z] = raceX.racingAt(s); return [x, y, z]; };
   const chase = s => ({ pos: rAt3(s + 4.5, 3.1), tgt: rAt3(s + 30, 0.9), fov: 58 });
