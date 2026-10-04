@@ -311,7 +311,7 @@ const enginePromise = import('./engine/arena-engine.js')
   .then(m => m.createArena($('[data-canvas]'), { ...engineOpts(), onFrame: frame, onHover, onPick, onKick: () => { snd && snd.whoosh(0.8); }, onGoal: goal }))
   .then(e => {
     eng = e;
-    if (import.meta.env.DEV || params.has('debug')) { window.__mkJump = v => { frozen = true; e.jump(v); }; window.__mkSeg = (id, t) => { frozen = true; e.jump(G(id, t)); }; }
+    if (import.meta.env.DEV || params.has('debug')) { window.__mkJump = v => { frozen = true; e.jump(v); }; window.__mkSeg = (id, t) => { frozen = true; e.jump(G(id, t)); }; window.__mkDegrade = () => e.degrade(); window.__mkScene = () => e.scene; window.__mkPost = () => e.post; }
     onScroll();
   });
 enginePromise.catch(e => console.error('arena engine failed', e));

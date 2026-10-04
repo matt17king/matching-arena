@@ -64,7 +64,7 @@ export function createPost(THREE, renderer, scene, camera) {
   let ao = null; const base = new RenderPass(scene, camera); base.enabled = false;
   try {
     ao = new N8AOPass(scene, camera, 1, 1);
-    Object.assign(ao.configuration, { aoRadius: 3.2, distanceFalloff: 1.4, intensity: 2.6, color: new THREE.Color('#050404'), halfRes: true, depthAwareUpsampling: true, gammaCorrection: false, aoSamples: 16, denoiseSamples: 8, denoiseRadius: 12 });
+    Object.assign(ao.configuration, { aoRadius: 1.6, distanceFalloff: 0.5, intensity: 2.2, color: new THREE.Color('#050404'), halfRes: true, depthAwareUpsampling: true, gammaCorrection: false, aoSamples: 16, denoiseSamples: 8, denoiseRadius: 12 });
     composer.addPass(ao); composer.addPass(base);
   } catch (e) { console.warn('AO unavailable', e); ao = null; base.enabled = true; composer.addPass(base); }
   // guards against NaN/inf from HDR emitters before the blur chain
@@ -113,7 +113,7 @@ export function createPost(THREE, renderer, scene, camera) {
       shafts.lights.forEach((L, i) => { const s = lights[i]; if (s) L.set(s.x, s.y, s.s); else L.z = 0; });
       shafts.mComp.uniforms.uRays.value = rays; shafts.mComp.uniforms.uStreak.value = streak;
       lens.uniforms.uTilt.value = tilt; lens.uniforms.uFocus.value = focus; lens.uniforms.uVel.value.set(vel[0], vel[1]);
-      if (ao) ao.configuration.intensity = 2.6 * aoK;
+      if (ao) ao.configuration.intensity = 2.2 * aoK;
     },
     // quality ladder for slower GPUs: 1 = no AO, 2 = no shafts/streaks, 3 = lower resolution
     level: 0,

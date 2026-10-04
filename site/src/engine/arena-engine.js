@@ -1,6 +1,7 @@
 // Arena engine v12 (photoreal pass) — one night, five venues. The lines redraw themselves from sport to sport, and each stadium rises around them.
 import { drawScreen, drawTactics, placeholder, photo } from './broadcast-gfx.js';
 import { buildRaceDetail } from './race-detail.js';
+import { buildVenueDetail } from './venue-detail.js';
 import { N, P, ORDER, SPORTS, circuit, strandSet, strandShared, BB, TN } from './arena-sports.js';
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const ss = x => { x = clamp(x); return x * x * (3 - 2 * x); };
@@ -92,6 +93,7 @@ export async function createArena(canvas, o = {}) {
     redS: new THREE.MeshStandardMaterial({ color: C('#a42410'), roughness: 0.6 }),
     glass: new THREE.MeshStandardMaterial({ color: C('#a9b5ba'), roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.22, depthWrite: false }),
     void: new THREE.MeshBasicMaterial({ color: C('#0d0c0b') }),
+    roof: new THREE.MeshPhysicalMaterial({ color: C('#9aa1a6'), roughness: 0.35, metalness: 0.1, transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide }),
   };
   const edgeMat = new THREE.LineBasicMaterial({ color: C(CHALK), transparent: true, opacity: 0.02, depthWrite: false });
   const redMat = new THREE.MeshBasicMaterial({ color: C(RED).multiplyScalar(1.25) });
@@ -140,7 +142,7 @@ export async function createArena(canvas, o = {}) {
   const hemi = new THREE.HemisphereLight(0xd6dcff, 0x1a1210, 0.05); scene.add(hemi);
   const moon = new THREE.DirectionalLight(0x9fb2d6, 0.1); moon.position.set(-300, 400, 200); scene.add(moon);
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), triplanar(new THREE.MeshStandardMaterial({ color: C('#2b2826'), roughness: 0.95 }), texAsphalt, 0.12, 0));
-  ground.rotation.x = -Math.PI / 2; ground.position.y = -0.03; scene.add(ground);
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -0.4; // well below the playing surfaces so low-precision depth targets never z-fight scene.add(ground);
 
   // ---------- segments
   const SEGS = o.segs || []; const SEG = {}; SEGS.forEach(s => { SEG[s.id] = s; });
@@ -243,7 +245,7 @@ export async function createArena(canvas, o = {}) {
     fragmentShader: `uniform float uReveal; uniform vec3 uColor; uniform vec3 uTip; uniform vec3 uRed; uniform float uFogDen; uniform vec3 uFogCol; varying float vT; varying float vM; varying float vRed; varying float vD;
       varying vec3 vLW; ${NOISE}
       void main(){ if(vT>uReveal) discard; float tip=smoothstep(uReveal-0.025,uReveal,vT)*(1.0-step(0.999,uReveal));
-        vec3 c=mix(uColor,uRed,vRed)*(0.78+0.27*noise(vLW.xz*6.0)); c=mix(c,uTip,max(tip,sin(vM*3.14159)*0.85));
+        vec3 c=mix(uColor,uRed,vRed)*(0.78+0.27*noise(vLW.xz*6.0)); c=mix(c,uTip,max(tip,sin(vM*3.14159)*0.3));
         float f=1.0-exp(-uFogDen*uFogDen*vD*vD); c=mix(c,uFogCol,f*0.85); gl_FragColor=vec4(c,1.0);
         #include <colorspace_fragment>
       }`,
@@ -346,10 +348,19 @@ export async function createArena(canvas, o = {}) {
       br.push([zEnd + 0.4, yb]); extrude(br, G * 2, G);
     } else extrude(top, len, len / 2);
     const sp = (opt.sp || 0.56) * (LOWQ ? 1.5 : 1);
+    const vomX = []; if (tier >= 6 && len > 30) for (let vx = -len / 2 + 9; vx <= len / 2 - 9; vx += 15) if (!(opt.gap && Math.abs(vx) < 5)) vomX.push(vx);
+    const v0 = tier - 5, v1 = tier - 2;
     for (let i = 0; i < rows; i++) {
       const gp = opt.gap && rowY[i] < 5.2; let k = 0;
-      for (let sx = -len / 2 + 0.7; sx < len / 2 - 0.7; sx += sp, k++) { if (k % 16 === 15) continue; if (gp && Math.abs(sx) < 3) continue; seats.push(sx, rowY[i] + 0.005, rowZ[i] + 0.1, k, i); }
+      for (let sx = -len / 2 + 0.7; sx < len / 2 - 0.7; sx += sp, k++) { if (k % 16 === 15) continue; if (gp && Math.abs(sx) < 3) continue; if (i >= v0 && i <= v1 && vomX.some(v => Math.abs(sx - v) < 1.5)) continue; seats.push(sx, rowY[i] + 0.005, rowZ[i] + 0.1, k, i); }
     }
+    vomX.forEach(vx => {
+      const y0 = rowY[v0] - 0.45, z0 = rowZ[v0] - 0.4, z1 = rowZ[v1] + 0.4, hgt = 2.3;
+      box(g, 2.4, hgt, 0.05, vx, y0 + hgt / 2, z0, mats.void);
+      for (const sx of [-1.3, 1.3]) box(g, 0.22, hgt + 0.1, z1 - z0, vx + sx, y0 + hgt / 2, (z0 + z1) / 2, 'concreteL');
+      box(g, 2.82, 0.3, z1 - z0, vx, y0 + hgt + 0.15, (z0 + z1) / 2, 'concreteL');
+      box(g, 2.7, 0.04, 0.04, vx, y0 + hgt + 0.32, z0 - 0.02, redMat);
+    });
     const colGeo = new THREE.CylinderGeometry(0.32, 0.4, topY + 0.6, 14);
     for (let cx = -len / 2 + 6; cx <= len / 2 - 6; cx += 14) { const cm = new THREE.Mesh(colGeo, mats.steel); cm.position.set(cx, (topY + 0.6) / 2, zEnd + 0.8); g.add(cm); }
     cyl(g, 0.035, len, 'x', 0, 2.45, 0.18, 'steel', 8);
@@ -357,7 +368,7 @@ export async function createArena(canvas, o = {}) {
     if (opt.roof) {
       const rf = -7, rb = zEnd + 1.2, ry = topY + 8, arcP = [];
       for (let i = 0; i <= 28; i++) { const t = i / 28; arcP.push([rb + (rf - rb) * t, ry + Math.sin(t * Math.PI) * 1.3 + t * 1.4]); }
-      extrude(arcP.concat(arcP.slice().reverse().map(([a, b]) => [a, b - 0.32])), len + 2, (len + 2) / 2, 'dark');
+      const rm = extrude(arcP.concat(arcP.slice().reverse().map(([a, b]) => [a, b - 0.32])), len + 2, (len + 2) / 2, 'roof', false); rm.userData.noCast = true;
       const fy = ry + 1.4; cyl(g, 0.32, len + 2, 'x', 0, fy - 0.15, rf, 'steel', 14);
       const S = [];
       for (let cx = -len / 2 + 6; cx <= len / 2 - 6; cx += 14) {
@@ -366,7 +377,7 @@ export async function createArena(canvas, o = {}) {
         S.push([V3(cx, ry + 8, zEnd + 0.8), V3(cx, ry + 1.6, (rf + rb) / 2), 0.07]);
       }
       struts(g, S, mats.steel);
-      const lgm = new THREE.CylinderGeometry(0.22, 0.26, 0.18, 12);
+      const lgm = new THREE.CircleGeometry(0.26, 12); lgm.rotateX(Math.PI / 2);
       for (let x = -len / 2 + 2; x < len / 2; x += 3.2) { const lm = new THREE.Mesh(lgm, warmMat); lm.position.set(x, fy - 0.55, rf + 0.35); g.add(lm); }
     }
     const n = seats.length / 5, im = new THREE.InstancedMesh(seatGeoBase, seatMat, n);
@@ -448,7 +459,7 @@ export async function createArena(canvas, o = {}) {
 
   // ===== 01 FOOTBALL (night stadium, scale 1)
   const vF = venue('football', 1);
-  [{ len: 116, tier: 15, pos: [0, -43], ry: Math.PI, roof: true }, { len: 76, tier: 13, pos: [61, 0], ry: Math.PI / 2 }, { len: 76, tier: 13, pos: [-61, 0], ry: -Math.PI / 2 }, { len: 116, tier: 15, pos: [0, 43], ry: 0, gap: true }].forEach(d => addStand(vF, d));
+  [{ len: 116, tier: 15, pos: [0, -43], ry: Math.PI, roof: true }, { len: 76, tier: 13, pos: [61, 0], ry: Math.PI / 2, roof: true }, { len: 76, tier: 13, pos: [-61, 0], ry: -Math.PI / 2, roof: true }, { len: 116, tier: 15, pos: [0, 43], ry: 0, gap: true, roof: true }].forEach(d => addStand(vF, d));
   {
     const goals = new THREE.Group(); vF.root.add(goals);
     const netMat = new THREE.LineBasicMaterial({ color: C(CHALK), transparent: true, opacity: 0.28 });
@@ -531,10 +542,11 @@ export async function createArena(canvas, o = {}) {
     g.fillStyle = CHALK; g.font = FONT(800, 3.4 * S); LS(g, `${-0.2 * S}px`); g.fillText('MK', X(0), Y(0.15));
     LS(g, '0px'); g.font = FONT(800, 2.6 * S);
     for (const sx of [-1, 1]) { g.save(); g.translate(X(sx * 50.3), Y(0)); g.rotate(sx * Math.PI / 2); g.fillStyle = 'rgba(243,242,242,0.55)'; g.fillText('MATT KING', 0, 0); g.restore(); }
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(110, 55), new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, depthWrite: false, opacity: 0 }));
-    m.rotation.x = -Math.PI / 2; m.position.y = 0.025; m.renderOrder = 1; vN.root.add(m); return m;
+    // alpha-tested cutout rather than a blended overlay: the AO pass reads it as part of the turf
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(110, 55), new THREE.MeshBasicMaterial({ map: texOf(c), alphaTest: 0.5, polygonOffset: true, polygonOffsetFactor: -2 }));
+    m.rotation.x = -Math.PI / 2; m.position.y = 0.025; m.renderOrder = 1; m.visible = false; vN.root.add(m); return m;
   })();
-  vN.fix.push({ kind: 'fade', t0: 0.55, dur: 0.15, set: f => { nflDecal.material.opacity = f; } });
+  vN.fix.push({ kind: 'fade', t0: 0.55, dur: 0.15, set: f => { nflDecal.visible = f > 0.5; } });
   {
     [{ len: 128, tier: 16, pos: [0, -31], ry: Math.PI, roof: true, sp: 0.7 }, { len: 62, tier: 11, pos: [62, 0], ry: Math.PI / 2, sp: 0.7 }, { len: 62, tier: 11, pos: [-62, 0], ry: -Math.PI / 2, sp: 0.7 }, { len: 128, tier: 16, pos: [0, 31], ry: 0, roof: true, sp: 0.7 }].forEach(d => addStand(vN, d));
     for (const sx of [-1, 1]) {
@@ -569,6 +581,7 @@ export async function createArena(canvas, o = {}) {
     [[-21, -13], [21, -13], [21, 13], [-21, 13]].forEach(([x, z], i) => mast(vT, x, z, 15, i / 4, 4, 3, 0.5, 30));
     addCones(vT, 0.14); finishVenue(vT, 0.5);
   }
+  const venueX = buildVenueDetail({ THREE, vF, vB, vN, vT, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, mats, glowTex, redMat, makeBoard, seatGeoBase });
 
   // ===== 05 RACE (night circuit, real metres)
   const vR = venue('race', 1);
@@ -960,7 +973,7 @@ export async function createArena(canvas, o = {}) {
     F.forEach(([px, pz], i) => { const cx = -19 + (px + 19) * 0.3, cz = pz * 0.3, k = { pos: [cx, 58, 3 + cz], tgt: [cx, 0, cz + 1.5], fov: 40 }; nflK.push({ t: CH.XI[0] + i * xs + 0.001, ...k }, { t: CH.XI[0] + (i + 1) * xs - 0.001, ...k }); });
     nflK.push({ t: 1, pos: [-19, 70, 3], tgt: [-19, 0, 0], fov: 40 }); }
   CAM.nfl = t => lin(nflK, t);
-  const tenK = [{ t: 0, pos: [0, 30, 78], tgt: [0, 8, 0], fov: 50 }, { t: CH.COL[0] + 0.08, pos: [0, 34, 72], tgt: [2, 10, 0], fov: 50 }, { t: CH.COL[1] - 0.02, pos: [8, 34, 66], tgt: [2, 10, 0], fov: 50 }, { t: CH.FANS[0] + 0.02, pos: [0, 82, 46], tgt: [0, 0, 0], fov: 44 }, { t: 1, pos: [0, 74, 40], tgt: [0, 0, 0], fov: 44 }];
+  const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.COL[0] + 0.08, pos: [0, 28, 40], tgt: [2, 9, 0], fov: 52 }, { t: CH.COL[1] - 0.02, pos: [7, 28, 37], tgt: [2, 9, 0], fov: 52 }, { t: CH.FANS[0] + 0.02, pos: [0, 96, 20], tgt: [0, 0, 0], fov: 44 }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
   CAM.tennis = t => lin(tenK, t);
   const rAt3 = (s, y) => { const [x, z] = raceX.racingAt(s); return [x, y, z]; };
   const chase = s => ({ pos: rAt3(s + 4.5, 3.1), tgt: rAt3(s + 30, 0.9), fov: 58 });
@@ -1060,7 +1073,7 @@ export async function createArena(canvas, o = {}) {
     surfU.uLit.value = lit; surfU.uLR.value = lerp(sa.lr, sb.lr, w); surfU.uAmb.value = 0.015 + (xi ? 0.07 * Math.sin(xt * Math.PI) : 0);
     trackU.uLit.value = lit;
     { const on = xi && w > 0.001 && w < 0.999, Rr = w * surfU.uRmax.value; curtain.visible = on;
-      if (on) { curtain.scale.set(Rr, 6 + Math.max(sa.ext, sb.ext) * 0.28, Rr / 1.3); curtainU.uOp.value = 0.55 * Math.sin(w * Math.PI); curtainU.uTime.value = time; } }
+      if (on) { curtain.scale.set(Rr, 6 + Math.max(sa.ext, sb.ext) * 0.28, Rr / 1.3); curtainU.uOp.value = 0.32 * Math.sin(w * Math.PI); curtainU.uTime.value = time; } }
     const fd = lerp(sa.fog, sb.fog, xi ? R(xt, 0.15, 0.85) : 0); scene.fog.density = fd; fogU.uFogDen.value = fd;
     const mainV = venues[xi && xt > 0.5 ? B : A]; placeSpots(mainV);
     spots.forEach((s, i) => { const k = mainV.keys[i]; s.intensity = k ? (k.lamp ? k.lamp.on : lit) * mainV.spotK : 0; });
@@ -1068,7 +1081,7 @@ export async function createArena(canvas, o = {}) {
     // lines
     setPair(ORDER[A], ORDER[B]);
     lineU.uMorph.value = xi ? clamp((xt - 0.14) / 0.62) : 0;
-    lineU.uLift.value = xi ? 2 + Math.max(sa.ext, sb.ext) * 0.05 : 0;
+    lineU.uLift.value = xi ? 1 + Math.max(sa.ext, sb.ext) * 0.022 : 0;
     lineU.uReveal.value = hero ? R(h, 0.38, 0.52) * 1.001 : 1.001;
     const red = hero ? 1 - R(h, 0.645, 0.7) : xi ? R(xt, 0.1, 0.2) * (1 - R(xt, 0.8, 0.95)) : 0;
     lineU.uColor.value.copy(LWHITE).lerp(LRED, red);
@@ -1142,7 +1155,8 @@ export async function createArena(canvas, o = {}) {
       const pf = rc ? clamp((t - CH.PIT[0]) / (CH.PIT[1] - CH.PIT[0])) * 3 : -1, pk = Math.min(2, Math.floor(pf)), pon = rc ? R(t, CH.PIT[0] - 0.02, CH.PIT[0]) : 0;
       kitLED.forEach((m, k) => { m.color.setScalar(0.18 + (k === pk ? pon * 0.5 : 0)); });
       if (raceX && vR.root.visible) raceX.update({ rc, t, LAP: CH.LAP, lapS, time }); }
-    const bloomK = 0.42 + 0.25 * lit + 0.2 * spot + (xi ? 0.25 * Math.sin(xt * Math.PI) : 0);
+    venueX.update({ camera, fdX: fdLine.position.x, driveOn: fdLine.visible, time });
+    const bloomK = 0.42 + 0.25 * lit + 0.2 * spot + (xi ? 0.08 * Math.sin(xt * Math.PI) : 0);
     // fireworks: full time over the circuit, a salvo for the touchdown and for a goal
     fwU.uTime.value = time;
     if (id === 'ft' && t > 0.2 && time > fwNext) { fwNext = time + 0.25 + Math.random() * 0.4; const e = SPORTS.race.ext; launch((Math.random() - 0.5) * e * 0.9, 45 + Math.random() * 55, (Math.random() - 0.5) * e * 0.6, 60 + Math.random() * 30); }
@@ -1179,8 +1193,7 @@ export async function createArena(canvas, o = {}) {
     if (Math.abs(look.yaw) + Math.abs(look.pitch) > 0.0005) { const dir = _v.clone().sub(camera.position); dir.applyAxisAngle(_u.set(0, 1, 0), -look.yaw); const rt = dir.clone().cross(_u).normalize(); dir.applyAxisAngle(rt, -look.pitch); _v.copy(camera.position).add(dir); }
     camera.lookAt(_v);
     const asp = W / H; let vf = ps.fov; if (asp < 1.25) { const hf = 2 * Math.atan(Math.tan(vf * Math.PI / 360) * 1.6); vf = Math.min(92, 2 * Math.atan(Math.tan(hf / 2) / asp) * 180 / Math.PI); }
-    const roll = xi ? 0.07 * Math.sin(xt * Math.PI * 2) * Math.sin(xt * Math.PI) : 0; if (roll) camera.rotateZ(roll);
-    camera.fov = vf; camera.near = dist > 120 ? 2 : dist > 60 ? 0.5 : 0.1; camera.updateProjectionMatrix();
+    camera.fov = vf; camera.near = dist > 120 ? 3 : dist > 60 ? 1.2 : 0.35; camera.far = 3200; camera.updateProjectionMatrix();
     if (post) {
       camera.updateMatrixWorld();
       // screen-space motion of the look point since last frame → directional blur
@@ -1188,16 +1201,16 @@ export async function createArena(canvas, o = {}) {
       _c0.copy(_v).applyMatrix4(_vp); _c1.copy(_v).applyMatrix4(prevVP); prevVP.copy(_vp);
       let vx = (_c0.x - _c1.x) * 0.5, vy = (_c0.y - _c1.y) * 0.5; const vl = Math.hypot(vx, vy), vmax = 0.045;
       if (!isFinite(vl) || dt === 0) { vx = vy = 0; } else if (vl > vmax) { vx *= vmax / vl; vy *= vmax / vl; }
-      const mb = xi ? 0.9 : hero && h > 0.38 && h < 0.8 ? 0.6 : 0.35;
+      const mb = xi ? 0.5 : hero && h > 0.38 && h < 0.8 ? 0.45 : 0.3;
       // floodlight shafts: brightest on-screen lamps of the live venue
       const L = []; venues[xi && xt > 0.5 ? B : A].lamps.forEach(lp => { if (lp.on < 0.05) return; lp.halo.getWorldPosition(_w2); _c0.copy(_w2).project(camera);
         if (_c0.z > 1 || _c0.z < -1) return; const ex = Math.max(Math.abs(_c0.x), Math.abs(_c0.y)); if (ex > 1.25) return;
         L.push({ x: _c0.x * 0.5 + 0.5, y: _c0.y * 0.5 + 0.5, s: lp.on * (1 - ss((ex - 0.85) / 0.4)) }); });
       L.sort((a, b) => b.s - a.s);
-      const tilt = xi ? Math.pow(Math.sin(xt * Math.PI), 1.4) : hero ? 0.75 * R(h, 0.44, 0.52) * (1 - R(h, 0.68, 0.76)) : id === 'ft' ? 0.6 * R(t, 0.25, 0.6) : 0;
-      const bars = xi ? R(xt, 0.02, 0.14) * (1 - R(xt, 0.86, 0.98)) : id === 'ft' ? 0 : 0;
+      const tilt = xi ? 0.75 * Math.pow(Math.sin(xt * Math.PI), 1.6) : hero ? 0.75 * R(h, 0.44, 0.52) * (1 - R(h, 0.68, 0.76)) : id === 'ft' ? 0.6 * R(t, 0.25, 0.6) : 0;
+      const bars = xi ? 0.65 * R(xt, 0.04, 0.18) * (1 - R(xt, 0.82, 0.96)) : 0;
       const flash = id === 'race' ? 0.3 * Math.max(0, 1 - Math.abs(t - 0.067) / 0.006) : 0;
-      post.set({ time, bloomK, lights: L.slice(0, 6), rays: 0.32 + 0.18 * lit, streak: 0.28 + 0.14 * lit, tilt, focus: 0.5, vel: [vx * mb, vy * mb], bars, flash });
+      post.set({ time, bloomK, lights: L.slice(0, 6), rays: 0.22 + 0.14 * lit, streak: 0.16 + 0.1 * lit, tilt, focus: 0.5, vel: [vx * mb, vy * mb], bars, flash });
     }
   }
 
@@ -1220,7 +1233,7 @@ export async function createArena(canvas, o = {}) {
   }
   if (!LOWQ) {
     [0, 2].forEach(i => { const sp = spots[i]; sp.castShadow = true; sp.shadow.mapSize.set(2048, 2048); sp.shadow.bias = -0.0018; sp.shadow.normalBias = 0.12; sp.shadow.radius = 2.5; sp.shadow.focus = 1.25; sp.shadow.camera.near = 20; sp.shadow.camera.far = 520; });
-    venues.forEach(Vn => Vn.root.traverse(m => { if (!m.isMesh || !m.material || !m.material.isMeshStandardMaterial) return; m.castShadow = !(m.isInstancedMesh && m.material === seatMat); m.receiveShadow = true; }));
+    venues.forEach(Vn => Vn.root.traverse(m => { if (!m.isMesh || !m.material || !m.material.isMeshStandardMaterial) return; m.castShadow = !(m.isInstancedMesh && m.material === seatMat) && !m.userData.noCast; m.receiveShadow = true; }));
     ground.receiveShadow = true; tunnel.traverse(m => { if (m.isMesh) m.receiveShadow = true; });
   }
   scene.traverse(m => { if (!m.isMesh || !m.material || !m.material.isMeshStandardMaterial) return; const mm = m.material; mm.envMapIntensity = mm.userData.env != null ? mm.userData.env : mm === mats.steel ? 0.6 : mm === mats.glass ? 0.6 : mm === seatMat ? 0.16 : mm === surfMat ? 0.22 : 0.1; });
@@ -1234,6 +1247,9 @@ export async function createArena(canvas, o = {}) {
     setHighlight(i) { highlight = i; },
     // skip simulation + rendering while the page fully covers the canvas
     setPaused(v) { paused = !!v; },
+    degrade() { return post ? post.degrade() : false; },
+    get scene() { return scene; },
+    get post() { return post; },
     get progress() { return p; },
     dispose() { cancelAnimationFrame(raf); canvas.removeEventListener('pointerdown', onDown); window.removeEventListener('pointermove', onMove2); window.removeEventListener('pointerup', onUp); window.removeEventListener('resize', resize); window.removeEventListener('pointermove', onMove); renderer.dispose(); },
   };
