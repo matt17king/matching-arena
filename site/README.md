@@ -19,6 +19,7 @@ npm run preview  # serve the build
 | `src/content.js` | Everything editable: career drive, strengths XI, rights, results, contact seats, LED messages, scroll lengths |
 | `src/main.js` | Scroll controller: maps scroll to match progress, scrubs overlays, runs the clock, menu, sound and intro |
 | `src/engine/arena-engine.js` | The three.js world (venues, line morphs, camera, post-processing), carried over from the design |
+| `src/engine/post.js` | Post stack: N8AO contact shadows, floodlight shafts + anamorphic streaks, bloom, tilt-shift + motion blur, SMAA, broadcast grade with letterbox. Steps itself down on slow GPUs |
 | `src/engine/arena-sports.js` | Sport markings and circuit geometry |
 | `src/engine/kickoff.js` | Dot-matrix world map intro |
 | `src/engine/broadcast-gfx.js` | Canvas graphics for the in-world screens |
@@ -29,6 +30,7 @@ npm run preview  # serve the build
 ## Notes
 
 - three.js, topojson and the world map now come from npm and ship in the bundle, so nothing loads from esm.sh or jsDelivr at runtime. Only the Archivo font comes from Google Fonts.
+- Debug: `?debug` exposes `__mkSeg(id, t)` to jump to an exact moment; `?nodegrade` stops the post stack stepping down on slow GPUs (useful for screenshots).
 - Review shortcuts: `?start=walkout|basketball|nfl|tennis|motorsport` skips the intro and jumps to a venue. `?quality=high|low` overrides the automatic quality pick. (These replace the prototype's Tweaks panel.)
 - Photos: put files in `public/photos/` and set the paths in `PHOTOS` in `src/content.js`. Until then the walk-out standee shows a labelled placeholder.
-- `public/models/matt.glb` is 19 MB and loads after the scene is up. Compress it (e.g. `gltf-transform optimize`) before launch.
+- `public/models/matt.glb` is meshopt + WebP compressed (about 0.9 MB, from 19.8 MB) and loads after the scene is up. Re-run `gltf-transform optimize` with `--compress meshopt --texture-compress webp` if you replace it.

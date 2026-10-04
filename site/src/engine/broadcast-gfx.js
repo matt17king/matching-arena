@@ -55,11 +55,11 @@ export function drawScreen(g, W, H, beat, b, t, d) {
   g.fillStyle = 'rgba(243,242,242,0.12)'; g.fillRect(M, 70, W - M * 2, 2);
   g.fillStyle = RED; g.fillRect(M, 34, 18, 18);
   txt(g, 'MATT KING', M + 30, 52, { size: 22, ls: '5px' });
-  txt(g, typeof beat === 'number' ? `${String(beat + 1).padStart(2, '0')} / 06` : 'LIVE', W - M, 52, { size: 22, ls: '5px', align: 'right', color: 'rgba(243,242,242,0.6)' });
+  txt(g, typeof beat === 'number' ? `${String(beat + 1).padStart(2, '0')} / 07` : 'LIVE', W - M, 52, { size: 22, ls: '5px', align: 'right', color: 'rgba(243,242,242,0.6)' });
   const k = clamp(b / 0.55);
   if (beat === 0) {
     tag(g, 'PLAYER PROFILE', M, 112, ss(k * 3));
-    rise(g, ['MATT KING'], M, 300, 150, 0, k);
+    rise(g, ['MATT KING'], M, 300, 128, 0, k);
     txt(g, 'GLOBAL MARKETING MANAGER, FOOTBALL', M + 4, 360, { size: 30, ls: '3px', a: ss((k - 0.3) * 3) });
     const fields = [['CLUB', 'DAZN'], ['BASE', 'LONDON'], ['REPORTS TO', 'SVP MARKETING']];
     fields.forEach(([a, v], i) => {
@@ -70,10 +70,18 @@ export function drawScreen(g, W, H, beat, b, t, d) {
     });
     const u = eo((k - 0.15) / 0.6), px = W - M - 330, py = 96, pw = 330, ph = 404;
     g.save(); g.globalAlpha = u; g.beginPath(); g.rect(px, py + ph * (1 - u), pw, ph * u); g.clip();
-    if (d.photos && d.photos.portrait) photo(g, d.photos.portrait, px, py, pw, ph); else placeholder(g, px, py, pw, ph, ['PORTRAIT', 'photos/portrait.jpg']);
+    if (d.photos && d.photos.portrait) photo(g, d.photos.portrait, px, py, pw, ph);
+    else {
+      g.fillStyle = '#161414'; g.fillRect(px, py, pw, ph); g.fillStyle = RED; g.fillRect(px, py, pw, 10);
+      let ms = 230; g.font = F(800, ms); LS(g, '-12px'); while (g.measureText('MK').width > pw - 50 && ms > 120) { ms -= 10; g.font = F(800, ms); }
+      g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = 'rgba(243,242,242,0.92)'; g.fillText('MK', px + pw / 2, py + 290);
+      txt(g, 'NO. 17', px + pw - 30, py + 52, { size: 22, ls: '4px', align: 'right', color: RED });
+      g.fillStyle = 'rgba(243,242,242,0.18)'; g.fillRect(px + 30, py + 330, pw - 60, 2);
+      txt(g, '50–100 PEOPLE', px + 30, py + 368, { size: 20, ls: '4px' }); txt(g, '8 TEAMS · 7 MARKETS', px + 30, py + 392, { size: 16, ls: '4px', color: 'rgba(243,242,242,0.6)' });
+    }
     g.restore();
-    g.save(); g.globalAlpha = u; g.font = F(800, 170); LS(g, '-8px'); g.textAlign = 'right'; g.textBaseline = 'alphabetic'; g.fillStyle = RED; g.fillText('17', px - 14, py + ph); g.restore();
-    txt(g, 'SQUAD NO.', px - 18, py + ph - 150, { size: 16, ls: '4px', align: 'right', color: 'rgba(243,242,242,0.6)', a: u });
+    if (d.photos && d.photos.portrait) { g.save(); g.globalAlpha = u; g.font = F(800, 170); LS(g, '-8px'); g.textAlign = 'right'; g.textBaseline = 'alphabetic'; g.fillStyle = RED; g.fillText('17', px - 14, py + ph); g.restore();
+      txt(g, 'SQUAD NO.', px - 18, py + ph - 150, { size: 16, ls: '4px', align: 'right', color: 'rgba(243,242,242,0.6)', a: u }); }
   } else if (beat >= 1 && beat <= 3) {
     const P = [
       { n: '01', h: ['CONCEPT FIRST,', 'CHANNEL SECOND.'], s: 'One season idea, adapted by every team.' },
@@ -117,13 +125,36 @@ export function drawScreen(g, W, H, beat, b, t, d) {
     tag(g, 'THE WORK', M, 112, ss(k * 3));
     const iw = 600, ih = 380, ix = M, iy = 162, u = eo((k - 0.05) / 0.5);
     g.save(); g.beginPath(); g.rect(ix, iy, iw * u, ih); g.clip();
-    if (d.photos && d.photos.work) photo(g, d.photos.work, ix, iy, iw, ih); else placeholder(g, ix, iy, iw, ih, ['CAMPAIGN STILL', 'photos/crewe.jpg']);
+    if (d.photos && d.photos.work) photo(g, d.photos.work, ix, iy, iw, ih);
+    else {
+      g.fillStyle = '#161414'; g.fillRect(ix, iy, iw, ih);
+      txt(g, 'FAN ENGAGEMENT · INDEXED', ix + 28, iy + 44, { size: 16, ls: '4px', color: 'rgba(243,242,242,0.6)' });
+      const base = iy + ih - 56, top = iy + 80, bw = 170, gu = eo((k - 0.2) / 0.6);
+      [[100, 'BEFORE', 'rgba(243,242,242,0.35)'], [550, 'WITH 80 FOUR', RED]].forEach(([v, lab, col], i) => {
+        const x = ix + 70 + i * 270, hgt = (base - top) * (v / 550) * (i ? gu : Math.min(1, gu * 4));
+        g.fillStyle = col; g.fillRect(x, base - hgt, bw, hgt);
+        txt(g, String(Math.round(v * (i ? gu : 1))), x, base - hgt - 14, { size: 34 });
+        txt(g, lab, x, base + 34, { size: 16, ls: '4px', color: 'rgba(243,242,242,0.7)' });
+      });
+      g.fillStyle = 'rgba(243,242,242,0.25)'; g.fillRect(ix + 40, base, iw - 80, 2);
+    }
     g.restore();
     const X0 = ix + iw + 48;
     txt(g, 'CREWE ALEXANDRA FC · 80 FOUR', X0, 200, { size: 20, ls: '4px', color: 'rgba(243,242,242,0.6)', a: ss((k - 0.2) * 3) });
     rise(g, ['450%+', 'FAN', 'ENGAGEMENT.'], X0, 300, 86, 84, clamp((k - 0.15) / 0.85));
     txt(g, 'Won as a client at 80 Four, then grown together.', X0, 514, { w: 600, size: 22, color: 'rgba(243,242,242,0.85)', a: ss((k - 0.5) * 3) });
   } else if (beat === 5) {
+    const tw = tag(g, 'THE ROSTER', M, 112, ss(k * 3));
+    txt(g, 'TALENT PARTNERSHIPS', M + tw + 18, 132, { size: 20, ls: '5px', base: 'middle', color: 'rgba(243,242,242,0.6)', a: ss(k * 3) });
+    const T = d.talent || [], cols = 3, cw = (W - M * 2) / cols, rh = 118;
+    T.slice(0, 9).forEach(([n, w], i) => {
+      const u = eo((k - 0.1 - i * 0.06) / 0.35), x = M + (i % cols) * cw, y = 190 + Math.floor(i / cols) * rh;
+      g.globalAlpha = u; g.fillStyle = 'rgba(243,242,242,0.18)'; g.fillRect(x, y, cw - 28, 2); g.fillStyle = RED; g.fillRect(x, y, 40 * u, 2); g.globalAlpha = 1;
+      let fs = 44; g.font = F(800, fs); LS(g, '-1px'); while (g.measureText(n.toUpperCase()).width > cw - 40 && fs > 24) { fs -= 2; g.font = F(800, fs); }
+      g.save(); g.beginPath(); g.rect(x, y + 6, cw - 28, 70); g.clip(); txt(g, n.toUpperCase(), x, y + 58 + (1 - u) * 60, { size: fs, ls: '-1px' }); g.restore();
+      txt(g, w.toUpperCase(), x, y + 92, { size: 16, ls: '4px', color: 'rgba(243,242,242,0.55)', a: u });
+    });
+  } else if (beat === 6) {
     tag(g, 'THE ROUTE', M, 112, ss(k * 3));
     rise(g, ['FROM GYM KING', 'TO GLOBAL.'], M, 268, 92, 92, k);
     const R = d.route, x0 = M + 10, x1 = W - M - 10, y = 450, lu = eo((k - 0.25) / 0.6);

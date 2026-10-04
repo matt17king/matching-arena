@@ -26,7 +26,7 @@
   <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px clamp(20px,3vw,44px) 16px">
     <div style="display:flex;align-items:center;gap:12px">
       <div style="width:12px;height:12px;background:var(--color-accent)"></div>
-      <div style="font-weight:800;font-size:13px;letter-spacing:.16em">MATT KING</div>
+      <div style="font-weight:800;font-size:13px;letter-spacing:.16em;white-space:nowrap">MATT KING</div>
       <div data-hide-m style="font-size:12px;letter-spacing:.04em;color:rgba(243,242,242,.62)">Global sports marketing</div>
     </div>
     <div style="display:flex;align-items:center;gap:22px">
@@ -108,7 +108,7 @@
 
 <!-- NFL · the drive -->
 <div data-m="sheet" data-sk="nfl:.02,.05,.5,.53" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);top:92px;z-index:3;pointer-events:none;width:min(420px,calc(100vw - 40px));background:rgba(11,10,10,.88);padding:12px 0 0">
-  <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:.16em;margin-bottom:10px;padding:0 16px"><span style="color:var(--color-accent)">THE DRIVE — OWN 20 TO THE END ZONE</span><span data-dn style="color:rgba(243,242,242,.6)">01 / 06</span></div>
+  <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:.16em;margin-bottom:10px;padding:0 16px"><span style="color:var(--color-accent)">THE DRIVE — DRAFT TO END ZONE</span><span data-dn style="color:rgba(243,242,242,.6)">01 / 07</span></div>
   <div data-list="drive" style="display:grid;border-top:2px solid var(--color-accent)"></div>
 </div>
 
@@ -198,7 +198,7 @@
       <div data-sk="bball:0,.04,.46,.5" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">Q1</span><span>THE JUMBOTRON</span></div>
       <div data-sk="bball:.5,.54,.96,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">TIMEOUT</span><span>THE PLAYBOOK</span></div>
       <div data-sk="x2:.04,.1,.92,.98" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">→</span><span>THE LINES REDRAW</span></div>
-      <div data-sk="nfl:0,.03,.5,.53" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">DRIVE</span><span>OWN 20 TO THE END ZONE</span></div>
+      <div data-sk="nfl:0,.03,.5,.53" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">DRIVE</span><span>DRAFT TO END ZONE</span></div>
       <div data-sk="nfl:.53,.56,.97,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">HUDDLE</span><span>THE STARTING XI</span></div>
       <div data-sk="x3:.04,.1,.92,.98" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">→</span><span>THE LINES REDRAW</span></div>
       <div data-sk="tennis:0,.04,.48,.52" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">15–0</span><span>DORMANT DEMAND</span></div>
@@ -257,7 +257,22 @@
     <div data-list="trophies" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));border-top:2px solid var(--color-bg);border-left:2px solid rgba(243,242,242,.22)"></div>
   </section>
 
-  <section id="press-box" data-post-sec="1" style="padding:0">
+  <section id="dressing-room" data-post-sec="1" style="padding:0 0 120px">
+    <div style="border-top:2px solid rgba(243,242,242,.3);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12px;font-weight:800;letter-spacing:.16em;padding-top:14px"><div style="display:flex;gap:14px"><span style="color:var(--color-accent)">90+2'</span><span>THE DRESSING ROOM</span></div><span style="color:rgba(243,242,242,.55)">WHO I'VE PLAYED WITH</span></div>
+    <h2 style="margin:clamp(32px,6vh,64px) 0 clamp(32px,5vh,56px);font-weight:800;text-transform:uppercase;font-size:clamp(40px,6vw,104px);line-height:.86;letter-spacing:-.045em;max-width:14ch">Talent, clubs <span style="color:var(--color-accent)">&amp; brands.</span></h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:0 clamp(20px,3vw,44px)">
+      <div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:rgba(243,242,242,.55);padding-bottom:10px;border-bottom:2px solid var(--color-bg)">TALENT PARTNERSHIPS</div>
+        <div data-list="talent"></div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:rgba(243,242,242,.55);padding-bottom:10px;border-bottom:2px solid var(--color-bg)">CLUBS &amp; BRANDS</div>
+        <div data-list="brands" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-left:2px solid rgba(243,242,242,.22)"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="press-box" data-post-sec="2" style="padding:0">
     <div style="border-top:2px solid rgba(243,242,242,.3);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12px;font-weight:800;letter-spacing:.16em;padding-top:14px"><div style="display:flex;gap:14px"><span style="color:var(--color-accent)">90+3'</span><span>THE PRESS BOX</span></div><span style="color:rgba(243,242,242,.55)">PICK YOUR SEAT</span></div>
     <h2 style="margin:clamp(32px,6vh,64px) 0 clamp(32px,5vh,56px);font-weight:800;text-transform:uppercase;font-size:clamp(40px,6vw,104px);line-height:.86;letter-spacing:-.045em;max-width:16ch">What brings you here?</h2>
     <div data-list="seats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));border-top:2px solid var(--color-bg);border-left:2px solid rgba(243,242,242,.22)"></div>

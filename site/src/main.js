@@ -1,7 +1,7 @@
 // Arena v12 — scroll controller. Maps scroll to match progress, drives the 3D engine, scrubs the DOM overlays.
 import './styles/modernist.css';
 import './styles/site.css';
-import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, TROPHIES, SEATS, STAT, SCREEN_DATA, MESSAGES, LED_PLAN } from './content.js';
+import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, TROPHIES, TALENT, BRANDS, SEATS, STAT, SCREEN_DATA, MESSAGES, LED_PLAN } from './content.js';
 
 const BASE = import.meta.env.BASE_URL;
 const KBG = '#0b0a0a', ZONE_ON = '#ec3013', ZONE_OFF = 'rgba(243,242,242,.3)';
@@ -24,6 +24,7 @@ const GR = (id, r) => [G(id, r[0]), G(id, r[1])];
 const segAt = p => { for (const s of segList) if (p <= s.b) return s; return segList[segList.length - 1]; };
 
 const root = document.getElementById('root');
+root.querySelector('[data-spacer]').style.height = SEGS.reduce((a, [, w]) => a + w, 0) + 'vh';
 const $ = sel => root.querySelector(sel);
 const $$ = sel => [...root.querySelectorAll(sel)];
 const list = (name, html) => { const el = $(`[data-list="${name}"]`); el.insertAdjacentHTML('beforeend', html); return el; };
@@ -52,12 +53,21 @@ list('kit', KIT.map((k, i) => `<div data-kc="${i}" style="grid-area:1/1;opacity:
   </div>
   <div style="font-size:14px;line-height:1.45;color:rgba(243,242,242,.85);text-wrap:pretty">${esc(k.detail)}</div>
 </div>`).join(''));
-list('trophies', TROPHIES.map(([v, what, where], i) => `<div class="trophy" style="display:flex;flex-direction:column;justify-content:space-between;gap:28px;min-height:220px;padding:18px 18px 20px;border-right:2px solid rgba(243,242,242,.22);border-bottom:2px solid rgba(243,242,242,.22)">
+list('trophies', TROPHIES.map(([v, what, where], i) => `<div data-rv class="trophy" style="display:flex;flex-direction:column;justify-content:space-between;gap:28px;min-height:220px;padding:18px 18px 20px;border-right:2px solid rgba(243,242,242,.22);border-bottom:2px solid rgba(243,242,242,.22)">
   <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:800;letter-spacing:.14em"><span style="color:var(--color-accent)">${pad2(i + 1)}</span><span style="color:rgba(243,242,242,.55)">${esc(where)}</span></div>
   <div>
-    <div style="font-weight:800;font-size:clamp(52px,5.4vw,92px);line-height:.85;letter-spacing:-.05em;font-variant-numeric:tabular-nums">${esc(v)}</div>
+    <div data-count="${esc(v)}" style="font-weight:800;font-size:clamp(48px,4.6vw,80px);line-height:.85;letter-spacing:-.05em;font-variant-numeric:tabular-nums">${esc(v)}</div>
     <div style="margin-top:12px;font-size:15px;font-weight:600;line-height:1.3;color:rgba(243,242,242,.88);text-wrap:pretty">${esc(what)}</div>
   </div>
+</div>`).join(''));
+list('talent', TALENT.map(([n, w], i) => `<div data-rv style="display:grid;grid-template-columns:44px 1fr auto;align-items:baseline;gap:12px;padding:14px 0;border-bottom:1px solid rgba(243,242,242,.14)">
+  <span style="font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--color-accent)">${pad2(i + 1)}</span>
+  <span style="font-weight:800;text-transform:uppercase;font-size:clamp(20px,2vw,30px);line-height:1;letter-spacing:-.02em">${esc(n)}</span>
+  <span style="font-size:10px;font-weight:800;letter-spacing:.14em;color:rgba(243,242,242,.5);text-transform:uppercase;text-align:right">${esc(w)}</span>
+</div>`).join(''));
+list('brands', BRANDS.map(([n, f]) => `<div data-rv class="trophy" style="display:flex;flex-direction:column;justify-content:space-between;gap:16px;aspect-ratio:1;padding:16px;border-right:2px solid rgba(243,242,242,.22);border-bottom:2px solid rgba(243,242,242,.22)">
+  <div style="flex:1;display:flex;align-items:center;justify-content:center">${f ? `<img src="${BASE}logos/${f}" alt="" loading="lazy" style="max-width:70%;max-height:64px;object-fit:contain;filter:grayscale(1) invert(1) contrast(1.15);mix-blend-mode:screen;opacity:.92">` : `<span style="font-weight:800;text-transform:uppercase;font-size:clamp(15px,1.4vw,20px);line-height:.95;letter-spacing:-.01em;text-align:center">${esc(n)}</span>`}</div>
+  <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:rgba(243,242,242,.5);text-transform:uppercase">${esc(n)}</div>
 </div>`).join(''));
 list('seats', SEATS.map(([who, line, subj], i) => `<a href="mailto:${EMAIL}?subject=${encodeURIComponent(subj)}" class="seat" style="display:flex;flex-direction:column;justify-content:space-between;gap:36px;min-height:200px;padding:18px 18px 20px;border-right:2px solid rgba(243,242,242,.22);border-bottom:2px solid rgba(243,242,242,.22);color:var(--color-bg)">
   <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:800;letter-spacing:.14em"><span>${pad2(i + 1)}</span><span>EMAIL →</span></div>
@@ -74,7 +84,7 @@ const groups = [
   ['03 — NFL', 'OPEN BOWL', [['1&10', 'The drive', G('nfl', 0.25)], ['XI', 'The huddle', G('nfl', 0.6)]]],
   ['04 — TENNIS', 'SHOW COURT', [['15–0', 'Dormant demand', G('tennis', 0.3)], ['30–0', 'Free is a growth strategy', G('tennis', 0.8)]]],
   ['05 — MOTORSPORT', 'NIGHT CIRCUIT', [['LAP', 'Seven markets', G('race', 0.12)], ['PIT', 'The kit', G('race', 0.72)], ['FLAG', 'Full time', G('ft', 0.98)]]],
-  ['POST-MATCH', '', [["90+1'", 'The trophy cabinet', 'sec:0'], ["90+3'", 'The press box', 'sec:1']]],
+  ['POST-MATCH', '', [["90+1'", 'The trophy cabinet', 'sec:0'], ["90+2'", 'The dressing room', 'sec:1'], ["90+3'", 'The press box', 'sec:2']]],
 ];
 const row = (m, n, tag, go) => `<button class="menu-row" data-go="${go}" style="display:grid;grid-template-columns:64px 1fr auto;align-items:baseline;gap:12px;width:100%;padding:10px 16px;background:none;border:0;border-bottom:1px solid rgba(243,242,242,.1);color:#f3f2f2;font-family:inherit;text-align:left;cursor:pointer">
   <span style="font-weight:800;font-variant-numeric:tabular-nums;color:var(--color-accent);font-size:13px">${esc(m)}</span>
@@ -139,7 +149,7 @@ const events = [
   ...[0.046, 0.085, 0.123, 0.162].map((t, i) => [G('hero', t), () => S().whoosh(1 + i * 0.15)]), [G('hero', 0.18), () => S().clunk()], [G('hero', 0.34), () => S().roar()],
   ...[0.58, 0.598, 0.616, 0.634].map(t => [G('hero', t), () => S().clunk()]),
   ...['x1', 'x2', 'x3', 'x4'].flatMap(x => [[G(x, 0.04), () => S().whoosh(0.9)], [G(x, 0.2), () => S().whoosh(1.5)], [G(x, 0.52), () => S().clunk()], [G(x, 0.6), () => S().clunk()], [G(x, 0.7), () => S().clunk()], [G(x, 0.86), () => S().roar()]]),
-  [G('bball', CH.TAC[0]), () => S().whistle(2)], [G('nfl', CH.DRIVE[0] + (CH.DRIVE[1] - CH.DRIVE[0]) * 5 / 6), () => { S().roar(); S().whistle(1); }],
+  [G('bball', CH.TAC[0]), () => S().whistle(2)], [G('nfl', CH.DRIVE[0] + (CH.DRIVE[1] - CH.DRIVE[0]) * (DRIVE.length - 1) / DRIVE.length), () => { S().roar(); S().whistle(1); }],
   [G('race', 0.068), () => { S().whoosh(1.6); S().roar(); }], [G('ft', 0.04), () => S().whistle(3)],
 ];
 
@@ -165,7 +175,7 @@ window.addEventListener('pointermove', e => { if (tipEl.style.display === 'block
 
 if (innerWidth < 760) {
   $$('[data-hide-m]').forEach(e => { e.style.display = 'none'; });
-  $$('[data-m="sheet"]').forEach(e => Object.assign(e.style, { left: '16px', right: '16px', width: 'auto', top: 'auto', bottom: '58px', maxHeight: '44vh', overflow: 'auto' }));
+  $$('[data-m="sheet"]').forEach(e => Object.assign(e.style, { left: '16px', right: '16px', width: 'auto', top: 'auto', bottom: '78px', maxHeight: '42vh', overflow: 'auto' }));
 }
 
 // ---------- scroll + clock
@@ -175,8 +185,9 @@ function postUI(d) {
   ftEl.style.opacity = String(1 - f); ftEl.style.visibility = f > 0.99 ? 'hidden' : 'visible';
   capEl.style.opacity = String(1 - f);
   let n = 0;
-  if (d > 0) { n = 1; postSecs.forEach((s, i) => { if (s.getBoundingClientRect().top < innerHeight * 0.5) n = [1, 3][i]; }); }
+  if (d > 0) { n = 1; postSecs.forEach((s, i) => { if (s.getBoundingClientRect().top < innerHeight * 0.5) n = [1, 2, 3][i]; }); }
   postN = n;
+  if (eng) eng.setPaused(d > innerHeight * 1.1);
   if (n) { clockEl.textContent = `90+${n}'`; clabelEl.textContent = 'STOPPAGE TIME'; barEl.style.width = '100%'; }
 }
 function onScroll() {
@@ -192,7 +203,7 @@ function clock(id, t) {
   if (id === 'x1') return ['GAME CLOCK', 'Q1 12:00'];
   if (id === 'bball') { const s = Math.round(720 * (1 - t)); return ['GAME CLOCK', `Q1 ${Math.floor(s / 60)}:${pad2(s % 60)}`]; }
   if (id === 'x2') return ['DOWN & DISTANCE', '1ST & 10'];
-  if (id === 'nfl') { if (t >= CH.XI[0] - 0.03) return ['DOWN & DISTANCE', 'HUDDLE']; const k = Math.min(5, Math.max(0, Math.floor((t - CH.DRIVE[0]) / (CH.DRIVE[1] - CH.DRIVE[0]) * 6))); return ['DOWN & DISTANCE', DRIVE[k].down]; }
+  if (id === 'nfl') { if (t >= CH.XI[0] - 0.03) return ['DOWN & DISTANCE', 'HUDDLE']; const k = Math.min(DRIVE.length - 1, Math.max(0, Math.floor((t - CH.DRIVE[0]) / (CH.DRIVE[1] - CH.DRIVE[0]) * DRIVE.length))); return ['DOWN & DISTANCE', DRIVE[k].down]; }
   if (id === 'x3') return ['SCORE', '0–0'];
   if (id === 'tennis') return ['SCORE', t < 0.5 ? '15–0' : t < 0.97 ? '30–0' : '40–0'];
   if (id === 'x4') return ['LAP', 'GRID'];
@@ -265,6 +276,24 @@ async function startIntro(waitFor) {
 }
 function endIntro() { kickWrap.style.display = 'none'; document.documentElement.style.overflow = ''; }
 
+// ---------- post-match: cards rise in as they reach the viewport, results count up
+function countUp(el, delay) {
+  const m = /^([^\d]*)(\d+)(.*)$/.exec(el.dataset.count); if (!m) return;
+  const [, pre, num, suf] = m, n = Number(num), t0 = performance.now() + delay; el.textContent = pre + '0' + suf;
+  const step = now => { const k = Math.min(1, Math.max(0, (now - t0) / 1100)); el.textContent = pre + Math.round(n * (1 - Math.pow(1 - k, 3))) + suf; if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return; io.unobserve(e.target);
+    const el = e.target, d = ([...el.parentElement.children].indexOf(el) % 4) * 70;
+    el.style.transitionDelay = d + 'ms'; el.style.opacity = '1'; el.style.transform = 'none';
+    el.addEventListener('transitionend', () => { el.style.transitionDelay = '0ms'; }, { once: true });
+    const c = el.querySelector('[data-count]'); if (c) countUp(c, d);
+  }), { threshold: 0.2 });
+  $$('[data-rv]').forEach(el => { Object.assign(el.style, { opacity: '0', transform: 'translateY(24px)', transition: 'opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1), background-color .2s' }); io.observe(el); });
+}
+
 // ---------- boot
 function engineOpts() {
   const quality = QUALITY === 'auto' ? ((matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.hardwareConcurrency || 8) <= 4) ? 'low' : 'high') : QUALITY;
@@ -272,7 +301,7 @@ function engineOpts() {
     segs: segList.map(s => ({ id: s.id, a: s.a, b: s.b })), ch: CH, quality,
     logos: LOGOS, rights: RIGHTS, formation: XI.map(x => [x[0], x[1], x[2]]), drive: DRIVE, kit: KIT, markets: MARKETS,
     gates: GATES, photos: PHOTOS, model: { url: BASE + 'models/matt.glb', height: 1.85 },
-    stat: STAT, screenData: SCREEN_DATA, messages: MESSAGES, ledPlan: LED_PLAN,
+    noDegrade: params.has('nodegrade'), stat: STAT, screenData: SCREEN_DATA, messages: MESSAGES, ledPlan: LED_PLAN,
   };
 }
 
@@ -282,7 +311,7 @@ const enginePromise = import('./engine/arena-engine.js')
   .then(m => m.createArena($('[data-canvas]'), { ...engineOpts(), onFrame: frame, onHover, onPick, onKick: () => { snd && snd.whoosh(0.8); }, onGoal: goal }))
   .then(e => {
     eng = e;
-    if (import.meta.env.DEV) { window.__mkJump = v => { frozen = true; e.jump(v); }; window.__mkSeg = (id, t) => { frozen = true; e.jump(G(id, t)); }; }
+    if (import.meta.env.DEV || params.has('debug')) { window.__mkJump = v => { frozen = true; e.jump(v); }; window.__mkSeg = (id, t) => { frozen = true; e.jump(G(id, t)); }; }
     onScroll();
   });
 enginePromise.catch(e => console.error('arena engine failed', e));

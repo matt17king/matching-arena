@@ -3,8 +3,8 @@
 export const EMAIL = 'Matt17King@gmail.com';
 export const LINKEDIN = 'https://linkedin.com/in/mattking17';
 
-// Scroll length per chapter (vh). The spacer in index.html is the sum (8100vh).
-export const SEGS = [['hero', 1300], ['rights', 650], ['x1', 420], ['bball', 950], ['x2', 420], ['nfl', 1150], ['x3', 420], ['tennis', 800], ['x4', 460], ['race', 1150], ['ft', 380]];
+// Scroll length per chapter (vh). The scroll spacer is sized to their sum.
+export const SEGS = [['hero', 1300], ['rights', 650], ['x1', 420], ['bball', 1050], ['x2', 420], ['nfl', 1300], ['x3', 420], ['tennis', 800], ['x4', 460], ['race', 1150], ['ft', 380]];
 // Beat ranges inside each venue, as fractions of that venue's segment.
 export const CH = { RR: [0.08, 0.9], BEATS: [0.06, 0.44], TAC: [0.5, 0.92], DRIVE: [0.03, 0.5], XI: [0.55, 0.96], COL: [0.04, 0.48], FANS: [0.52, 0.82], LAP: [0.08, 0.62], PIT: [0.66, 0.92] };
 export const VENUE = { hero: '01 / 05 — FOOTBALL', rights: '01 / 05 — FOOTBALL', bball: '02 / 05 — BASKETBALL', nfl: '03 / 05 — NFL', tennis: '04 / 05 — TENNIS', race: '05 / 05 — MOTORSPORT', ft: '05 / 05 — MOTORSPORT' };
@@ -47,6 +47,7 @@ export const XI = [
   [-14, -21.5, 11, 'AI workflows & automation', 'WR', 'I design the AI workflows that let teams move faster, with Claude, ChatGPT, Gemini and Make.com.'],
 ];
 export const DRIVE = [
+  { down: 'THE DRAFT', name: 'Webber International', years: '2019 – 2023', role: 'Scholarship · BSc Business Management', detail: 'I went to Florida on a scholarship and graduated in Business Management. Then I came home and started the drive.' },
   { down: '1ST & 10', name: 'Gym King', years: '2021 – 2022', role: 'Social Media Executive & Influencer Manager', detail: 'Where it started. I ran every social page and brought in creators like Tom Aspinall, Ash Cain and Alex Bowen.' },
   { down: '2ND & 4', name: 'American Golf', years: '2022 – 2023', role: 'Social Media & Influencer Executive', detail: 'I grew the channels by over 400%, working with ambassadors like Niall Horan and Judy Murray.' },
   { down: '1ST & 10', name: 'The Couture Club', years: '2023 – 2024', role: 'Influencer, Ambassador & Ecommerce', detail: 'I closed Molly-Mae Hague and Phil Foden. Reach went up 600%. Online sales went up 41%.' },
@@ -60,6 +61,10 @@ export const TROPHIES = [
   ['3M+', 'FIFA+ fans brought onto DAZN', 'DAZN · FIFA'], ['8', 'Football rights portfolios led', 'DAZN'], ['7', 'Market zones, one go-to-market plan', 'DAZN'], ['7-fig', 'Annual budget, allocated channel by channel', 'DAZN'],
   ['+450%', 'Fan engagement, Crewe Alexandra FC', '80 FOUR'], ['+600%', 'Reach, with Molly-Mae Hague & Phil Foden', 'COUTURE CLUB'], ['+41%', 'Online sales from a rebuilt e-commerce strategy', 'COUTURE CLUB'], ['+400%', 'Channel growth with Niall Horan & Judy Murray', 'AMERICAN GOLF'],
 ];
+// [name, where] — from the CV's talent partnerships
+export const TALENT = [['Phil Foden', 'The Couture Club'], ['Molly-Mae Hague', 'The Couture Club'], ['Kyle Walker', 'Talent partnership'], ['Conor McGregor', 'Talent partnership'], ['Tom Aspinall', 'Gym King'], ['Ash Cain', 'Gym King'], ['Alex Bowen', 'Gym King'], ['Niall Horan', 'American Golf'], ['Judy Murray', 'American Golf'], ['Madeline Argy', 'Talent partnership']];
+// [name, logo file in public/logos or null]
+export const BRANDS = [['Manchester City FC', 'man-city.png'], ['FC Barcelona', 'fc-barcelona.png'], ['Arsenal FC', 'arsenal.png'], ['LA Galaxy', 'la-galaxy.png'], ['Crewe Alexandra FC', null], ['DP World Tour', null], ['adidas', 'adidas.png'], ['Puma', 'puma.png'], ['Under Armour', null]];
 // [who, line, email subject]
 export const SEATS = [
   ['Rights holders & leagues', 'Taking a property into new markets, or onto a new platform.', 'Rights & leagues'],
@@ -74,6 +79,7 @@ export const STAT = { a: { v: '676K', n: 'Alexandra Eala', k: 676 }, b: { v: '70
 export const SCREEN_DATA = {
   channels: ['Social', 'Email', 'CRM', 'Platform', 'Creative', 'SEO', 'Paid', 'Demand'],
   markets: ['UK', 'North America', 'LATAM', 'MENA', 'SEA', 'ANZ', 'Rest of world'],
+  talent: [['Phil Foden', 'The Couture Club'], ['Molly-Mae Hague', 'The Couture Club'], ['Kyle Walker', 'Talent partner'], ['Conor McGregor', 'Talent partner'], ['Tom Aspinall', 'Gym King'], ['Niall Horan', 'American Golf'], ['Judy Murray', 'American Golf'], ['Madeline Argy', 'Talent partner'], ['Alex Bowen', 'Gym King']],
   route: [['2021', 'GYM KING'], ['2022', 'AMERICAN GOLF'], ['2023', 'COUTURE CLUB'], ['2024', 'SWIFT'], ['2025', '80 FOUR'], ['2026', 'DAZN']],
 };
 // LED ribbon messages around the venues
@@ -87,6 +93,8 @@ export const MESSAGES = {
   bench: ['GYM KING', 'AMERICAN GOLF', 'THE COUTURE CLUB', 'SWIFT AGENCY', '80 FOUR', 'DAZN'],
   demand: ['DEMAND IS DORMANT', 'FREE IS A GROWTH STRATEGY', 'REACH BEFORE REVENUE'],
   goal: ['GOAL!', 'MATT KING', 'GOAL!', 'WHAT A FINISH'],
+  talent: ['PHIL FODEN', 'MOLLY-MAE HAGUE', 'KYLE WALKER', 'CONOR MCGREGOR', 'TOM ASPINALL', 'NIALL HORAN', 'JUDY MURRAY', 'MADELINE ARGY', 'ALEX BOWEN'],
+  brands: ['MANCHESTER CITY FC', 'FC BARCELONA', 'ARSENAL FC', 'LA GALAXY', 'CREWE ALEXANDRA FC', 'DP WORLD TOUR', 'ADIDAS', 'PUMA', 'UNDER ARMOUR'],
   contact: ["LET'S TALK", 'MATT17KING@GMAIL.COM', 'LINKEDIN.COM/IN/MATTKING17'],
 };
-export const LED_PLAN = [['hero', 0, 'identity'], ['rights', 0, 'rights'], ['bball', 0, 'principles'], ['nfl', 0, 'bench'], ['nfl', 0.52, 'squad'], ['tennis', 0, 'demand'], ['race', 0, 'markets'], ['race', 0.64, 'kit'], ['ft', 0, 'contact']];
+export const LED_PLAN = [['hero', 0, 'identity'], ['rights', 0, 'rights'], ['bball', 0, 'principles'], ['bball', 0.36, 'talent'], ['nfl', 0, 'bench'], ['nfl', 0.52, 'squad'], ['tennis', 0, 'demand'], ['tennis', 0.55, 'brands'], ['race', 0, 'markets'], ['race', 0.64, 'kit'], ['ft', 0, 'contact']];

@@ -29,7 +29,7 @@ export async function createArena(canvas, o = {}) {
   renderer.setPixelRatio(LOWQ ? 1 : Math.min(window.devicePixelRatio || 1, 1.6));
   renderer.setClearColor(C(BG), 1);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
-  if (!LOWQ) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap; }
+  if (!LOWQ) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
   const ANISO = renderer.capabilities.getMaxAnisotropy();
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(C(BG), 0.0048);
@@ -112,12 +112,21 @@ export async function createArena(canvas, o = {}) {
     float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),f.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),f.x),f.y); }`;
 
   // ---------- sky, light, ground
-  const skyU = { uTop: { value: C('#060505') }, uHaze: { value: C('#3a2a22') }, uGlow: { value: 0 } };
+  const skyU = { uTop: { value: C('#060505') }, uHaze: { value: C('#3a2a22') }, uGlow: { value: 0 }, uTime: { value: 0 }, uStars: { value: 1 } };
   const sky = new THREE.Mesh(new THREE.SphereGeometry(2400, 32, 16), new THREE.ShaderMaterial({
     uniforms: skyU, side: THREE.BackSide, depthWrite: false, fog: false,
     vertexShader: `varying vec3 vP; void main(){ vP=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-    fragmentShader: `uniform vec3 uTop; uniform vec3 uHaze; uniform float uGlow; varying vec3 vP;
-      void main(){ float h=clamp(vP.y,0.0,1.0); vec3 c=mix(uHaze*(0.12+0.5*uGlow), uTop, pow(h,0.35)); gl_FragColor=vec4(c,1.0);
+    fragmentShader: `uniform vec3 uTop; uniform vec3 uHaze; uniform float uGlow; uniform float uTime; uniform float uStars; varying vec3 vP;
+      float hs(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+      float ns(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); return mix(mix(hs(i),hs(i+vec2(1.0,0.0)),f.x),mix(hs(i+vec2(0.0,1.0)),hs(i+vec2(1.0,1.0)),f.x),f.y); }
+      void main(){ float h=clamp(vP.y,0.0,1.0); vec3 c=mix(uHaze*(0.12+0.5*uGlow), uTop, pow(h,0.35));
+        vec2 sp=vec2(atan(vP.z,vP.x)*160.0, asin(clamp(vP.y,-1.0,1.0))*160.0); vec2 cell=floor(sp); float r=hs(cell);
+        float star=step(0.985,r)*smoothstep(0.42,0.0,length(fract(sp)-0.5))*(0.55+0.45*sin(uTime*(1.0+r*4.0)+r*60.0));
+        c+=vec3(0.85,0.88,1.0)*star*smoothstep(0.06,0.35,h)*uStars*(1.0-0.55*uGlow)*(0.6+1.8*fract(r*97.0));
+        vec2 cp=vP.xz/max(vP.y,0.08)*1.4+vec2(uTime*0.012,uTime*0.004); float cl=ns(cp)*0.55+ns(cp*2.1)*0.3+ns(cp*4.3)*0.15;
+        float cm=smoothstep(0.48,0.85,cl)*smoothstep(0.02,0.25,h)*(1.0-smoothstep(0.55,0.95,h));
+        c=mix(c, uHaze*(0.35+1.4*uGlow)+vec3(0.02), cm*0.55);
+        gl_FragColor=vec4(c,1.0);
         #include <colorspace_fragment>
       }`,
   }));
@@ -187,6 +196,17 @@ export async function createArena(canvas, o = {}) {
   };
   const surf = new THREE.Mesh(new THREE.PlaneGeometry(900, 700), surfMat);
   surf.rotation.x = -Math.PI / 2; surf.renderOrder = 1; surf.receiveShadow = !LOWQ; scene.add(surf);
+  // a wall of red light that rides the ground wipe, so each venue change reads as one sweep
+  const curtainU = { uOp: { value: 0 }, uTime: { value: 0 }, uCol: { value: C(RED).multiplyScalar(1.6) } };
+  const curtainGeo = new THREE.CylinderGeometry(1, 1, 1, 128, 1, true); curtainGeo.translate(0, 0.5, 0);
+  const curtain = new THREE.Mesh(curtainGeo, new THREE.ShaderMaterial({ uniforms: curtainU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    vertexShader: `varying vec2 vUv; varying vec3 vW; void main(){ vUv=uv; vec4 w=modelMatrix*vec4(position,1.0); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
+    fragmentShader: `uniform float uOp; uniform float uTime; uniform vec3 uCol; varying vec2 vUv; varying vec3 vW;
+      void main(){ float y=vUv.y; float a=pow(1.0-y,2.6)*uOp; a*=0.75+0.25*sin(vW.y*3.0-uTime*12.0); a+=uOp*0.9*(1.0-smoothstep(0.0,0.025,y));
+        float flick=0.85+0.15*sin(uTime*31.0+vUv.x*80.0); gl_FragColor=vec4(uCol*flick,clamp(a,0.0,1.0));
+        #include <colorspace_fragment>
+      }` }));
+  curtain.visible = false; curtain.renderOrder = 4; curtain.frustumCulled = false; scene.add(curtain);
 
 
   // ---------- the lines: N strands that draw themselves, then glide from one sport's markings into the next
@@ -269,12 +289,15 @@ export async function createArena(canvas, o = {}) {
       #include <colorspace_fragment>
     }`;
   const ptsMat = (col, size, dust) => new THREE.ShaderMaterial({ defines: dust ? { DUST: 1 } : {}, uniforms: { uTime: { value: 0 }, uSize: { value: size }, uOp: { value: 0 }, uCol: { value: C(col) } }, vertexShader: ptsVS, fragmentShader: ptsFS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
-  const coneVS = `varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main(){ vUv=uv; vec4 w=modelMatrix*vec4(position,1.0); vN=normalize(mat3(modelMatrix)*normal); vV=normalize(cameraPosition-w.xyz); gl_Position=projectionMatrix*viewMatrix*w; }`;
-  const coneFS = `uniform float uOp; uniform vec3 uCol; varying vec2 vUv; varying vec3 vN; varying vec3 vV;
-    void main(){ float f=clamp(abs(dot(normalize(vN),normalize(vV))),0.0001,1.0); float a=uOp*pow(clamp(vUv.y,0.0001,1.0),1.7)*pow(f,2.2); a*=smoothstep(0.0,0.06,vUv.y)*smoothstep(1.0,0.97,vUv.y); gl_FragColor=vec4(uCol,clamp(a,0.0,1.0));
+  const coneTime = { value: 0 };
+  const coneVS = `varying vec2 vUv; varying vec3 vN; varying vec3 vV; varying vec3 vW; void main(){ vUv=uv; vec4 w=modelMatrix*vec4(position,1.0); vW=w.xyz; vN=normalize(mat3(modelMatrix)*normal); vV=normalize(cameraPosition-w.xyz); gl_Position=projectionMatrix*viewMatrix*w; }`;
+  const coneFS = `uniform float uOp; uniform vec3 uCol; uniform float uTime; varying vec2 vUv; varying vec3 vN; varying vec3 vV; varying vec3 vW; ${NOISE}
+    void main(){ float f=clamp(abs(dot(normalize(vN),normalize(vV))),0.0001,1.0); float a=uOp*pow(clamp(vUv.y,0.0001,1.0),1.7)*pow(f,2.2); a*=smoothstep(0.0,0.06,vUv.y)*smoothstep(1.0,0.97,vUv.y);
+      float hz=noise(vW.xz*0.06+vec2(uTime*0.05,vW.y*0.03-uTime*0.07))*0.6+noise(vW.xy*0.17+vec2(-uTime*0.11,uTime*0.04))*0.4; a*=0.45+1.15*hz;
+      gl_FragColor=vec4(uCol,clamp(a,0.0,1.0));
       #include <colorspace_fragment>
     }`;
-  const coneMat = col => new THREE.ShaderMaterial({ uniforms: { uOp: { value: 0 }, uCol: { value: C(col) } }, vertexShader: coneVS, fragmentShader: coneFS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+  const coneMat = col => new THREE.ShaderMaterial({ uniforms: { uOp: { value: 0 }, uCol: { value: C(col) }, uTime: coneTime }, vertexShader: coneVS, fragmentShader: coneFS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
 
   // ---------- stands (one profile, many venues)
   const seatShape = new THREE.Shape();
@@ -708,7 +731,7 @@ export async function createArena(canvas, o = {}) {
   let tacLast = -1;
 
   // ---------- chapter: the drive (NFL) — career as a drive down the field
-  const DX = [-27.43, -9.14, 9.14, 22.86, 36.58, 50.29];
+  const DX = [-36.58, -27.43, -9.14, 9.14, 22.86, 36.58, 50.29];
   const fdLine = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 48.8), new THREE.MeshBasicMaterial({ color: C(RED).multiplyScalar(1.7), transparent: true, opacity: 0, depthWrite: false }));
   fdLine.rotation.x = -Math.PI / 2; fdLine.position.y = 0.07; fdLine.renderOrder = 4; scene.add(fdLine);
   const drivePlates = (o.drive || []).map((it, i) => {
@@ -770,6 +793,29 @@ export async function createArena(canvas, o = {}) {
     }
   }
 
+  // ---------- fireworks: GPU shells (full time over the circuit, touchdown, goal)
+  const FW_N = 8, FW_P = LOWQ ? 120 : 260;
+  const fwU = { uTime: { value: 0 }, uO: { value: Array.from({ length: FW_N }, () => V3(0, -999, 0)) }, uT0: { value: new Array(FW_N).fill(-99) }, uSp: { value: new Array(FW_N).fill(30) }, uRed: { value: C(RED).multiplyScalar(2.6) }, uWhite: { value: C('#fff3e6').multiplyScalar(2.2) } };
+  const fireworks = (() => {
+    const n = FW_N * FW_P, dir = new Float32Array(n * 3), sh = new Float32Array(n), rnd = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const u = Math.random() * 2 - 1, a = Math.random() * Math.PI * 2, r = Math.sqrt(1 - u * u), m = 0.75 + 0.25 * Math.random(); dir[i * 3] = r * Math.cos(a) * m; dir[i * 3 + 1] = u * m; dir[i * 3 + 2] = r * Math.sin(a) * m; sh[i] = Math.floor(i / FW_P); rnd[i] = Math.random(); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(dir, 3)); g.setAttribute('aSh', new THREE.BufferAttribute(sh, 1)); g.setAttribute('aR', new THREE.BufferAttribute(rnd, 1));
+    const m = new THREE.Points(g, new THREE.ShaderMaterial({ uniforms: fwU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: `uniform float uTime; uniform vec3 uO[${FW_N}]; uniform float uT0[${FW_N}]; uniform float uSp[${FW_N}]; attribute float aSh; attribute float aR; varying float vA; varying float vR;
+        void main(){ int k=int(aSh+0.5); float age=uTime-uT0[k]; vR=aR;
+          if(age<0.0||age>3.2){ gl_Position=vec4(2.0,2.0,2.0,1.0); gl_PointSize=0.0; vA=0.0; return; }
+          float sp=uSp[k]; vec3 p=uO[k]+position*sp*(1.0-exp(-age*2.2))/2.2; p.y-=4.9*age*age*0.55;
+          vA=(1.0-smoothstep(1.4,3.1,age+aR*0.6))*(0.6+0.4*step(0.5,fract(uTime*17.0+aR*9.0))*step(1.2,age)+0.4*(1.0-step(1.2,age)));
+          vec4 mv=modelViewMatrix*vec4(p,1.0); gl_PointSize=(3.2+3.0*(1.0-smoothstep(0.0,1.5,age)))*(300.0/-mv.z); gl_Position=projectionMatrix*mv; }`,
+      fragmentShader: `uniform vec3 uRed; uniform vec3 uWhite; varying float vA; varying float vR;
+        void main(){ vec2 d=gl_PointCoord-0.5; float r=length(d); if(r>0.5) discard; vec3 c=mix(uRed,uWhite,step(0.62,vR)); gl_FragColor=vec4(c,vA*(1.0-r*2.0));
+          #include <colorspace_fragment>
+        }` }));
+    m.frustumCulled = false; m.renderOrder = 8; scene.add(m); return m;
+  })();
+  let fwSlot = 0, fwNext = 0, tdFired = false, goalFired = false;
+  const launch = (x, y, z, sp = 30) => { fwSlot = (fwSlot + 1) % FW_N; fwU.uO.value[fwSlot].set(x, y, z); fwU.uT0.value[fwSlot] = time; fwU.uSp.value[fwSlot] = sp; };
+
   // ---------- football hero: ball, standee, figure
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(-9, -9);
   const look = { yaw: 0, pitch: 0, ty: 0, tp: 0, drag: false, sx: 0, sy: 0, y0: 0, p0: 0, moved: 0, idle: 9 };
@@ -793,8 +839,8 @@ export async function createArena(canvas, o = {}) {
   const loadFigure = async () => {
     if (!o.model) return;
     try {
-      const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
-      const gltf = await new GLTFLoader().loadAsync(o.model.url);
+      const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([import('three/examples/jsm/loaders/GLTFLoader.js'), import('three/examples/jsm/libs/meshopt_decoder.module.js')]);
+      const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(o.model.url);
       const g = gltf.scene; const bb = new THREE.Box3().setFromObject(g), sz = bb.getSize(new THREE.Vector3());
       g.scale.setScalar((o.model.height || 1.85) / sz.y);
       const bb2 = new THREE.Box3().setFromObject(g), c = bb2.getCenter(new THREE.Vector3());
@@ -842,24 +888,10 @@ export async function createArena(canvas, o = {}) {
   canvas.addEventListener('pointerdown', onDown); window.addEventListener('pointermove', onMove2, { passive: true }); window.addEventListener('pointerup', onUp);
   canvas.style.touchAction = 'pan-y'; canvas.style.cursor = 'grab';
 
-  // ---------- post
-  let composer = null, bloom = null, grain = null;
-  if (!LOWQ) try {
-    const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { OutputPass }, { ShaderPass }] = await Promise.all([
-      import('three/examples/jsm/postprocessing/EffectComposer.js'), import('three/examples/jsm/postprocessing/RenderPass.js'),
-      import('three/examples/jsm/postprocessing/UnrealBloomPass.js'), import('three/examples/jsm/postprocessing/OutputPass.js'),
-      import('three/examples/jsm/postprocessing/ShaderPass.js'),
-    ]);
-    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 })); composer.addPass(new RenderPass(scene, camera));
-    composer.addPass(new ShaderPass({ uniforms: { tDiffuse: { value: null } }, vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }', fragmentShader: 'uniform sampler2D tDiffuse; varying vec2 vUv; void main(){ vec4 c=texture2D(tDiffuse,vUv); if(isnan(c.r)||isnan(c.g)||isnan(c.b)||isinf(c.r)||isinf(c.g)||isinf(c.b)) c=vec4(0.0,0.0,0.0,1.0); gl_FragColor=vec4(clamp(c.rgb,0.0,40.0),1.0); }' }));
-    bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.5, 0.9); composer.addPass(bloom); composer.addPass(new OutputPass());
-    grain = new ShaderPass({ uniforms: { tDiffuse: { value: null }, uTime: { value: 0 } },
-      vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-      fragmentShader: `uniform sampler2D tDiffuse; uniform float uTime; varying vec2 vUv; float h(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
-        void main(){ vec2 d=vUv-0.5; float ca=dot(d,d)*0.008; vec3 c=vec3(texture2D(tDiffuse,vUv+d*ca).r,texture2D(tDiffuse,vUv).g,texture2D(tDiffuse,vUv-d*ca).b);
-          c+=(h(vUv*vec2(1931.0,1087.0)+fract(uTime*7.0)*91.0)-0.5)*0.03; gl_FragColor=vec4(c,1.0); }` });
-    composer.addPass(grain);
-  } catch (e) { console.warn('post unavailable', e); composer = null; }
+  // ---------- post (v13 stack: AO, floodlight shafts, streaks, bloom, lens, grade)
+  let post = null;
+  if (!LOWQ) try { const { createPost } = await import('./post.js'); post = createPost(THREE, renderer, scene, camera); }
+  catch (e) { console.warn('post unavailable', e); post = null; }
   try { const { RoomEnvironment } = await import('three/examples/jsm/environments/RoomEnvironment.js'); const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; } catch (e) {}
 
 
@@ -890,8 +922,8 @@ export async function createArena(canvas, o = {}) {
   const bballK = [{ t: 0, pos: [0, 34, 57], tgt: [0, 40, 0], fov: 46 }, { t: CH.BEATS[1], pos: [0, 33, 50], tgt: [0, 40.5, 0], fov: 46 }, { t: CH.TAC[0] + 0.02, pos: [0, 96, 2], tgt: [0, 0, 0], fov: 42 }, { t: 1, pos: [0, 92, 2], tgt: [0, 0, 0], fov: 42 }];
   CAM.bball = t => lin(bballK, t);
   const nflK = [{ t: 0, pos: [DX[0] - 34, 18, 26], tgt: [DX[0] + 8, 0, 0], fov: 50 }];
-  { const dw = (CH.DRIVE[1] - CH.DRIVE[0]) / 6;
-    DX.forEach((x, k) => { const ps = k === 5 ? { pos: [x - 22, 8.5, 12], tgt: [x + 2, 2.6, 0], fov: 50 } : { pos: [x - 15, 6.5, 8], tgt: [x + 16, 2, -1], fov: 48 }; nflK.push({ t: CH.DRIVE[0] + k * dw + dw * 0.3, ...ps }, { t: CH.DRIVE[0] + (k + 1) * dw - 0.004, ...ps }); });
+  { const dw = (CH.DRIVE[1] - CH.DRIVE[0]) / DX.length;
+    DX.forEach((x, k) => { const ps = k === DX.length - 1 ? { pos: [x - 22, 8.5, 12], tgt: [x + 2, 2.6, 0], fov: 50 } : { pos: [x - 15, 6.5, 8], tgt: [x + 16, 2, -1], fov: 48 }; nflK.push({ t: CH.DRIVE[0] + k * dw + dw * 0.3, ...ps }, { t: CH.DRIVE[0] + (k + 1) * dw - 0.004, ...ps }); });
     nflK.push({ t: CH.XI[0] - 0.006, pos: [-19, 66, 3], tgt: [-19, 0, 0], fov: 40 });
     const F = o.formation || [], xs = (CH.XI[1] - CH.XI[0]) / Math.max(1, F.length);
     F.forEach(([px, pz], i) => { const cx = -19 + (px + 19) * 0.3, cz = pz * 0.3, k = { pos: [cx, 58, 3 + cz], tgt: [cx, 0, cz + 1.5], fov: 40 }; nflK.push({ t: CH.XI[0] + i * xs + 0.001, ...k }, { t: CH.XI[0] + (i + 1) * xs - 0.001, ...k }); });
@@ -916,12 +948,13 @@ export async function createArena(canvas, o = {}) {
   });
 
   // ---------- state
+  const perf = { ema: 1 / 60, t: 0, last: 0 };
   let W = 1, H = 1, target = 0, p = 0, raf = 0, last = performance.now(), time = 0, ledOff = 0;
   let ledCur = firstKey, ledWipeStart = -10; const camS = { init: false, p: [0, 0, 0], t: [0, 0, 0], f: 50 };
   const ptr = { x: 0, y: 0, sx: 0, sy: 0 };
   const onMove = e => { ptr.x = e.clientX / W * 2 - 1; ptr.y = e.clientY / H * 2 - 1; };
   window.addEventListener('pointermove', onMove, { passive: true });
-  function resize() { W = window.innerWidth; H = window.innerHeight; renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix(); if (composer) composer.setSize(W, H); }
+  function resize() { W = window.innerWidth; H = window.innerHeight; renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix(); if (post) post.setSize(W, H); }
   window.addEventListener('resize', resize); resize();
   const ledP = (o.ledPlan || []).filter(([id]) => SEG[id]).map(([id, t, k]) => [SEG[id].a + t * (SEG[id].b - SEG[id].a), k]).sort((a, b) => a[0] - b[0]);
   const setLed = key => { if (!ledTex[key] || key === ledCur) return; allBoards.forEach(b => { b.u.uA.value = ledTex[ledCur].tex; b.u.uAspA.value = ledTex[ledCur].asp; b.u.uB.value = ledTex[key].tex; b.u.uAspB.value = ledTex[key].asp; }); ledCur = key; ledWipeStart = time; };
@@ -973,7 +1006,8 @@ export async function createArena(canvas, o = {}) {
     Vn.boards.forEach(b => { b.u.uOp.value = b.ribbon ? bon * 0.95 : bon; b.u.uOff.value = ledOff; b.u.uMix.value = ledWipe; });
     return Vn.lamps.length ? sum / Vn.lamps.length : 0;
   }
-  const _v = new THREE.Vector3(), _r = new THREE.Vector3(), _u = new THREE.Vector3();
+  const _v = new THREE.Vector3(), _r = new THREE.Vector3(), _u = new THREE.Vector3(), _w2 = new THREE.Vector3(), _c0 = new THREE.Vector3(), _c1 = new THREE.Vector3();
+  const _vp = new THREE.Matrix4(), prevVP = new THREE.Matrix4();
 
   function update(dt, vel) {
     const sg = segAt(p), id = sg.id, t = LT(id, p); curId = id; curT = t;
@@ -992,10 +1026,12 @@ export async function createArena(canvas, o = {}) {
     surfU.uA.value = A; surfU.uB.value = B; surfU.uMix.value = w; surfU.uRmax.value = Math.max(sa.ext, sb.ext) * 1.7;
     surfU.uLit.value = lit; surfU.uLR.value = lerp(sa.lr, sb.lr, w); surfU.uAmb.value = 0.015 + (xi ? 0.07 * Math.sin(xt * Math.PI) : 0);
     trackU.uLit.value = lit;
+    { const on = xi && w > 0.001 && w < 0.999, Rr = w * surfU.uRmax.value; curtain.visible = on;
+      if (on) { curtain.scale.set(Rr, 6 + Math.max(sa.ext, sb.ext) * 0.28, Rr / 1.3); curtainU.uOp.value = 0.55 * Math.sin(w * Math.PI); curtainU.uTime.value = time; } }
     const fd = lerp(sa.fog, sb.fog, xi ? R(xt, 0.15, 0.85) : 0); scene.fog.density = fd; fogU.uFogDen.value = fd;
     const mainV = venues[xi && xt > 0.5 ? B : A]; placeSpots(mainV);
     spots.forEach((s, i) => { const k = mainV.keys[i]; s.intensity = k ? (k.lamp ? k.lamp.on : lit) * mainV.spotK : 0; });
-    skyU.uGlow.value = lit; hemi.intensity = 0.05 + 0.22 * lit;
+    skyU.uGlow.value = lit; skyU.uTime.value = time; skyU.uStars.value = mainV.id === 'basketball' ? 0 : 1; coneTime.value = time; hemi.intensity = 0.05 + 0.22 * lit;
     // lines
     setPair(ORDER[A], ORDER[B]);
     lineU.uMorph.value = xi ? clamp((xt - 0.14) / 0.62) : 0;
@@ -1037,7 +1073,7 @@ export async function createArena(canvas, o = {}) {
     screenMat.color.setScalar(sb2 * 1.1);
     if (sb2 > 0.01) {
       let beat = 'idle', bl = 0;
-      if (id === 'bball' && t >= CH.BEATS[0] && t < CH.BEATS[1]) { const f = (t - CH.BEATS[0]) / (CH.BEATS[1] - CH.BEATS[0]) * 6; beat = Math.min(5, Math.floor(f)); bl = f - beat; }
+      if (id === 'bball' && t >= CH.BEATS[0] && t < CH.BEATS[1]) { const f = (t - CH.BEATS[0]) / (CH.BEATS[1] - CH.BEATS[0]) * 7; beat = Math.min(6, Math.floor(f)); bl = f - beat; }
       else if (id === 'x1' || (id === 'bball' && t < CH.BEATS[0])) { beat = 0; bl = 0.1 + 0.25 * (id === 'bball' ? clamp(t / CH.BEATS[0]) : 0); }
       const sig = `${beat}|${bl.toFixed(3)}`, live = typeof beat === 'number' && sb2 > 0.6;
       if (sig !== scrSig || time - scrT > (live ? 0.05 : 0.25)) { scrSig = sig; scrT = time; drawScreen(scrG, SW, SHh, beat, bl, time, sdata); scrTex.needsUpdate = true; }
@@ -1072,7 +1108,12 @@ export async function createArena(canvas, o = {}) {
       kerbs.forEach((kb, k) => { const d = Math.abs(s - kb.s), a = rc ? Math.max(0, 1 - d / 40) : 0; kb.km.emissiveIntensity = a * (0.6 + 0.3 * Math.sin(time * 9)); signs[k].color.setScalar(0.5 + a * 0.7); });
       const pf = rc ? clamp((t - CH.PIT[0]) / (CH.PIT[1] - CH.PIT[0])) * 3 : -1, pk = Math.min(2, Math.floor(pf)), pon = rc ? R(t, CH.PIT[0] - 0.02, CH.PIT[0]) : 0;
       kitLED.forEach((m, k) => { m.color.setScalar(0.18 + (k === pk ? pon * 0.5 : 0)); }); }
-    if (bloom) bloom.strength = 0.42 + 0.25 * lit + 0.2 * spot + (xi ? 0.25 * Math.sin(xt * Math.PI) : 0);
+    const bloomK = 0.42 + 0.25 * lit + 0.2 * spot + (xi ? 0.25 * Math.sin(xt * Math.PI) : 0);
+    // fireworks: full time over the circuit, a salvo for the touchdown and for a goal
+    fwU.uTime.value = time;
+    if (id === 'ft' && t > 0.2 && time > fwNext) { fwNext = time + 0.25 + Math.random() * 0.4; const e = SPORTS.race.ext; launch((Math.random() - 0.5) * e * 0.9, 45 + Math.random() * 55, (Math.random() - 0.5) * e * 0.6, 60 + Math.random() * 30); }
+    if (id === 'nfl') { const nS = DX.length, f = clamp((t - CH.DRIVE[0]) / (CH.DRIVE[1] - CH.DRIVE[0])) * nS; const td = f >= nS - 1 + 0.32 && f < nS; if (td && !tdFired) { tdFired = true; for (let k = 0; k < 4; k++) setTimeout(() => launch(50 + (Math.random() - 0.5) * 8, 26 + Math.random() * 14, (Math.random() - 0.5) * 40, 18 + Math.random() * 8), k * 260); } if (!td && f < nS - 1) tdFired = false; }
+    if (time - goalT < 0.05 && !goalFired) { goalFired = true; for (let k = 0; k < 5; k++) setTimeout(() => launch(Math.sign(ball.position.x || 1) * (40 + Math.random() * 20), 40 + Math.random() * 25, (Math.random() - 0.5) * 60, 28), k * 220); } else if (time - goalT > 1) goalFired = false;
     // interaction
     stepBall(dt, (hero && h > 0.74) || (id === 'rights' && t < 0.05));
     { const sv = (hero && h > 0.7) || (id === 'rights' && t < 0.06); standee.visible = sv && !figure; sshadow.visible = sv;
@@ -1104,18 +1145,43 @@ export async function createArena(canvas, o = {}) {
     if (Math.abs(look.yaw) + Math.abs(look.pitch) > 0.0005) { const dir = _v.clone().sub(camera.position); dir.applyAxisAngle(_u.set(0, 1, 0), -look.yaw); const rt = dir.clone().cross(_u).normalize(); dir.applyAxisAngle(rt, -look.pitch); _v.copy(camera.position).add(dir); }
     camera.lookAt(_v);
     const asp = W / H; let vf = ps.fov; if (asp < 1.25) { const hf = 2 * Math.atan(Math.tan(vf * Math.PI / 360) * 1.6); vf = Math.min(92, 2 * Math.atan(Math.tan(hf / 2) / asp) * 180 / Math.PI); }
+    const roll = xi ? 0.07 * Math.sin(xt * Math.PI * 2) * Math.sin(xt * Math.PI) : 0; if (roll) camera.rotateZ(roll);
     camera.fov = vf; camera.near = dist > 120 ? 2 : dist > 60 ? 0.5 : 0.1; camera.updateProjectionMatrix();
+    if (post) {
+      camera.updateMatrixWorld();
+      // screen-space motion of the look point since last frame → directional blur
+      _vp.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      _c0.copy(_v).applyMatrix4(_vp); _c1.copy(_v).applyMatrix4(prevVP); prevVP.copy(_vp);
+      let vx = (_c0.x - _c1.x) * 0.5, vy = (_c0.y - _c1.y) * 0.5; const vl = Math.hypot(vx, vy), vmax = 0.045;
+      if (!isFinite(vl) || dt === 0) { vx = vy = 0; } else if (vl > vmax) { vx *= vmax / vl; vy *= vmax / vl; }
+      const mb = xi ? 0.9 : hero && h > 0.38 && h < 0.8 ? 0.6 : 0.35;
+      // floodlight shafts: brightest on-screen lamps of the live venue
+      const L = []; venues[xi && xt > 0.5 ? B : A].lamps.forEach(lp => { if (lp.on < 0.05) return; lp.halo.getWorldPosition(_w2); _c0.copy(_w2).project(camera);
+        if (_c0.z > 1 || _c0.z < -1) return; const ex = Math.max(Math.abs(_c0.x), Math.abs(_c0.y)); if (ex > 1.25) return;
+        L.push({ x: _c0.x * 0.5 + 0.5, y: _c0.y * 0.5 + 0.5, s: lp.on * (1 - ss((ex - 0.85) / 0.4)) }); });
+      L.sort((a, b) => b.s - a.s);
+      const tilt = xi ? Math.pow(Math.sin(xt * Math.PI), 1.4) : hero ? 0.75 * R(h, 0.44, 0.52) * (1 - R(h, 0.68, 0.76)) : id === 'ft' ? 0.6 * R(t, 0.25, 0.6) : 0;
+      const bars = xi ? R(xt, 0.02, 0.14) * (1 - R(xt, 0.86, 0.98)) : id === 'ft' ? 0 : 0;
+      const flash = id === 'race' ? 0.3 * Math.max(0, 1 - Math.abs(t - 0.067) / 0.006) : 0;
+      post.set({ time, bloomK, lights: L.slice(0, 6), rays: 0.5 + 0.25 * lit, streak: 0.4 + 0.2 * lit, tilt, focus: 0.5, vel: [vx * mb, vy * mb], bars, flash });
+    }
   }
 
   const proj = new THREE.Vector3();
   function project(x, y, z) { proj.set(x, y, z).project(camera); return { x: (proj.x * 0.5 + 0.5) * W, y: (-proj.y * 0.5 + 0.5) * H, on: proj.z < 1 && proj.z > -1 }; }
+  let paused = false;
   function frame(now) {
     raf = requestAnimationFrame(frame);
+    if (paused) { last = now; return; }
     const dt = Math.min(0.05, (now - last) / 1000); last = now; time += dt;
     const prev = p; p += (target - p) * (1 - Math.exp(-dt * 4.2)); if (Math.abs(target - p) < 1e-5) p = target;
     update(dt, (p - prev) / Math.max(dt, 1e-3));
-    if (grain) grain.uniforms.uTime.value = time;
-    if (composer) composer.render(); else renderer.render(scene, camera);
+    if (post) {
+      // frame-time watchdog: step the post stack down if this GPU can't hold ~40fps
+      perf.ema += (dt - perf.ema) * 0.05; perf.t += dt;
+      if (!o.noDegrade && perf.t > 3 && perf.ema > 1 / 40 && time - perf.last > 2.5 && post.level < 3) { perf.last = time; post.degrade(); }
+      post.render();
+    } else renderer.render(scene, camera);
     o.onFrame && o.onFrame({ p, project, ball: ball.visible && ballState === 'rest' ? project(ball.position.x, 0.2, ball.position.z) : null });
   }
   if (!LOWQ) {
@@ -1132,6 +1198,8 @@ export async function createArena(canvas, o = {}) {
     setTarget(v) { target = clamp(v); },
     jump(v) { target = p = clamp(v); camS.init = false; },
     setHighlight(i) { highlight = i; },
+    // skip simulation + rendering while the page fully covers the canvas
+    setPaused(v) { paused = !!v; },
     get progress() { return p; },
     dispose() { cancelAnimationFrame(raf); canvas.removeEventListener('pointerdown', onDown); window.removeEventListener('pointermove', onMove2); window.removeEventListener('pointerup', onUp); window.removeEventListener('resize', resize); window.removeEventListener('pointermove', onMove); renderer.dispose(); },
   };
