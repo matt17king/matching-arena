@@ -172,7 +172,8 @@ export function drawScreen(g, W, H, beat, b, t, d) {
   g.drawImage(ledGrid(W, H), 0, 0);
 }
 
-// tactics board on the court: how a brief gets built. canvas covers x -55..55, z -36..36
+// tactics board on the court: how a brief gets built. canvas covers x -55..55, z -36..36.
+// The header covers the top of the view and the timeout card the bottom, so the board lives in z -28.5..19.5.
 export function drawTactics(g, W, H, r, d) {
   g.clearRect(0, 0, W, H);
   if (r <= 0) return;
@@ -186,38 +187,43 @@ export function drawTactics(g, W, H, r, d) {
       const y = it * it * it * ay + 3 * it * it * t * ay + 3 * it * t * t * by + t * t * t * by;
       i ? g.lineTo(x, y) : g.moveTo(x, y);
     } };
-    if (glow) { path(); g.strokeStyle = 'rgba(236,48,19,0.18)'; g.lineWidth = lw * 4; g.stroke(); }
+    if (glow) { path(); g.strokeStyle = 'rgba(236,48,19,0.22)'; g.lineWidth = lw * 4; g.stroke(); }
     path(); g.strokeStyle = col; g.lineWidth = lw; g.stroke(); g.restore();
   };
-  const dot = (x, z, rad, fill, stroke, u) => { if (u <= 0) return; g.save(); g.beginPath(); g.arc(X(x), Y(z), rad * S * eo(u), 0, Math.PI * 2); if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.strokeStyle = stroke; g.lineWidth = 4; g.stroke(); } g.restore(); };
-  const lab = (s, x, z, u, o = {}) => { if (u <= 0) return; txt(g, s, X(x), Y(z), { size: 24, ls: '4px', base: 'middle', a: ss(u * 2), ...o }); };
+  const dot = (x, z, rad, fill, stroke, u) => { if (u <= 0) return; g.save(); g.beginPath(); g.arc(X(x), Y(z), rad * S * eo(u), 0, Math.PI * 2); if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.strokeStyle = stroke; g.lineWidth = 5; g.stroke(); } g.restore(); };
+  const lab = (s, x, z, u, o = {}) => { if (u <= 0) return; txt(g, s, X(x), Y(z), { size: 34, ls: '3px', base: 'middle', a: ss(u * 2), ...o }); };
+  // the board itself: a dark slate so the wood grain never fights the lines
+  const b0 = clamp(r / 0.05);
+  g.save(); g.globalAlpha = 0.86 * b0; g.fillStyle = '#0c0b0b'; g.fillRect(X(-54), Y(-28.5), X(54) - X(-54), Y(19.5) - Y(-28.5)); g.restore();
+  g.save(); g.globalAlpha = b0; g.strokeStyle = 'rgba(243,242,242,0.5)'; g.lineWidth = 3; g.strokeRect(X(-54), Y(-28.5), X(54) - X(-54), Y(19.5) - Y(-28.5)); g.fillStyle = RED; g.fillRect(X(-54), Y(-28.5), X(54) - X(-54), 6); g.restore();
   const PA = d.passions || [], OUT = d.outputs || [];
-  // who we want: the fans we have, and the ones we don't
-  const wx = -44, px = -14, hx = 12, ox = 31, wz = [-9, 9];
-  const pz = i => -24.5 + i * 49 / Math.max(1, PA.length - 1), oz = j => -24 + j * 48 / Math.max(1, OUT.length - 1);
-  const c0 = clamp(r / 0.08);
-  dot(wx, wz[0], 2.2, null, CHALK, c0); dot(wx, wz[1], 3.0, RED, CHALK, c0);
-  lab('FANS WE HAVE', wx, wz[0] + 4.6, c0, { align: 'center', size: 20, color: 'rgba(243,242,242,0.7)' });
-  lab('FANS WE DON\'T', wx, wz[1] + 5.4, c0, { align: 'center', size: 24 });
-  // what they already love
+  const wx = -40, px = -18, hx = 9, ox = 21, wz = [-14, 0], hz = -4.5;
+  const pz = i => -21 + i * 33 / Math.max(1, PA.length - 1), oz = j => -21 + j * 33 / Math.max(1, OUT.length - 1);
+  // 1 who we want: the fans we have, and the ones we don't
+  const c0 = clamp((r - 0.03) / 0.08);
+  dot(wx, wz[0], 2.2, null, CHALK, c0); dot(wx, wz[1], 3.2, RED, CHALK, c0);
+  lab('FANS WE HAVE', wx, wz[0] + 4.4, c0, { align: 'center', size: 26, color: 'rgba(243,242,242,0.7)' });
+  lab("FANS WE DON'T", wx, wz[1] + 5.6, c0, { align: 'center', size: 32 });
+  // 2 what they already love
   PA.forEach((c, i) => {
-    const u = clamp((r - 0.08 - i * 0.022) / 0.14);
-    curve(wx + 3, wz[1], px - 1.2, pz(i), u, 'rgba(243,242,242,0.85)', 3, false);
-    if (i % 3 === 0) curve(wx + 2.2, wz[0], px - 1.2, pz(i), u, 'rgba(243,242,242,0.3)', 2, false);
-    const v = clamp((u - 0.85) / 0.15); dot(px, pz(i), 1.15, CHALK, null, v); lab(c.toUpperCase(), px + 2.2, pz(i), v);
+    const u = clamp((r - 0.1 - i * 0.022) / 0.14);
+    curve(wx + 3.2, wz[1], px - 1.4, pz(i), u, 'rgba(243,242,242,0.9)', 5, false);
+    if (i % 3 === 0) curve(wx + 2.2, wz[0], px - 1.4, pz(i), u, 'rgba(243,242,242,0.32)', 3, false);
+    const v = clamp((u - 0.85) / 0.15); dot(px, pz(i), 1.4, CHALK, null, v); lab(c.toUpperCase(), px + 2.6, pz(i), v);
   });
-  // what we have: the sport, its athletes and its stories
-  PA.forEach((c, i) => curve(px + 1.2, pz(i), hx - 2.2, 0, clamp((r - 0.4) / 0.12), 'rgba(236,48,19,0.9)', 3, true));
-  const dv = clamp((r - 0.5) / 0.05); dot(hx, 0, 2.2, null, RED, dv); dot(hx, 0, 0.9, RED, null, dv);
-  lab('WHAT WE HAVE', hx, -10.5, dv, { align: 'center', size: 20 });
-  lab('SPORT · ATHLETES · STORIES', hx, 10.5, dv, { align: 'center', size: 16, color: 'rgba(243,242,242,0.6)' });
-  // what it becomes
+  // 3 what we have: the sport, its athletes and its stories
+  PA.forEach((c, i) => curve(px + 1.4, pz(i), hx - 2.6, hz, clamp((r - 0.42) / 0.12), 'rgba(236,48,19,0.95)', 5, true));
+  const dv = clamp((r - 0.52) / 0.05); dot(hx, hz, 2.6, null, RED, dv); dot(hx, hz, 1.1, RED, null, dv);
+  lab('03 WHAT WE HAVE', hx, hz + 5.4, dv, { align: 'center', size: 26 });
+  lab('SPORT · ATHLETES · STORIES', hx, hz + 8.8, dv, { align: 'center', size: 17, color: 'rgba(243,242,242,0.65)' });
+  // 4 what it becomes
   OUT.forEach((m, j) => {
-    const u = clamp((r - 0.55 - j * 0.03) / 0.14);
-    curve(hx + 2.2, 0, ox - 1.4, oz(j), u, RED, 4, true);
-    const v = clamp((u - 0.85) / 0.15); dot(ox, oz(j), 1.4, null, RED, v); lab(m.toUpperCase(), ox + 2.6, oz(j), v, { size: 24, color: '#ff7a5e' });
+    const u = clamp((r - 0.57 - j * 0.03) / 0.14);
+    curve(hx + 2.6, hz, ox - 1.6, oz(j), u, RED, 6, true);
+    const v = clamp((u - 0.85) / 0.15); dot(ox, oz(j), 1.6, null, RED, v); lab(m.toUpperCase(), ox + 3, oz(j), v, { size: 30, color: '#ff7a5e' });
   });
-  lab('HOW I BUILD A BRIEF — START WITH WHAT THEY ALREADY LOVE', -52, -31, clamp(r / 0.1), { size: 20, color: 'rgba(243,242,242,0.75)' });
+  lab('HOW I BUILD A BRIEF', -52, -25.4, b0, { size: 30, ls: '5px' });
+  lab('START WITH WHAT THEY ALREADY LOVE', 52, -25.4, b0, { size: 22, align: 'right', color: 'rgba(243,242,242,0.6)' });
   const cap = clamp((r - 0.85) / 0.15);
-  [['1 WHO WE WANT', wx, 'center'], ['2 WHAT THEY LOVE', px, 'left'], ['3 WHAT WE HAVE', hx, 'center'], ['4 WHAT IT BECOMES', ox, 'left']].forEach(([s, x, al]) => lab(s, x, 31.5, cap, { size: 18, color: 'rgba(243,242,242,0.6)', align: al }));
+  [['01 WHO WE WANT', wx, 'center'], ['02 WHAT THEY LOVE', px, 'left'], ['04 WHAT IT BECOMES', ox, 'left']].forEach(([s, x, al]) => lab(s, x, 16.2, cap, { size: 22, color: 'rgba(243,242,242,0.7)', align: al }));
 }

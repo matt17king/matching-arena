@@ -797,6 +797,54 @@ export async function createArena(canvas, o = {}) {
     });
   }
   let highlight = -1;
+  // the play: each talent rule draws its player's assignment, like a playbook page. Offence attacks +x.
+  const ROLE = {
+    LT: [[[0, 0], [2.6, -1.2]], 'T'], LG: [[[0, 0], [2.6, 0]], 'T'], C: [[[0, 0], [2.6, 0]], 'T'], RG: [[[0, 0], [2.6, 0]], 'T'], RT: [[[0, 0], [2.6, 1.2]], 'T'],
+    TE: [[[0, 0], [9, 0], [15, -6]], 'A'], QB: [[[0, 0], [-5, 0]], 'A'], FB: [[[0, 0], [10, 2.3], [12.5, 2.3]], 'T'], RB: [[[0, 0], [3, -8], [12, -14], [22, -14]], 'A'],
+    WRR: [[[0, 0], [24, 0]], 'A'], WRL: [[[0, 0], [8, 0], [18, 10]], 'A'],
+  };
+  const PX0 = -40, PZ0 = -30, PW = 56, PH = 60, PS = 20; // board covers x -40..16, z -30..30 at 20 px a metre
+  const routes = (o.formation || []).map(([x, z, n, pos, name]) => {
+    const [pts, end] = ROLE[pos === 'WR' ? (z > 0 ? 'WRR' : 'WRL') : pos] || [[[0, 0]], 'T'];
+    const P = pts.map(([dx, dz]) => [x + dx, z + dz]); let len = 0; for (let i = 1; i < P.length; i++) len += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+    return { P, end, len, n, name: name || '', x, z };
+  });
+  const qbI = (o.formation || []).findIndex(f => f[3] === 'QB'), wrI = (o.formation || []).findIndex(f => f[3] === 'WR' && f[1] > 0);
+  const [playC, playG] = cnv(PW * PS, PH * PS), playTex = texOf(playC);
+  const play = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({ map: playTex, transparent: true, depthWrite: false, opacity: 0 }));
+  play.rotation.x = -Math.PI / 2; play.position.set(PX0 + PW / 2, 0.09, PZ0 + PH / 2); play.renderOrder = 5; play.visible = false; scene.add(play);
+  let playKey = '';
+  function drawPlay(step, u, hi) {
+    const g = playG, X = x => (x - PX0) * PS, Y = z => (z - PZ0) * PS;
+    g.clearRect(0, 0, playC.width, playC.height); g.lineCap = 'round'; g.lineJoin = 'round';
+    // line of scrimmage
+    g.save(); g.setLineDash([18, 14]); g.strokeStyle = 'rgba(243,242,242,0.35)'; g.lineWidth = 4; g.beginPath(); g.moveTo(X(-9.6), Y(-27)); g.lineTo(X(-9.6), Y(27)); g.stroke(); g.restore();
+    const stroke = (r, k, col, w, glow) => {
+      if (k <= 0) return; let left = r.len * k; g.save(); g.strokeStyle = col; g.fillStyle = col; g.lineWidth = w; if (glow) { g.shadowColor = 'rgba(236,48,19,0.9)'; g.shadowBlur = 22; }
+      g.beginPath(); g.moveTo(X(r.P[0][0]), Y(r.P[0][1])); let ex = r.P[0], dir = [1, 0];
+      for (let i = 1; i < r.P.length && left > 0; i++) { const a = r.P[i - 1], b = r.P[i], sl = Math.hypot(b[0] - a[0], b[1] - a[1]), f = Math.min(1, left / sl); dir = [(b[0] - a[0]) / sl, (b[1] - a[1]) / sl]; ex = [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]; g.lineTo(X(ex[0]), Y(ex[1])); left -= sl; }
+      g.stroke();
+      if (k >= 0.999) { const [dx, dz] = dir, nx = -dz, nz = dx; g.beginPath();
+        if (r.end === 'T') { g.moveTo(X(ex[0] + nx * 1.3), Y(ex[1] + nz * 1.3)); g.lineTo(X(ex[0] - nx * 1.3), Y(ex[1] - nz * 1.3)); g.stroke(); }
+        else { g.moveTo(X(ex[0] + dx * 1.2), Y(ex[1] + dz * 1.2)); g.lineTo(X(ex[0] - dx * 0.6 + nx * 1.0), Y(ex[1] - dz * 0.6 + nz * 1.0)); g.lineTo(X(ex[0] - dx * 0.6 - nx * 1.0), Y(ex[1] - dz * 0.6 - nz * 1.0)); g.closePath(); g.fill(); } }
+      g.restore();
+    };
+    routes.forEach((r, i) => { if (i < step) stroke(r, 1, 'rgba(243,242,242,0.85)', 7, false); });
+    // the throw lands once the last rule is called
+    if (step >= routes.length - 1 && qbI >= 0 && wrI >= 0) { const a = routes[qbI].P[routes[qbI].P.length - 1], b = routes[wrI].P[routes[wrI].P.length - 1], k = step > routes.length - 1 ? 1 : ss(u / 0.7);
+      g.save(); g.setLineDash([22, 16]); g.strokeStyle = RED; g.lineWidth = 6; g.shadowColor = 'rgba(236,48,19,0.8)'; g.shadowBlur = 16; g.beginPath(); const mx = (a[0] + b[0]) / 2 - 6, mz = (a[1] + b[1]) / 2 - 4;
+      for (let j = 0; j <= 40 * k; j++) { const q = j / 40, iq = 1 - q, px = iq * iq * a[0] + 2 * iq * q * mx + q * q * b[0], pz = iq * iq * a[1] + 2 * iq * q * mz + q * q * b[1]; j ? g.lineTo(X(px), Y(pz)) : g.moveTo(X(px), Y(pz)); } g.stroke(); g.restore(); }
+    if (hi >= 0 && hi !== step && routes[step]) stroke(routes[step], ss(clamp(u / 0.6)), 'rgba(243,242,242,0.85)', 7, false);
+    const cur = hi >= 0 ? hi : step; if (cur < 0 || !routes[cur]) return;
+    stroke(routes[cur], hi >= 0 && hi !== step ? 1 : ss(clamp(u / 0.6)), RED, 10, true);
+    // play call: bottom-left of the board, the one patch of field no route crosses
+    const r = routes[cur], bx = X(-39.5), bw = X(-17) - bx, label = r.name.toUpperCase();
+    g.font = FONT(800, 40); LS(g, '-1px'); const words = label.split(' '), lines = ['']; words.forEach(w => { const tl = lines[lines.length - 1] ? lines[lines.length - 1] + ' ' + w : w; if (g.measureText(tl).width > bw - 40 && lines[lines.length - 1]) lines.push(w); else lines[lines.length - 1] = tl; });
+    const bh = 70 + lines.length * 44, by = Y(24.6) - bh;
+    g.fillStyle = 'rgba(11,10,10,0.88)'; g.fillRect(bx, by, bw, bh); g.fillStyle = RED; g.fillRect(bx, by, bw, 6);
+    g.textBaseline = 'alphabetic'; g.fillStyle = RED; g.font = FONT(800, 24); LS(g, '5px'); g.fillText(`PLAY CALL ${String(r.n).padStart(2, '0')} / ${String(routes.length).padStart(2, '0')}`, bx + 20, by + 44);
+    g.fillStyle = CHALK; g.font = FONT(800, 40); LS(g, '-1px'); lines.forEach((l, k) => g.fillText(l, bx + 20, by + 92 + k * 44));
+  }
 
   // ---------- chapter: dormant demand + the crowd re-forming (tennis)
   const stat = o.stat || { a: { v: '676K', n: 'Alexandra Eala', k: 676 }, b: { v: '70K', n: 'Novak Djokovic', k: 70 } };
@@ -973,11 +1021,13 @@ export async function createArena(canvas, o = {}) {
   const nflK = [{ t: 0, pos: [DX[0] - 34, 18, 26], tgt: [DX[0] + 8, 0, 0], fov: 50 }];
   { const dw = (CH.DRIVE[1] - CH.DRIVE[0]) / DX.length;
     DX.forEach((x, k) => { const ps = k === DX.length - 1 ? { pos: [x - 22, 8.5, 12], tgt: [x + 2, 2.6, 0], fov: 50 } : { pos: [x - 15, 6.5, 8], tgt: [x + 16, 2, -1], fov: 48 }; nflK.push({ t: CH.DRIVE[0] + k * dw + dw * 0.3, ...ps }, { t: CH.DRIVE[0] + (k + 1) * dw - 0.004, ...ps }); });
-    nflK.push({ t: CH.XI[0] - 0.006, pos: [-19, 66, 3], tgt: [-19, 0, 0], fov: 40 });
-    const F = o.formation || [], xs = (CH.XI[1] - CH.XI[0]) / Math.max(1, F.length);
-    F.forEach(([px, pz], i) => { const cx = -19 + (px + 19) * 0.3, cz = pz * 0.3, k = { pos: [cx, 58, 3 + cz], tgt: [cx, 0, cz + 1.5], fov: 40 }; nflK.push({ t: CH.XI[0] + i * xs + 0.001, ...k }, { t: CH.XI[0] + (i + 1) * xs - 0.001, ...k }); });
-    nflK.push({ t: 1, pos: [-19, 70, 3], tgt: [-19, 0, 0], fov: 40 }); }
-  CAM.nfl = t => lin(nflK, t);
+  }
+  // the huddle: one steady overhead on the whole play. Wide screens keep the right-hand panel clear; tall ones keep the bottom sheet clear.
+  const huddlePose = t => { const a = W / H, u = clamp((t - CH.XI[0]) / (CH.XI[1] - CH.XI[0])), h = 84 - 4 * u;
+    if (a >= 1.25) { const cx = -11.5 + 0.3 * h * Math.tan(20 * Math.PI / 180) * a; return { pos: [cx, h, 4], tgt: [cx, 0, 1], fov: 40 }; }
+    return { pos: [-15, 58 - 3 * u, 12], tgt: [-15, 0, 11], fov: 40 }; };
+  const mixPose = (A, B, u) => { const L = (p, q) => p.map((v, j) => v + (q[j] - v) * u); return { pos: L(A.pos, B.pos), tgt: L(A.tgt, B.tgt), fov: A.fov + (B.fov - A.fov) * u }; };
+  CAM.nfl = t => { const t0 = CH.XI[0] - 0.045; if (t < t0) return lin(nflK, t); const hp = huddlePose(Math.max(t, CH.XI[0])); return t >= CH.XI[0] ? hp : mixPose(lin(nflK, t0), hp, ss((t - t0) / (CH.XI[0] - t0))); };
   const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.COL[0] + 0.08, pos: [0, 28, 40], tgt: [2, 9, 0], fov: 52 }, { t: CH.COL[1] - 0.02, pos: [7, 28, 37], tgt: [2, 9, 0], fov: 52 }, { t: CH.FANS[0] + 0.02, pos: [0, 96, 20], tgt: [0, 0, 0], fov: 44 }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
   CAM.tennis = t => lin(tenK, t);
   const rAt3 = (s, y) => { const [x, z] = raceX.racingAt(s); return [x, y, z]; };
@@ -1140,6 +1190,9 @@ export async function createArena(canvas, o = {}) {
       fdLine.visible = on > 0.001; fdLine.material.opacity = on * 0.95; fdLine.position.x = Math.min(xl, 45.72);
       pigskin.visible = on > 0.001; pigskin.position.x = xl - 1.2; pigskin.position.y = 0.16 + Math.max(0, Math.sin(clamp(loc / 0.3) * Math.PI)) * 6 * (k ? 1 : 0); pigskin.rotation.z = -clamp(loc / 0.3) * Math.PI * 4;
       drivePlates.forEach((m, i) => { const a = i === k ? on * RO(loc, 0.22, 0.4) * (1 - R(loc, 0.94, 1)) : 0; m.visible = a > 0.001; m.material.opacity = a; m.position.y = 4.6 - (1 - a) * 1.5; }); }
+    { const on = id === 'nfl' ? R(t, CH.XI[0] - 0.01, CH.XI[0] + 0.015) * (1 - R(t, CH.XI[1], CH.XI[1] + 0.02)) : 0; play.visible = on > 0.001; play.material.opacity = on;
+      if (play.visible) { const n = routes.length, f = clamp((t - CH.XI[0]) / (CH.XI[1] - CH.XI[0])) * n, step = Math.min(n - 1, Math.floor(f)), u = Math.min(1, f - step), key = `${step}|${Math.round(u * 40)}|${highlight}`;
+        if (key !== playKey) { drawPlay(step, u, highlight === step ? -1 : highlight); playTex.needsUpdate = true; playKey = key; } } }
     players.forEach((pl, i) => {
       const s = id === 'nfl' ? RO(t, CH.XI[0] - 0.03 + i * 0.002, CH.XI[0] - 0.015 + i * 0.002) * (1 - R(t, CH.XI[1], CH.XI[1] + 0.02)) : 0;
       const hi = highlight === i; pl.g.visible = s > 0.001; pl.g.scale.setScalar(Math.max(0.0001, s * (hi ? 1.28 : 1)));
