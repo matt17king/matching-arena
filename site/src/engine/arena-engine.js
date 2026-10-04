@@ -66,7 +66,7 @@ export async function createArena(canvas, o = {}) {
   });
   const texAsphalt = tile(256, '#5a5653', (g, S) => { speck(g, S, 14000, '20,18,17', 0.5, 2); speck(g, S, 6000, '200,196,190', 0.25, 1.5); blotch(g, S, 50, 10, 50, '20,18,16', 0.2); });
   // derivative bump: perturbs the shading normal from a height expression (micro-relief without normal maps)
-  const BUMP = (h, k) => `{ float bh=(${h})*${k}; vec3 dpx=dFdx(-vViewPosition), dpy=dFdy(-vViewPosition); float dhx=dFdx(bh), dhy=dFdy(bh);
+  const BUMP = (h, k) => `{ vec3 dpx=dFdx(-vViewPosition), dpy=dFdy(-vViewPosition); float bfade=1.0/(1.0+pow(max(length(dpx),length(dpy))*40.0,2.0)); float bh=(${h})*${k}*bfade; float dhx=dFdx(bh), dhy=dFdy(bh);
     vec3 r1=cross(dpy,normal), r2=cross(normal,dpx); float det=dot(dpx,r1); vec3 gr=sign(det)*(dhx*r1+dhy*r2); normal=normalize(abs(det)*normal-gr); }`;
   const triplanar = (mat, tex, scale, ao = 1) => {
     mat.onBeforeCompile = sh => {
@@ -604,7 +604,7 @@ export async function createArena(canvas, o = {}) {
         uniform float uRev; uniform vec3 uRed; varying float vT; varying float vE; varying vec3 vTW; float tR; float tTip; float tBh; ${NOISE}`)
         .replace('#include <map_fragment>', `#include <map_fragment>
           if(vT>uRev) discard;
-          { vec2 p=vTW.xz; float fwA=clamp(length(fwidth(p))*6.0,0.0,1.0); float ag=mix(noise(p*31.0)*0.5+noise(p*67.0)*0.5,0.5,fwA); vec3 c=vec3(0.07,0.068,0.066)*(0.9+0.13*ag+0.16*noise(p*0.25)+0.08*noise(p*2.1));
+          { vec2 p=vTW.xz; float fwA=clamp(length(fwidth(p))*6.0,0.0,1.0); float ag=mix(noise(p*14.0)*0.6+noise(p*29.0)*0.4,0.5,fwA); vec3 c=vec3(0.07,0.068,0.066)*(0.93+0.07*ag+0.16*noise(p*0.25)+0.08*noise(p*2.1));
             float e=min(vE,1.0-vE); float rub=exp(-((vE-0.5)/0.16)*((vE-0.5)/0.16))*(0.6+0.4*noise(p*vec2(0.4,2.0)));
             c*=1.0-0.35*rub; c*=0.7+0.3*smoothstep(0.0,0.06,e);
             float pud=smoothstep(0.58,0.7,noise(p*0.045)*0.65+noise(p*0.17)*0.35); c*=1.0-0.12*pud;

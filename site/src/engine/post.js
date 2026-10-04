@@ -64,7 +64,7 @@ export function createPost(THREE, renderer, scene, camera) {
   let ao = null; const base = new RenderPass(scene, camera); base.enabled = false;
   try {
     ao = new N8AOPass(scene, camera, 1, 1);
-    Object.assign(ao.configuration, { aoRadius: 1.6, distanceFalloff: 0.5, intensity: 2.2, color: new THREE.Color('#050404'), halfRes: true, depthAwareUpsampling: true, gammaCorrection: false, aoSamples: 16, denoiseSamples: 8, denoiseRadius: 12 });
+    Object.assign(ao.configuration, { aoRadius: 1.6, distanceFalloff: 0.5, intensity: 2.2, color: new THREE.Color('#050404'), halfRes: true, depthAwareUpsampling: true, gammaCorrection: false, aoSamples: 16, denoiseSamples: 16, denoiseRadius: 16 });
     composer.addPass(ao); composer.addPass(base);
   } catch (e) { console.warn('AO unavailable', e); ao = null; base.enabled = true; composer.addPass(base); }
   // guards against NaN/inf from HDR emitters before the blur chain
@@ -88,7 +88,7 @@ export function createPost(THREE, renderer, scene, camera) {
   const grade = new ShaderPass({ uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uBars: { value: 0 }, uAsp: { value: 1 }, uFlash: { value: 0 }, uVig: { value: 0.32 } }, vertexShader: VS,
     fragmentShader: `uniform sampler2D tDiffuse; uniform float uTime; uniform float uBars; uniform float uAsp; uniform float uFlash; uniform float uVig; varying vec2 vUv;
       float h(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
-      void main(){ vec2 d=vUv-0.5; float ca=dot(d,d)*0.012;
+      void main(){ vec2 d=vUv-0.5; float ca=dot(d,d)*0.004;
         vec3 c=vec3(texture2D(tDiffuse,vUv+d*ca).r,texture2D(tDiffuse,vUv).g,texture2D(tDiffuse,vUv-d*ca).b);
         float l=dot(c,vec3(0.2126,0.7152,0.0722));
         c=mix(c, c*vec3(0.92,0.98,1.08), (1.0-smoothstep(0.0,0.35,l))*0.55);   // cool shadows
@@ -97,7 +97,6 @@ export function createPost(THREE, renderer, scene, camera) {
         c=mix(vec3(l), c, 1.06);                                               // a touch more saturation
         float v=smoothstep(0.85,0.2,length(d*vec2(uAsp*0.75,1.0))); c*=mix(1.0,v,uVig);
         c+=uFlash*vec3(1.0,0.95,0.9);
-        c+=(h(vUv*vec2(1931.0,1087.0)+fract(uTime*7.0)*91.0)-0.5)*0.028;
         float bh=uBars*0.5*(1.0-uAsp/2.39); if(bh>0.0 && (vUv.y<bh || vUv.y>1.0-bh)) c=vec3(0.043,0.039,0.039);
         gl_FragColor=vec4(c,1.0); }` });
   composer.addPass(grade);
