@@ -24,3 +24,7 @@ a.btn-out-red:hover { background: var(--color-accent-600); color: var(--color-bg
 /* film room: label beside text, stacked on phones */
 .film-row { grid-template-columns: minmax(0, 120px) 1fr; }
 @media (max-width: 560px) { .film-row { grid-template-columns: 1fr; } }
+
+/* photos of Matt: grayscale like the rest of the system, full colour on hover */
+.life img, .life video { filter: grayscale(1) contrast(1.05); transition: filter .4s ease; }
+.life:hover img, .life:hover video { filter: none; }

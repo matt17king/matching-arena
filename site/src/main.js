@@ -1,7 +1,7 @@
 // Arena v12 — scroll controller. Maps scroll to match progress, drives the 3D engine, scrubs the DOM overlays.
 import './styles/modernist.css';
 import './styles/site.css';
-import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, FILM, TROPHIES, PROOF, TALENT, BRANDS, PRESS, SEATS, TOPICS, STAT, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN } from './content.js';
+import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, FILM, TROPHIES, PROOF, STANDS, TALENT, BRANDS, PRESS, SEATS, TOPICS, STAT, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN } from './content.js';
 
 const BASE = import.meta.env.BASE_URL;
 const KBG = '#0b0a0a', ZONE_ON = '#ec3013', ZONE_OFF = 'rgba(243,242,242,.3)';
@@ -67,6 +67,11 @@ list('film', FILM.map((f, i) => `<article data-rv style="display:flex;flex-direc
   </div>`).join('')}
 </article>`).join(''));
 list('proof', PROOF.map(([n, f]) => `<div data-rv title="${esc(n)}" style="display:flex;align-items:center;justify-content:center;aspect-ratio:3/2;padding:14px;background:#f3f2f2;border-right:2px solid #0b0a0a;border-bottom:2px solid #0b0a0a"><img src="${BASE}logos/${f}" alt="${esc(n)}" loading="lazy" style="max-width:72%;max-height:52px;object-fit:contain;filter:grayscale(1) contrast(1.1);mix-blend-mode:multiply"></div>`).join(''));
+list('stands', STANDS.map(([f, title, label]) => { const src = `${BASE}photos/life/${f}`, vid = f.endsWith('.mp4');
+  return `<figure data-rv class="life" style="margin:0">
+  ${vid ? `<video src="${src}" poster="${src.replace(/\.mp4$/, '.jpg')}" muted loop playsinline autoplay preload="none" aria-label="${esc(title)}, ${esc(label)}" style="display:block;width:100%;aspect-ratio:3/4;object-fit:cover"></video>` : `<img src="${src}" alt="Matt — ${esc(title)}, ${esc(label)}" loading="lazy" style="display:block;width:100%;aspect-ratio:3/4;object-fit:cover">`}
+  <figcaption style="display:flex;justify-content:space-between;gap:10px;border-top:2px solid rgba(243,242,242,.22);margin-top:10px;padding-top:8px;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase"><span style="color:#f3f2f2">${esc(title)}</span><span style="color:rgba(243,242,242,.5);text-align:right">${esc(label)}</span></figcaption>
+</figure>`; }).join(''));
 list('topics', TOPICS.map(t => `<span style="border:2px solid rgba(243,242,242,.35);padding:7px 10px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">${esc(t)}</span>`).join(''));
 list('trophies', TROPHIES.map(([v, what, where], i) => `<div data-rv class="trophy" style="display:flex;flex-direction:column;justify-content:space-between;gap:28px;min-height:220px;padding:18px 18px 20px;border-right:2px solid rgba(243,242,242,.22);border-bottom:2px solid rgba(243,242,242,.22)">
   <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:800;letter-spacing:.14em"><span style="color:var(--color-accent)">${pad2(i + 1)}</span><span style="color:rgba(243,242,242,.55)">${esc(where)}</span></div>
@@ -109,7 +114,7 @@ const groups = [
   ['03 — NFL', 'FIT BEATS SIZE', [['1&10', 'How a fan is made', G('nfl', 0.25)], ['XI', '11 talent rules', G('nfl', 0.6)]]],
   ['04 — TENNIS', 'THE FORMAT IS THE PRODUCT', [['15–0', 'Demand is dormant', G('tennis', 0.3)], ['30–0', 'New formats, new fans', G('tennis', 0.8)]]],
   ['05 — MOTORSPORT', 'STORY BEFORE SPORT', [['GRID', 'Story before sport', G('race', 0.03)], ['LAP', 'One idea, seven markets', G('race', 0.12)], ['PIT', 'AI is the pit crew', G('race', 0.72)], ['FLAG', 'Full time', G('ft', 0.98)]]],
-  ['POST-MATCH', '', [["90+1'", 'The film room', 'sec:0'], ["90+2'", 'The record', 'sec:1'], ["90+3'", 'The dressing room', 'sec:2'], ["90+4'", 'Book Matt', 'sec:3']]],
+  ['POST-MATCH', '', [["90+1'", 'The film room', 'sec:0'], ["90+2'", 'The record', 'sec:1'], ["90+3'", 'In the stands', 'sec:2'], ["90+4'", 'The dressing room', 'sec:3'], ["90+5'", 'Book Matt', 'sec:4']]],
 ];
 const row = (m, n, tag, go) => `<button class="menu-row" data-go="${go}" style="display:grid;grid-template-columns:64px 1fr auto;align-items:baseline;gap:12px;width:100%;padding:10px 16px;background:none;border:0;border-bottom:1px solid rgba(243,242,242,.1);color:#f3f2f2;font-family:inherit;text-align:left;cursor:pointer">
   <span style="font-weight:800;font-variant-numeric:tabular-nums;color:var(--color-accent);font-size:13px">${esc(m)}</span>

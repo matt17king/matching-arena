@@ -76,6 +76,19 @@ export const TROPHIES = [
 ];
 // Proof strip: [name, logo file in public/logos]
 export const PROOF = [['DAZN', 'career/dazn.png'], ['FIFA+', 'fifa-plus.png'], ['UEFA Champions League', 'uefa-champions-league.png'], ['Serie A', 'serie-a.png'], ['LaLiga', 'laliga.png'], ['Bundesliga', 'bundesliga.png'], ['80 Four', 'career/80-four.png'], ['The Couture Club', 'career/couture-club.png'], ['American Golf', 'career/american-golf.png'], ['Gym King', 'career/gym-king.png'], ['Swift Agency', 'career/swift.png'], ['Webber International', 'career/webber.png']];
+// In the stands: [file in public/photos/life, title, label]. A .mp4 plays as a muted loop with a .jpg poster of the same name.
+export const STANDS = [
+  ['man-city-match.mp4', 'Manchester City', 'Matchday'],
+  ['national-league-awards.jpg', 'National League Awards', 'Red carpet'],
+  ['goodwood.jpg', 'Goodwood Festival of Speed', 'Paddock'],
+  ['boxing.jpg', 'Fight night', 'In the crowd'],
+  ['tennis.jpg', 'Tennis', 'On court'],
+  ['padel-tournament.jpg', 'Padel tournament', 'Courtside'],
+  ['run-10k.jpg', '10K', 'Ring the bell'],
+  ['paris-marathon.jpg', 'Paris Marathon', 'Race day'],
+  ['track.jpg', 'The track', 'Training'],
+  ['working.jpg', 'The desk', 'Where the ideas get built'],
+];
 // [name, where] — talent partnerships
 export const TALENT = [['Phil Foden', 'The Couture Club'], ['Molly-Mae Hague', 'The Couture Club'], ['Kyle Walker', 'Talent partnership'], ['Conor McGregor', 'Talent partnership'], ['Tom Aspinall', 'Gym King'], ['Ash Cain', 'Gym King'], ['Alex Bowen', 'Gym King'], ['Niall Horan', 'American Golf'], ['Judy Murray', 'American Golf'], ['Madeline Argy', 'Talent partnership']];
 // [name, logo file in public/logos or null]
