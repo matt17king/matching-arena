@@ -1,5 +1,7 @@
 // Night street circuit detail: walls, catch fencing, LED wall boards, pit lane, sponsor bridge, braking boards,
 // tyre stacks, grandstands, city skyline, start/finish line and the F1 cars (MK #17 on pole).
+import { f1CarFactory } from './f1-car.js';
+
 export function buildRaceDetail(X) {
   const { THREE, vR, cc, atf, mats, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, glowTex, fogU, makeStrip, addStand, triplanar, texConcrete, NOISE } = X;
   const root = new THREE.Group(); vR.root.add(root);
@@ -170,59 +172,12 @@ export function buildRaceDetail(X) {
     geo.setAttribute('aSeed', new THREE.InstancedBufferAttribute(seeds, 1)); im.instanceMatrix.needsUpdate = true; im.frustumCulled = false; root.add(im);
   }
 
-  // ---------- F1 cars
-  const carbonTex = (() => { const [c, g] = cnv(64, 64); for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) { g.fillStyle = (x + y) % 2 ? '#1c1c1d' : '#0e0e0f'; g.fillRect(x * 8, y * 8, 8, 8); } const t = texOf(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 6); return t; })();
-  const carbon = new THREE.MeshStandardMaterial({ color: C('#ffffff'), map: carbonTex, roughness: 0.38, metalness: 0.35 }); carbon.userData.env = 0.6;
-  const rubber = new THREE.MeshStandardMaterial({ color: C('#161515'), roughness: 0.93 });
-  const rimM = new THREE.MeshStandardMaterial({ color: C('#2c2b2b'), roughness: 0.3, metalness: 0.85 }); rimM.userData.env = 0.8;
-  const sideTex = (col) => { const [c, g] = cnv(256, 256); g.clearRect(0, 0, 256, 256); g.strokeStyle = col; g.lineWidth = 14; g.beginPath(); g.arc(128, 128, 104, 0, 7); g.stroke(); g.fillStyle = 'rgba(240,238,234,0.85)'; g.font = FONT(800, 22); LS(g, '6px'); g.textAlign = 'center'; g.save(); g.translate(128, 128); for (const r of [0, Math.PI]) { g.save(); g.rotate(r); g.fillText('MK17', 0, -116 + 22); g.restore(); } g.restore(); return texOf(c); };
+  // ---------- F1 cars (built in f1-car.js)
+  const sideTex = (col) => { const [c, g] = cnv(512, 512); const m = 256; g.strokeStyle = col; g.lineWidth = 12; g.beginPath(); g.arc(m, m, m * 0.86, 0, 7); g.stroke(); g.fillStyle = 'rgba(240,238,234,0.92)'; g.font = FONT(800, 30); LS(g, '8px'); g.textAlign = 'center'; g.textBaseline = 'middle';
+    for (const r of [0, Math.PI]) { g.save(); g.translate(m, m); g.rotate(r); g.fillText('MK17', 0, -m * 0.72); g.restore(); } return texOf(c); };
   const swRed = sideTex(RED), swWhite = sideTex('#e8e5e1');
-  const decal = (num, name, fg, bg) => { const [c, g] = cnv(512, 256); g.fillStyle = bg; g.fillRect(0, 0, 512, 256); g.fillStyle = fg; g.font = FONT(800, 170); LS(g, '-8px'); g.textBaseline = 'alphabetic'; g.fillText(num, 24, 200); g.font = FONT(800, 46); LS(g, '6px'); g.fillText(name, 250, 140); g.fillRect(250, 160, 220, 8); return texOf(c); };
-  function makeCar(paintCol, accentCol, num, name, sw) {
-    const g = new THREE.Group();
-    const paint = new THREE.MeshPhysicalMaterial({ color: C(paintCol), roughness: 0.28, metalness: 0.3, clearcoat: 1, clearcoatRoughness: 0.06 }); paint.userData.env = 0.9;
-    const accent = new THREE.MeshPhysicalMaterial({ color: C(accentCol), roughness: 0.3, metalness: 0.2, clearcoat: 1, clearcoatRoughness: 0.08 }); accent.userData.env = 0.8;
-    box(g, 5.0, 0.05, 1.5, -0.1, 0.07, 0, carbon);                                     // floor
-    rbox(g, 2.3, 0.52, 0.78, 0.25, 0.4, 0, paint, 0.14);                              // tub
-    const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.27, 2.0, 18), paint); nose.geometry.rotateZ(-Math.PI / 2); nose.scale.set(1, 0.62, 1.25); nose.position.set(2.35, 0.34, 0); g.add(nose);
-    box(g, 0.55, 0.03, 1.95, 3.15, 0.1, 0, carbon); const flap = box(g, 0.36, 0.025, 1.9, 3.05, 0.19, 0, accent); flap.rotation.z = 0.28;
-    for (const z of [-0.97, 0.97]) box(g, 0.62, 0.3, 0.03, 3.1, 0.18, z, carbon);
-    for (const z of [-1, 1]) {
-      const pod = new THREE.Shape(); [[0.75, 0.0], [0.75, 0.5], [0.2, 0.52], [-0.9, 0.36], [-1.4, 0.12], [-1.4, 0.0]].forEach(([a, b], i) => i ? pod.lineTo(a, b) : pod.moveTo(a, b));
-      const pg2 = new THREE.ExtrudeGeometry(pod, { depth: 0.38, bevelEnabled: true, bevelThickness: 0.07, bevelSize: 0.07, bevelSegments: 3, curveSegments: 4 }); pg2.rotateX(-Math.PI / 2); pg2.translate(0, 0.2, 0.77);
-      const pm = new THREE.Mesh(pg2, paint); pm.scale.z = z; g.add(pm);
-      box(g, 0.06, 0.28, 0.36, 0.8, 0.36, z * 0.62, X.voidMat); box(g, 2.2, 0.14, 0.04, -0.3, 0.14, z * 0.77, carbon);
-    }
-    const sh = new THREE.Shape(); [[0.85, 0.5], [0.6, 0.96], [0.3, 1.02], [-0.3, 0.86], [-1.95, 0.56], [-1.95, 0.38], [0.85, 0.38]].forEach(([a, b], i) => i ? sh.lineTo(a, b) : sh.moveTo(a, b));
-    const eg = new THREE.ExtrudeGeometry(sh, { depth: 0.5, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 2 }); eg.translate(0, 0, -0.25); g.add(new THREE.Mesh(eg, paint));
-    const fin = new THREE.Shape(); [[-0.3, 0.86], [-1.9, 1.0], [-1.9, 0.56]].forEach(([a, b], i) => i ? fin.lineTo(a, b) : fin.moveTo(a, b)); const fg2 = new THREE.ExtrudeGeometry(fin, { depth: 0.02, bevelEnabled: false }); fg2.translate(0, 0, -0.01); g.add(new THREE.Mesh(fg2, accent));
-    box(g, 0.16, 0.2, 0.24, 0.42, 0.92, 0, X.voidMat);                                 // airbox
-    box(g, 0.55, 0.05, 0.44, 0.95, 0.67, 0, X.voidMat);                                // cockpit
-    const helm = new THREE.Mesh(new THREE.SphereGeometry(0.15, 18, 12), accent); helm.position.set(0.72, 0.78, 0); g.add(helm);
-    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.035, 8, 28, Math.PI), carbon); halo.rotation.set(Math.PI / 2, Math.PI / 2, 0, 'YXZ'); halo.position.set(0.8, 0.9, 0); g.add(halo);
-    const pil = box(g, 0.04, 0.26, 0.05, 1.22, 0.78, 0, carbon); pil.rotation.z = -0.5;
-    for (const z of [-0.5, 0.5]) box(g, 0.6, 0.62, 0.03, -2.4, 0.72, z, carbon);
-    box(g, 0.36, 0.045, 1.0, -2.42, 0.94, 0, accent); const uf = box(g, 0.26, 0.03, 1.0, -2.55, 1.02, 0, paint); uf.rotation.z = -0.35;
-    box(g, 0.3, 0.03, 0.96, -2.38, 0.5, 0, carbon); box(g, 0.08, 0.38, 0.05, -2.2, 0.62, 0, carbon); box(g, 0.45, 0.18, 1.3, -2.38, 0.15, 0, carbon);
-    const rl = new THREE.MeshBasicMaterial({ color: C(RED).multiplyScalar(2.2) }); box(g, 0.04, 0.08, 0.12, -2.66, 0.44, 0, rl);
-    const dm = new THREE.MeshStandardMaterial({ map: decal(num, name, accentCol === '#0d0c0c' ? CHALK : '#0d0c0c', paintCol), roughness: 0.3, transparent: false });
-    for (const z of [-0.88, 0.88]) { const p = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.28), dm); p.position.set(-0.85, 0.58, Math.sign(z) * 0.31); p.rotation.y = z > 0 ? 0 : Math.PI; g.add(p); }
-    const wheels = [];
-    [[1.85, 0.82, 0.355, 0.36, true], [1.85, -0.82, 0.355, 0.36, true], [-1.6, 0.8, 0.37, 0.42, false], [-1.6, -0.8, 0.37, 0.42, false]].forEach(([x, z, r, w, front]) => {
-      const pivot = new THREE.Group(); pivot.position.set(x, r, z); g.add(pivot); const spin = new THREE.Group(); pivot.add(spin);
-      const tg = new THREE.CylinderGeometry(r, r, w, 36, 1); tg.rotateX(Math.PI / 2); spin.add(new THREE.Mesh(tg, rubber));
-      const rg = new THREE.CylinderGeometry(r * 0.62, r * 0.62, w + 0.01, 24); rg.rotateX(Math.PI / 2); spin.add(new THREE.Mesh(rg, rimM));
-      const ring = new THREE.Mesh(new THREE.RingGeometry(r * 0.64, r * 0.98, 36), new THREE.MeshStandardMaterial({ map: sw, transparent: true, roughness: 0.8 }));
-      ring.position.z = Math.sign(z) * (w / 2 + 0.006); ring.rotation.y = z > 0 ? 0 : Math.PI; spin.add(ring);
-      const nut = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, w + 0.04, 10), X.redMat); nut.geometry.rotateX(Math.PI / 2); spin.add(nut);
-      struts(g, [[V3(x * 0.9, 0.42, z * 0.3), V3(x, r + 0.05, z * 0.92), 0.022], [V3(x * 0.9 + 0.3, 0.3, z * 0.3), V3(x, r - 0.06, z * 0.92), 0.022]], carbon);
-      wheels.push({ pivot, spin, r, front });
-    });
-    const shadow = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 2.6), new THREE.MeshBasicMaterial({ map: glowTex, color: C('#000000'), transparent: true, opacity: 0.75, depthWrite: false })); shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.03; g.add(shadow);
-    g.traverse(m => { if (m.isMesh && m !== shadow) { m.castShadow = !LOWQ; m.receiveShadow = !LOWQ; } });
-    root.add(g);
-    return { g, wheels, s: 0, lastS: null, rl };
-  }
+  const buildCar = f1CarFactory(X);
+  function makeCar(...a) { const car = buildCar(...a); root.add(car.g); return { ...car, s: 0, lastS: null }; }
   const liveries = [[RED, '#0d0c0c', '17', 'MATT KING', swRed], ['#1a1919', CHALK, '04', 'BLACK', swWhite], ['#e4e1dd', '#0d0c0c', '09', 'WHITE', swWhite], ['#3b3f45', CHALK, '22', 'GREY', swWhite], ['#6e0d05', CHALK, '31', 'CLARET', swWhite]];
   const cars = liveries.map(l => makeCar(...l));
   const garage = liveries.slice(0, 3).map(l => makeCar(...l));

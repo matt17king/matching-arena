@@ -1332,7 +1332,7 @@ export async function createArena(canvas, o = {}) {
     look.idle += dt; if (!look.drag && look.idle > 2.2) { look.ty *= Math.pow(0.12, dt); look.tp *= Math.pow(0.12, dt); }
     look.yaw += (look.ty - look.yaw) * Math.min(1, dt * 7); look.pitch += (look.tp - look.pitch) * Math.min(1, dt * 7);
     // camera
-    const ps0 = (CAM[id] || CAM.hero)(t);
+    const ps0 = (o.debug && window.__mkCamOverride && window.__mkCamOverride(id, t)) || (CAM[id] || CAM.hero)(t); // ?debug only: lets review scripts frame a close-up
     if (!camS.init || dt === 0) { camS.p = ps0.pos.slice(); camS.t = ps0.tgt.slice(); camS.f = ps0.fov; camS.init = true; }
     else { const kd = 1 - Math.exp(-dt * 5.5); for (let i = 0; i < 3; i++) { camS.p[i] += (ps0.pos[i] - camS.p[i]) * kd; camS.t[i] += (ps0.tgt[i] - camS.t[i]) * kd; } camS.f += (ps0.fov - camS.f) * kd; }
     const ps = { pos: camS.p, tgt: camS.t, fov: camS.f };

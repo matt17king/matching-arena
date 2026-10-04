@@ -353,7 +353,7 @@ function engineOpts() {
     segs: segList.map(s => ({ id: s.id, a: s.a, b: s.b })), ch: CH, quality,
     logos: LOGOS, rights: RIGHTS, formation: XI.map(x => [x[0], x[1], x[2], x[4], x[3]]), drive: DRIVE, kit: KIT, markets: MARKETS,
     gates: GATES, photos: Object.fromEntries(Object.entries(PHOTOS).map(([k, v]) => [k, v ? BASE + v : v])), model: { url: BASE + 'models/matt.glb', height: 1.85 },
-    noDegrade: params.has('nodegrade'), flatTactics: true, fansText: FANS_TEXT, screenData: SCREEN_DATA, messages: MESSAGES, ledPlan: LED_PLAN,
+    noDegrade: params.has('nodegrade'), debug: params.has('debug'), flatTactics: true, fansText: FANS_TEXT, screenData: SCREEN_DATA, messages: MESSAGES, ledPlan: LED_PLAN,
   };
 }
 
