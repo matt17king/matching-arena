@@ -2,7 +2,7 @@
 import { drawScreen, drawTactics, placeholder, photo } from './broadcast-gfx.js';
 import { buildRaceDetail } from './race-detail.js';
 import { buildVenueDetail } from './venue-detail.js';
-import { N, P, ORDER, SPORTS, circuit, strandSet, strandShared, BB, TN, tennis as tennisCourt } from './arena-sports.js';
+import { N, P, ORDER, SPORTS, circuit, strandSet, strandShared, BB, TN, tennis as tennisCourt, padel as padelCourt } from './arena-sports.js';
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const ss = x => { x = clamp(x); return x * x * (3 - 2 * x); };
 const R = (p, a, b) => ss((p - a) / (b - a));
@@ -25,7 +25,7 @@ export async function createArena(canvas, o = {}) {
   const FONT = (w, s) => `${w} ${s}px Archivo, system-ui, sans-serif`;
   const LS = (g, v) => { try { g.letterSpacing = v; } catch (e) {} };
   const LOWQ = o.quality === 'low';
-  const CH = Object.assign({ RR: [0.08, 0.9], BEATS: [0.06, 0.44], TAC: [0.5, 0.92], DRIVE: [0.03, 0.5], XI: [0.55, 0.96], COL: [0.028, 0.334], SURF: [0.39, 0.6], SEXES: [0.6, 0.82], FANS: [0.85, 0.95], LAP: [0.08, 0.62], PIT: [0.66, 0.92] }, o.ch || {});
+  const CH = Object.assign({ RR: [0.08, 0.9], BEATS: [0.06, 0.44], TAC: [0.5, 0.92], DRIVE: [0.03, 0.5], XI: [0.55, 0.96], SURF: [0.03, 0.27], SEXES: [0.27, 0.5], PADEL: [0.5, 0.74], FANS: [0.77, 0.92], LAP: [0.08, 0.62], PIT: [0.66, 0.92] }, o.ch || {});
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(LOWQ ? 1 : Math.min(window.devicePixelRatio || 1, 1.6));
@@ -223,7 +223,7 @@ export async function createArena(canvas, o = {}) {
 
 
   // ---------- the lines: N strands that draw themselves, then glide from one sport's markings into the next
-  const SD = {}; ORDER.forEach(k => { SD[k] = strandSet(SPORTS[k].strands); }); SD.tennisBOS = strandSet(tennisCourt(0.91));
+  const SD = {}; ORDER.forEach(k => { SD[k] = strandSet(SPORTS[k].strands); }); SD.tennisBOS = strandSet(tennisCourt(0.91)); SD.padel = strandSet(padelCourt());
   const SH = strandShared(), VN = N * (P - 1) * 4;
   const lg = new THREE.BufferGeometry();
   const dyn = k => { const a = new THREE.BufferAttribute(new Float32Array(VN * k), k); a.setUsage(THREE.DynamicDrawUsage); return a; };
@@ -863,20 +863,7 @@ export async function createArena(canvas, o = {}) {
     g.fillStyle = CHALK; g.font = FONT(800, 40); LS(g, '-1px'); lines.forEach((l, k) => g.fillText(l, bx + 20, by + 92 + k * 44));
   }
 
-  // ---------- chapter: dormant demand + the crowd re-forming (tennis)
-  const stat = o.stat || { a: { v: '676K', n: 'Alexandra Eala', k: 676 }, b: { v: '70K', n: 'Novak Djokovic', k: 70 } };
-  const colGeo = new THREE.BoxGeometry(6, 1, 6); colGeo.translate(0, 0.5, 0);
-  const colA = new THREE.Mesh(colGeo, new THREE.MeshStandardMaterial({ color: C(RED), roughness: 0.5, emissive: C(RED), emissiveIntensity: 0.55 }));
-  const colB = new THREE.Mesh(colGeo, new THREE.MeshStandardMaterial({ color: C('#dedad7'), roughness: 0.5, emissive: C('#f3f2f2'), emissiveIntensity: 0.25 }));
-  colA.position.set(-20.8, 0, 0); colB.position.set(20.8, 0, 0); scene.add(colA, colB);
-  const colH = [23, 23 * stat.b.k / stat.a.k];
-  const colLab = [stat.a, stat.b].map((s, i) => {
-    const [c, g] = cnv(1024, 400); g.fillStyle = i ? CHALK : RED; g.fillRect(0, 0, 16, 400);
-    g.font = FONT(800, 200); LS(g, '-8px'); g.fillStyle = CHALK; g.textBaseline = 'alphabetic'; g.fillText(s.v, 48, 220);
-    g.font = FONT(800, 44); LS(g, '6px'); g.fillStyle = i ? 'rgba(243,242,242,0.8)' : '#ff7a5e'; g.fillText(s.n.toUpperCase(), 52, 320);
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(20, 7.8), new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, opacity: 0, depthWrite: false }));
-    m.position.set(i ? 20.8 + 14 : -20.8 + 16.5, 0, 3.2); m.renderOrder = 6; scene.add(m); return m;
-  });
+  // ---------- chapter: the crowd re-forming (tennis)
   let fans = null;
   {
     const src = vT.crowdPts, nSrc = Math.floor(src.length / 3), n = Math.min(LOWQ ? 3000 : 5600, nSrc * 8);
@@ -955,6 +942,30 @@ export async function createArena(canvas, o = {}) {
     g.font = FONT(800, 40); LS(g, '8px'); g.lineWidth = 12; g.strokeText(sub, 512, 168); g.fillStyle = red ? '#ff7a5e' : 'rgba(243,242,242,0.85)'; g.fillText(sub, 512, 168);
     const m = new THREE.Mesh(new THREE.PlaneGeometry(30, 5.86), new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, opacity: 0, depthWrite: false }));
     m.rotation.x = -Math.PI / 2; m.position.set(x, 0.08, z); m.renderOrder = 7; m.visible = false; scene.add(m); return m; };
+  const PDL = 10 * TN, PDW = 5 * TN, PGH = 3 * TN, PMH = 4 * TN;
+  const turf = (() => { const S = LOWQ ? 512 : 1024, [c, g] = cnv(S, S / 2); g.fillStyle = '#1f5fa8'; g.fillRect(0, 0, S, S / 2);
+    const id = g.getImageData(0, 0, S, S / 2), d = id.data; for (let k = 0; k < d.length; k += 4) { const n = (Math.random() - 0.5) * 26, sand = Math.random() < 0.02 ? 40 : 0; d[k] += n * 0.6 + sand; d[k + 1] += n * 0.8 + sand * 0.9; d[k + 2] += n + sand * 0.6; } g.putImageData(id, 0, 0);
+    for (let x = 0; x < S; x += S / 40) { g.fillStyle = 'rgba(255,255,255,0.025)'; g.fillRect(x, 0, S / 80, S / 2); }
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(PDL * 2 + 0.6, PDW * 2 + 0.6), new THREE.MeshStandardMaterial({ map: texOf(c), roughness: 0.92, emissive: C('#ffffff'), emissiveMap: texOf(c), emissiveIntensity: 0.12, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }));
+    m.rotation.x = -Math.PI / 2; m.position.y = 0.026; m.renderOrder = 1; m.visible = false; m.userData.noCast = true; scene.add(m); return m; })();
+  const padelMats = [], padelWalls = new THREE.Group(); padelWalls.visible = false; scene.add(padelWalls);
+  { const glass = new THREE.MeshStandardMaterial({ color: C('#d6ecf5'), roughness: 0.06, metalness: 0.1, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }); padelMats.push([glass, 0.16]);
+    const [mc, mg] = cnv(64, 64); mg.strokeStyle = 'rgba(30,30,30,1)'; mg.lineWidth = 5; mg.beginPath(); mg.moveTo(0, 32); mg.lineTo(32, 0); mg.lineTo(64, 32); mg.lineTo(32, 64); mg.closePath(); mg.stroke();
+    const mt = texOf(mc, true); mt.wrapT = THREE.RepeatWrapping;
+    const mesh = new THREE.MeshBasicMaterial({ map: mt, color: C('#4a4a4a'), transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }); padelMats.push([mesh, 0.85]);
+    const post = new THREE.MeshStandardMaterial({ color: C('#151515'), roughness: 0.5, metalness: 0.6, transparent: true, opacity: 0 }); padelMats.push([post, 1]);
+    const pane = (w, h, mat, x, y, z, ry) => { const g = new THREE.PlaneGeometry(w, h); const m = new THREE.Mesh(g, mat); m.position.set(x, y, z); m.rotation.y = ry; if (mat === mesh) { const mm = mesh.clone(); mm.map = mt.clone(); mm.map.repeat.set(w / 1.6, h / 1.6); mm.map.needsUpdate = true; m.material = mm; padelMats.push([mm, 0.85]); } m.userData.noCast = true; padelWalls.add(m); };
+    const pst = (x, z, h) => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.35, h, 0.35), post); m.position.set(x, h / 2, z); m.userData.noCast = true; padelWalls.add(m); };
+    for (const sx of [-1, 1]) {
+      pane(PDW * 2, PGH, glass, sx * PDL, PGH / 2, 0, Math.PI / 2); pane(PDW * 2, PMH - PGH, mesh, sx * PDL, PGH + (PMH - PGH) / 2, 0, Math.PI / 2);   // back wall: glass, mesh above
+      for (const sz of [-1, 1]) {
+        pane(2 * TN, PGH, glass, sx * (PDL - TN), PGH / 2, sz * PDW, 0); pane(2 * TN, 2 * TN, glass, sx * (PDL - 3 * TN), TN, sz * PDW, 0);   // stepped side glass
+        pane(2 * TN, PMH - PGH, mesh, sx * (PDL - TN), PGH + (PMH - PGH) / 2, sz * PDW, 0);
+      }
+      for (let k = 0; k <= 5; k++) pst(sx * PDL, -PDW + k * PDW * 2 / 5, PMH);
+    }
+    for (const sz of [-1, 1]) { pane(PDL * 2 - 8 * TN, PGH, mesh, 0, PGH / 2, sz * PDW, 0); for (let k = -5; k <= 5; k++) pst(k * PDL / 5, sz * PDW, Math.abs(k) >= 4 ? PMH : PGH); }
+  }
   const surfLab = [groundLabel('FEDERER', 'GRASS', -CTL / 2, -CTW - 9.1), groundLabel('NADAL', 'CLAY', CTL / 2, -CTW - 9.1, true)];
   const sexLab = [groundLabel('SABALENKA', 'SHORTER & NARROWER', -CTL / 2, -CTW - 9.1, true), groundLabel('KYRGIOS', 'FULL-SIZE HALF', CTL / 2, -CTW - 9.1)];
 
@@ -1105,7 +1116,8 @@ export async function createArena(canvas, o = {}) {
     return { pos: [-15, 58 - 3 * u, 12], tgt: [-15, 0, 11], fov: 40 }; };
   const mixPose = (A, B, u) => { const L = (p, q) => p.map((v, j) => v + (q[j] - v) * u); return { pos: L(A.pos, B.pos), tgt: L(A.tgt, B.tgt), fov: A.fov + (B.fov - A.fov) * u }; };
   CAM.nfl = t => { const t0 = CH.XI[0] - 0.045; if (t < t0) return lin(nflK, t); const hp = huddlePose(Math.max(t, CH.XI[0])); return t >= CH.XI[0] ? hp : mixPose(lin(nflK, t0), hp, ss((t - t0) / (CH.XI[0] - t0))); };
-  const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.COL[0] + 0.08, pos: [0, 28, 40], tgt: [2, 9, 0], fov: 52 }, { t: CH.COL[1] - 0.02, pos: [7, 28, 37], tgt: [2, 9, 0], fov: 52 }, { t: CH.SURF[0], pos: [0, 96, 20], tgt: [0, 0, 0], fov: 44 }, { t: CH.FANS[0], pos: [0, 96, 20], tgt: [0, 0, 0], fov: 44 }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
+  const OVH = { pos: [0, 96, 20], tgt: [0, 0, 0], fov: 44 };
+  const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.SURF[0] + 0.03, ...OVH }, { t: CH.PADEL[0] + 0.02, ...OVH }, { t: CH.PADEL[0] + 0.09, pos: [0, 44, 76], tgt: [0, 0, 6], fov: 46 }, { t: CH.PADEL[1] - 0.03, pos: [16, 42, 72], tgt: [0, 0, 6], fov: 46 }, { t: CH.FANS[0], ...OVH }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
   CAM.tennis = t => lin(tenK, t);
   const rAt3 = (s, y) => { const [x, z] = raceX.racingAt(s); return [x, y, z]; };
   const chase = s => ({ pos: rAt3(s + 4.5, 3.1), tgt: rAt3(s + 30, 0.9), fov: 58 });
@@ -1140,7 +1152,7 @@ export async function createArena(canvas, o = {}) {
     if (id === 'rights') return K(t, [[0, 0.38], [0.07, 0.6]]);
     if (id === 'bball') return K(t, [[0, 0.72], [CH.BEATS[1], 0.72], [CH.TAC[0], 0.5], [0.96, 0.5], [1, 0.85]]);
     if (id === 'nfl') return K(t, [[0, 0.9], [CH.DRIVE[1], 0.9], [CH.XI[0], 0.6], [CH.XI[1], 0.6], [1, 0.9]]);
-    if (id === 'tennis') return K(t, [[0, 0.8], [CH.COL[1], 0.8], [CH.SURF[0], 0.45], [0.95, 0.45], [1, 0.85]]);
+    if (id === 'tennis') return K(t, [[0, 0.8], [CH.SURF[0] + 0.03, 0.45], [0.95, 0.45], [1, 0.85]]);
     if (id === 'ft') return K(t, [[0, 0.95], [1, 0.7]]);
     return 0.95;
   };
@@ -1212,9 +1224,11 @@ export async function createArena(canvas, o = {}) {
     skyU.uGlow.value = lit; skyU.uTime.value = time; skyU.uStars.value = mainV.id === 'basketball' ? 0 : 1; coneTime.value = time; hemi.intensity = 0.05 + 0.22 * lit;
     // lines
     // tennis: the lines glide into the Battle of the Sexes court and back out before the next venue
-    const bos = id === 'tennis' ? R(t, CH.SEXES[0] + 0.01, CH.SEXES[0] + 0.08) * (1 - R(t, CH.SEXES[1] - 0.01, CH.SEXES[1] + 0.04)) : 0;
-    if (bos > 0) { setPair('tennis', 'tennisBOS'); lineU.uMorph.value = bos; }
-    else { setPair(ORDER[A], ORDER[B]); lineU.uMorph.value = xi ? clamp((xt - 0.14) / 0.62) : 0; }
+    // then on into a padel court, which is what the next transition starts from
+    const bos = id === 'tennis' ? R(t, CH.SEXES[0] + 0.01, CH.SEXES[0] + 0.08) : 0, pdl = id === 'tennis' ? R(t, CH.PADEL[0], CH.PADEL[0] + 0.07) : 0;
+    if (pdl > 0) { setPair('tennisBOS', 'padel'); lineU.uMorph.value = pdl; }
+    else if (bos > 0) { setPair('tennis', 'tennisBOS'); lineU.uMorph.value = bos; }
+    else { setPair(ORDER[A] === 'tennis' && xi ? 'padel' : ORDER[A], ORDER[B]); lineU.uMorph.value = xi ? clamp((xt - 0.14) / 0.62) : 0; }
     lineU.uLift.value = xi ? 1 + Math.max(sa.ext, sb.ext) * 0.022 : 0;
     lineU.uReveal.value = hero ? R(h, 0.38, 0.52) * 1.001 : 1.001;
     const red = hero ? 1 - R(h, 0.645, 0.7) : xi ? R(xt, 0.1, 0.2) * (1 - R(xt, 0.8, 0.95)) : 0;
@@ -1278,14 +1292,12 @@ export async function createArena(canvas, o = {}) {
       pl.disc.material.map = hi ? pl.t1 : pl.t0; pl.ring.material.opacity = hi ? 1 : 0.55 + 0.25 * Math.sin(time * 2 + i);
     });
     // tennis
-    { const rise = id === 'tennis' ? RO(t, CH.COL[0], CH.COL[0] + 0.1) * (1 - R(t, CH.COL[1] - 0.03, CH.COL[1] + 0.02)) : 0;
-      [colA, colB].forEach((c, i) => { c.visible = rise > 0.001; c.scale.y = Math.max(0.0001, colH[i] * rise); });
-      const la = id === 'tennis' ? R(t, CH.COL[0] + 0.08, CH.COL[0] + 0.12) * (1 - R(t, CH.COL[1] - 0.05, CH.COL[1] - 0.02)) : 0;
-      colLab.forEach((m, i) => { m.visible = la > 0.001; m.material.opacity = la; m.position.y = i ? colH[i] * rise + 5 : colH[i] * 0.55 * rise; });
-      vT.boards.forEach(b => { if (b.ribbon) b.u.uOp.value *= 1 - la * 0.85; });
+    {
+      const pv = id === 'tennis' ? R(t, CH.PADEL[0] + 0.03, CH.PADEL[0] + 0.1) : id === 'x4' ? 1 - R(xt, 0.04, 0.28) : 0;
+      turf.visible = pv > 0.001; turf.material.opacity = pv; padelWalls.visible = pv > 0.001; padelWalls.scale.y = Math.max(0.0001, ss(pv)); padelMats.forEach(([m, o]) => { m.opacity = o * pv; });
       const cl = id === 'tennis' ? R(t, CH.SURF[0] + 0.01, CH.SURF[0] + 0.06) * (1 - R(t, CH.SURF[1] - 0.03, CH.SURF[1])) : 0;
       clay.visible = cl > 0.001; clay.material.opacity = cl; surfLab.forEach(m => { m.visible = cl > 0.001; m.material.opacity = R(cl, 0.5, 1); });
-      const sx = id === 'tennis' ? R(t, CH.SEXES[0] + 0.06, CH.SEXES[0] + 0.1) * (1 - R(t, CH.SEXES[1] - 0.03, CH.SEXES[1])) : 0;
+      const sx = id === 'tennis' ? R(t, CH.SEXES[0] + 0.06, CH.SEXES[0] + 0.1) * (1 - R(t, CH.SEXES[1] - 0.03, CH.SEXES[1] + 0.01)) : 0;
       cut.visible = sx > 0.001; cut.material.opacity = sx * 0.9; sexLab.forEach(m => { m.visible = sx > 0.001; m.material.opacity = sx; });
       if (fans) { const u = fans.material.uniforms, fo = id === 'tennis' ? R(t, CH.FANS[0] - 0.03, CH.FANS[0]) * (1 - R(t, 0.97, 1)) : 0; fans.visible = fo > 0.001; u.uOp.value = fo; u.uT.value = id === 'tennis' ? R(t, CH.FANS[0], CH.FANS[1]) : 0; u.uTime.value = time; } }
     // race: start lights, apex flashes, garages
@@ -1378,7 +1390,7 @@ export async function createArena(canvas, o = {}) {
     ground.receiveShadow = true; tunnel.traverse(m => { if (m.isMesh) m.receiveShadow = true; });
   }
   scene.traverse(m => { if (!m.isMesh || !m.material || !m.material.isMeshStandardMaterial) return; const mm = m.material; mm.envMapIntensity = mm.userData.env != null ? mm.userData.env : mm === mats.steel ? 0.6 : mm === mats.glass ? 0.6 : mm === seatMat ? 0.16 : mm === surfMat ? 0.22 : 0.1; });
-  try { venues.forEach(Vn => { Vn.root.visible = true; }); [plate, tac, fans, colA, colB, fdLine].forEach(m => { if (m) m.visible = true; }); if (renderer.compileAsync) await renderer.compileAsync(scene, camera); } catch (e) {}
+  try { venues.forEach(Vn => { Vn.root.visible = true; }); [plate, tac, fans, fdLine].forEach(m => { if (m) m.visible = true; }); if (renderer.compileAsync) await renderer.compileAsync(scene, camera); } catch (e) {}
   update(0, 0); raf = requestAnimationFrame(frame);
   setTimeout(loadFigure, 1500);
 

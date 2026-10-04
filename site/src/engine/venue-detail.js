@@ -134,10 +134,10 @@ export function buildVenueDetail(X) {
     const wall = (len, h, x, z, ry) => { const m = new THREE.Mesh(new THREE.BoxGeometry(len, h, 0.15), [green, green, green, green, new THREE.MeshStandardMaterial({ map: wallTex(len, h), roughness: 0.8 }), green]); m.position.set(x, h / 2, z); m.rotation.y = ry; vT.root.add(m); grow(vT, m, 0.63); };
     for (const sx of [-1, 1]) wall(18.4, 1.6, sx * 18.25, 0, -sx * Math.PI / 2);
     for (const sz of [-1, 1]) wall(30, 1.0, 0, sz * 9.05, sz > 0 ? Math.PI : 0);
-    // traditional scoreboard on the far stand: the dormant-demand numbers
+    // traditional scoreboard on the far stand
     const [c, g] = cnv(1024, 380); g.fillStyle = '#0f2c1c'; g.fillRect(0, 0, 1024, 380); g.strokeStyle = 'rgba(240,238,234,0.5)'; g.lineWidth = 4; g.strokeRect(14, 14, 996, 352);
-    g.fillStyle = 'rgba(240,238,234,0.75)'; g.font = FONT(800, 30); LS(g, '8px'); g.textBaseline = 'alphabetic'; g.fillText('PRESS CONFERENCE VIEWS', 50, 76);
-    [['A. EALA', '676K', RED], ['N. DJOKOVIC', '70K', CHALK]].forEach(([n, v, col], i) => { const y = 190 + i * 120; g.fillStyle = CHALK; g.font = FONT(800, 78); LS(g, '2px'); g.fillText(n, 50, y); g.fillStyle = col; g.textAlign = 'right'; g.fillText(v, 974, y); g.textAlign = 'left'; });
+    g.fillStyle = 'rgba(240,238,234,0.75)'; g.font = FONT(800, 30); LS(g, '8px'); g.textBaseline = 'alphabetic'; g.fillText('CENTRE COURT', 50, 76);
+    [['NEW FORMATS', '40', RED], ['SAME OLD', '0', CHALK]].forEach(([n, v, col], i) => { const y = 190 + i * 120; g.fillStyle = CHALK; g.font = FONT(800, 78); LS(g, '2px'); g.fillText(n, 50, y); g.fillStyle = col; g.textAlign = 'right'; g.fillText(v, 974, y); g.textAlign = 'left'; });
     const sb = new THREE.Group(); sb.position.set(0, 7.6, -9.2); vT.root.add(sb);
     rbox(sb, 9.6, 3.8, 0.3, 0, 0, -0.1, 'dark', 0.08); const pm = new THREE.Mesh(new THREE.PlaneGeometry(9.2, 3.42), new THREE.MeshBasicMaterial({ map: texOf(c), color: C('#ffffff').multiplyScalar(0.95) })); pm.position.z = 0.07; sb.add(pm);
     quiet(sb); vT.fix.push({ o: sb, kind: 'drop', y0: 7.6, h: 14, t0: 0.6 });

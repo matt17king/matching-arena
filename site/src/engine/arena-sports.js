@@ -69,6 +69,20 @@ export function tennis(k = 1) {
   return scl(S.map(st => ({ ...st, pts: st.pts.map(([x, z]) => x < 0 ? [x * k, z * k] : [x, z]) })), TN).map(s => ({ ...s, hw: 0.2 }));
 }
 
+// padel: 20 x 10 m, service lines 6.95 m from the net, centre line between them. Spare strands fold onto the walls' lines.
+export function padel() {
+  const L = 10, W = 5, SL = 6.95, S = [];
+  S.push({ pts: [[-L, W], [L, W], [L, -W], [-L, -W], [-L, W]], t: [0, 0.35], closed: true });
+  S.push({ pts: [[-SL, 0], [SL, 0]], t: [0.6, 0.75] });
+  S.push({ pts: [[-L, W], [L, W]], t: [0.3, 0.55] });
+  S.push({ pts: [[L, -W], [-L, -W]], t: [0.3, 0.55] });
+  for (const sx of [-1, 1]) {
+    S.push({ pts: [[sx * SL, W], [sx * SL, -W]], t: [0.5, 0.65] });
+    S.push({ pts: [[sx * L, 0], [sx * L, 0]], t: [0.7, 0.75] });
+  }
+  return scl(S, TN).map(s => ({ ...s, hw: 0.2 }));
+}
+
 // ---------- circuit (centripetal Catmull-Rom through control points, closed)
 const CP = [[-110, -70], [-30, -70], [50, -70], [110, -68], [145, -45], [148, -10], [125, 12], [95, 14], [70, 30], [78, 60], [110, 82], [95, 108], [50, 112], [0, 95], [-45, 105], [-95, 112], [-135, 90], [-150, 45], [-125, 10], [-150, -30], [-140, -62]];
 const crp = (p0, p1, p2, p3, t) => {

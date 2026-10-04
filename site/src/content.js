@@ -5,9 +5,9 @@ export const LINKEDIN = 'https://linkedin.com/in/mattking17';
 export const INSTAGRAM = 'https://instagram.com/mattking.17';
 
 // Scroll length per chapter (vh). The scroll spacer is sized to their sum.
-export const SEGS = [['hero', 1300], ['rights', 650], ['x1', 420], ['bball', 1050], ['x2', 420], ['nfl', 1300], ['x3', 420], ['tennis', 1150], ['x4', 460], ['race', 1150], ['ft', 380]];
+export const SEGS = [['hero', 1300], ['rights', 650], ['x1', 420], ['bball', 1050], ['x2', 420], ['nfl', 1300], ['x3', 420], ['tennis', 1100], ['x4', 460], ['race', 1150], ['ft', 380]];
 // Beat ranges inside each venue, as fractions of that venue's segment.
-export const CH = { RR: [0.08, 0.9], BEATS: [0.06, 0.44], TAC: [0.5, 0.92], DRIVE: [0.03, 0.5], XI: [0.55, 0.96], COL: [0.028, 0.334], SURF: [0.39, 0.6], SEXES: [0.6, 0.82], FANS: [0.85, 0.95], LAP: [0.08, 0.62], PIT: [0.66, 0.92] };
+export const CH = { RR: [0.08, 0.9], BEATS: [0.06, 0.44], TAC: [0.5, 0.92], DRIVE: [0.03, 0.5], XI: [0.55, 0.96], SURF: [0.03, 0.27], SEXES: [0.27, 0.5], PADEL: [0.5, 0.74], FANS: [0.77, 0.92], LAP: [0.08, 0.62], PIT: [0.66, 0.92] };
 export const VENUE = { hero: '01 / 05 — FOOTBALL', rights: '01 / 05 — FOOTBALL', bball: '02 / 05 — BASKETBALL', nfl: '03 / 05 — NFL', tennis: '04 / 05 — TENNIS', race: '05 / 05 — MOTORSPORT', ft: '05 / 05 — MOTORSPORT' };
 
 // The pit wall: where AI fits the work
@@ -107,7 +107,6 @@ export const SEATS = [
 // What I talk about
 export const TOPICS = ['Culture is the side door', 'The tunnel is the new runway', 'Fit beats size: casting talent', 'The format is the product', 'Story before sport', 'AI is the pit crew, not the driver'];
 
-export const STAT = { a: { v: '676K', n: 'Alexandra Eala', k: 676 }, b: { v: '70K', n: 'Novak Djokovic', k: 70 } };
 // The crowd re-forms into this word on the show court
 export const FANS_TEXT = 'NEW';
 export const SCREEN_DATA = {
@@ -126,10 +125,10 @@ export const MESSAGES = {
   kit: ['AI IS THE PIT CREW', 'TASTE IS THE DRIVER', 'TEST · LEARN · SCALE'],
   squad: ['FIT BEATS SIZE', 'GIVE THEM THEIR VOICE', 'IDOLS SELL', 'THE TUNNEL COUNTS'],
   bench: ['DISCOVERY', 'CURIOSITY', 'STORY', 'RITUAL', 'BELONGING', 'ADVOCACY', 'FANDOM'],
-  demand: ['DEMAND IS DORMANT', 'THE FORMAT IS THE PRODUCT', 'NEW FORMATS · NEW FANS'],
+  formats: ['THE FORMAT IS THE PRODUCT', 'HALF GRASS · HALF CLAY', 'WALLS IN PLAY', 'NEW FORMATS · NEW FANS'],
   goal: ['GOAL!', 'MATT KING', 'GOAL!', 'WHAT A FINISH'],
   talent: ['PHIL FODEN', 'MOLLY-MAE HAGUE', 'KYLE WALKER', 'CONOR MCGREGOR', 'TOM ASPINALL', 'NIALL HORAN', 'JUDY MURRAY', 'MADELINE ARGY', 'ALEX BOWEN'],
   brands: ['MANCHESTER CITY FC', 'FC BARCELONA', 'ARSENAL FC', 'LA GALAXY', 'CREWE ALEXANDRA FC', 'DP WORLD TOUR', 'ADIDAS', 'PUMA', 'UNDER ARMOUR'],
   contact: ["LET'S TALK", 'MATT17KING@GMAIL.COM', '@MATTKING.17'],
 };
-export const LED_PLAN = [['hero', 0, 'identity'], ['rights', 0, 'rights'], ['bball', 0, 'principles'], ['bball', 0.36, 'talent'], ['nfl', 0, 'bench'], ['nfl', 0.52, 'squad'], ['tennis', 0, 'demand'], ['tennis', 0.6, 'brands'], ['race', 0, 'markets'], ['race', 0.64, 'kit'], ['ft', 0, 'contact']];
+export const LED_PLAN = [['hero', 0, 'identity'], ['rights', 0, 'rights'], ['bball', 0, 'principles'], ['bball', 0.36, 'talent'], ['nfl', 0, 'bench'], ['nfl', 0.52, 'squad'], ['tennis', 0, 'formats'], ['tennis', 0.6, 'brands'], ['race', 0, 'markets'], ['race', 0.64, 'kit'], ['ft', 0, 'contact']];
