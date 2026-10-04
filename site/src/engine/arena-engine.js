@@ -772,6 +772,7 @@ export async function createArena(canvas, o = {}) {
   const DX = [-36.58, -27.43, -9.14, 9.14, 22.86, 36.58, 50.29];
   const fdLine = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 48.8), new THREE.MeshBasicMaterial({ color: C(RED).multiplyScalar(1.7), transparent: true, opacity: 0, depthWrite: false }));
   fdLine.rotation.x = -Math.PI / 2; fdLine.position.y = 0.07; fdLine.renderOrder = 4; scene.add(fdLine);
+  // plates stay inside the field of play (the end line is at x 54.9) so the last one never sits in the stands
   const drivePlates = (o.drive || []).map((it, i) => {
     const [c, g] = cnv(1024, 576); g.fillStyle = 'rgba(11,10,10,0.9)'; g.fillRect(0, 0, 1024, 576); g.fillStyle = RED; g.fillRect(0, 0, 1024, 16);
     LS(g, '6px'); g.font = FONT(800, 30); g.fillStyle = 'rgba(243,242,242,0.7)'; g.textBaseline = 'alphabetic'; g.fillText(`${it.down} · ${it.years}`, 48, 92);
@@ -779,7 +780,7 @@ export async function createArena(canvas, o = {}) {
     LS(g, '3px'); g.font = FONT(800, 30); g.fillStyle = '#ff7a5e'; wrapT(g, it.role.toUpperCase(), 920).slice(0, 2).forEach((l, k) => g.fillText(l, 48, 440 + k * 42));
     if (it.logo && logoImgs['career-' + it.logo]) logoTile(g, logoImgs['career-' + it.logo], 1024 - 48 - 150, 44, 150);
     const m = new THREE.Mesh(new THREE.PlaneGeometry(12, 6.75), new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, opacity: 0, depthWrite: false }));
-    m.position.set(DX[i] + 14, 4.6, 9); m.rotation.y = -Math.PI / 2 - 0.35; m.renderOrder = 6; m.visible = false; scene.add(m); return m;
+    m.position.set(Math.min(DX[i] + 14, 44), 4.6, 9); m.rotation.y = -Math.PI / 2 - 0.35; m.renderOrder = 6; m.visible = false; scene.add(m); return m;
   });
   const pigskin = new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 12), new THREE.MeshStandardMaterial({ color: C('#5e2618'), roughness: 0.6 })); pigskin.scale.set(1.9, 1, 1); pigskin.position.y = 0.16; scene.add(pigskin);
   box(pigskin, 0.12, 0.02, 0.03, 0, 0.14, 0, 'white');
