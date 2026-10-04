@@ -79,6 +79,7 @@ export const PROOF = [['DAZN', 'career/dazn.png'], ['FIFA+', 'fifa-plus.png'], [
 // In the stands: [file in public/photos/life, title, label]. A .mp4 plays as a muted loop with a .jpg poster of the same name.
 export const STANDS = [
   ['man-city-match.mp4', 'Manchester City', 'Matchday'],
+  ['man-city-couture.jpg', 'The Couture Club × Man City', 'Fashion meets football'],
   ['national-league-awards.jpg', 'National League Awards', 'Red carpet'],
   ['goodwood.jpg', 'Goodwood Festival of Speed', 'Paddock'],
   ['boxing.jpg', 'Fight night', 'In the crowd'],
@@ -94,7 +95,10 @@ export const TALENT = [['Phil Foden', 'The Couture Club'], ['Molly-Mae Hague', '
 // [name, logo file in public/logos or null]
 export const BRANDS = [['Manchester City FC', 'man-city.png'], ['FC Barcelona', 'fc-barcelona.png'], ['Arsenal FC', 'arsenal.png'], ['LA Galaxy', 'la-galaxy.png'], ['Crewe Alexandra FC', 'crewe-alexandra.png'], ['DP World Tour', 'dp-world-tour.png'], ['adidas', 'adidas.png'], ['Puma', 'puma.png'], ['Under Armour', 'under-armour.png']];
 // press coverage (from the clipping in public/photos)
-export const PRESS = [{ img: 'photos/press-bdaily-photo.jpg', source: 'Bdaily Business News', date: '21 Oct 2025', headline: 'Trio launch new marketing agency', line: '80 Four, founded by Matt King, James Parker-Aiken and Emily Martin, specialises in sport, health and lifestyle branding and brand strategy.' }];
+export const PRESS = [
+  { img: 'photos/press-circle.jpg', pos: 'center 35%', source: 'Circle Networks', date: '2025', headline: 'Start Up of the Year: finalist', line: '80 Four was named a finalist for Circle Networks Start Up of the Year 2025.' },
+  { img: 'photos/press-bdaily-photo.jpg', source: 'Bdaily Business News', date: '21 Oct 2025', headline: 'Trio launch new marketing agency', line: '80 Four, founded by Matt King, James Parker-Aiken and Emily Martin, specialises in sport, health and lifestyle branding and brand strategy.' },
+];
 // Book Matt: [what, line, email subject]
 export const SEATS = [
   ['Podcasts', 'Sport, fashion and culture, and why fans fall for stories, not fixtures.', 'Podcast invite'],

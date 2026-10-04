@@ -91,7 +91,7 @@ list('brands', BRANDS.map(([n, f]) => `<div data-rv class="trophy" style="displa
   <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:rgba(243,242,242,.5);text-transform:uppercase">${esc(n)}</div>
 </div>`).join(''));
 list('press', PRESS.map(p => `<article data-rv style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));border:2px solid rgba(243,242,242,.22);border-top:2px solid var(--color-bg)">
-  <div class="grayscale" style="min-height:220px;background:url('${BASE}${p.img}') center 30%/cover"></div>
+  <div class="grayscale" style="min-height:220px;background:url('${BASE}${p.img}') ${p.pos || 'center 30%'}/cover"></div>
   <div style="padding:20px 20px 22px;display:flex;flex-direction:column;justify-content:space-between;gap:20px">
     <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:800;letter-spacing:.14em"><span style="color:var(--color-accent)">${esc(p.source.toUpperCase())}</span><span style="color:rgba(243,242,242,.55)">${esc(p.date.toUpperCase())}</span></div>
     <div>
