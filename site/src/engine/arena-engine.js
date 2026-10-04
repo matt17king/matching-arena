@@ -1181,7 +1181,7 @@ export async function createArena(canvas, o = {}) {
     }
     // playbook
     const tb = id === 'bball' ? R(t, CH.TAC[0], CH.TAC[0] + 0.05) * (1 - R(t, 0.96, 1)) : 0;
-    tac.visible = tb > 0.001; tac.material.opacity = tb;
+    tac.visible = !o.flatTactics && tb > 0.001; tac.material.opacity = tb;
     if (tac.visible) { const r = R(t, CH.TAC[0] + 0.04, CH.TAC[1]); if (Math.abs(r - tacLast) > 0.002 || (r === 1 && tacLast !== 1)) { drawTactics(tacG, TW, TH, r, o.screenData || {}); tacTex.needsUpdate = true; tacLast = r; } }
     // the drive
     { const on = id === 'nfl' ? R(t, 0, CH.DRIVE[0]) * (1 - R(t, CH.DRIVE[1], CH.DRIVE[1] + 0.03)) : 0, nS = DX.length;

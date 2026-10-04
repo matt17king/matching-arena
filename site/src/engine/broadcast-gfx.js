@@ -6,8 +6,10 @@ const eo = x => 1 - Math.pow(1 - clamp(x), 3);
 const F = (w, s) => `${w} ${s}px Archivo, system-ui, sans-serif`;
 const LS = (g, v) => { try { g.letterSpacing = v; } catch (e) {} };
 
-function txt(g, s, x, y, { w = 800, size = 40, color = CHALK, ls = '0px', align = 'left', base = 'alphabetic', a = 1 } = {}) {
-  g.globalAlpha = a; g.font = F(w, size); g.fillStyle = color; LS(g, ls); g.textAlign = align; g.textBaseline = base; g.fillText(s, x, y); g.globalAlpha = 1;
+function txt(g, s, x, y, { w = 800, size = 40, color = CHALK, ls = '0px', align = 'left', base = 'alphabetic', a = 1, halo = 0 } = {}) {
+  g.globalAlpha = a; g.font = F(w, size); g.fillStyle = color; LS(g, ls); g.textAlign = align; g.textBaseline = base;
+  if (halo) { g.lineJoin = 'round'; g.lineWidth = halo; g.strokeStyle = 'rgba(12,11,11,0.96)'; g.strokeText(s, x, y); }
+  g.fillText(s, x, y); g.globalAlpha = 1;
 }
 function tag(g, s, x, y, a = 1) {
   g.globalAlpha = a; g.font = F(800, 22); LS(g, '5px'); const w = g.measureText(s).width;
@@ -174,7 +176,7 @@ export function drawScreen(g, W, H, beat, b, t, d) {
 
 // tactics board on the court: how a brief gets built. canvas covers x -55..55, z -36..36.
 // The header covers the top of the view and the timeout card the bottom, so the board lives in z -28.5..19.5.
-export function drawTactics(g, W, H, r, d) {
+export function drawTactics(g, W, H, r, d, flat) {
   g.clearRect(0, 0, W, H);
   if (r <= 0) return;
   const X = x => (x + 55) / 110 * W, Y = z => (z + 36) / 72 * H, S = W / 110;
@@ -194,10 +196,10 @@ export function drawTactics(g, W, H, r, d) {
   const lab = (s, x, z, u, o = {}) => { if (u <= 0) return; txt(g, s, X(x), Y(z), { size: 34, ls: '3px', base: 'middle', a: ss(u * 2), ...o }); };
   // the board itself: a dark slate so the wood grain never fights the lines
   const b0 = clamp(r / 0.05);
-  g.save(); g.globalAlpha = 0.86 * b0; g.fillStyle = '#0c0b0b'; g.fillRect(X(-54), Y(-28.5), X(54) - X(-54), Y(19.5) - Y(-28.5)); g.restore();
+  g.save(); g.globalAlpha = (flat ? 0.94 : 0.86) * b0; g.fillStyle = '#0c0b0b'; g.fillRect(X(-54), Y(-28.5), X(54) - X(-54), Y(19.5) - Y(-28.5)); g.restore();
   g.save(); g.globalAlpha = b0; g.strokeStyle = 'rgba(243,242,242,0.5)'; g.lineWidth = 3; g.strokeRect(X(-54), Y(-28.5), X(54) - X(-54), Y(19.5) - Y(-28.5)); g.fillStyle = RED; g.fillRect(X(-54), Y(-28.5), X(54) - X(-54), 6); g.restore();
   const PA = d.passions || [], OUT = d.outputs || [];
-  const wx = -40, px = -18, hx = 9, ox = 21, wz = [-14, 0], hz = -4.5;
+  const wx = -40, px = -18, hx = 12, ox = 24, wz = [-14, 0], hz = -4.5;
   const pz = i => -21 + i * 33 / Math.max(1, PA.length - 1), oz = j => -21 + j * 33 / Math.max(1, OUT.length - 1);
   // 1 who we want: the fans we have, and the ones we don't
   const c0 = clamp((r - 0.03) / 0.08);
@@ -209,21 +211,34 @@ export function drawTactics(g, W, H, r, d) {
     const u = clamp((r - 0.1 - i * 0.022) / 0.14);
     curve(wx + 3.2, wz[1], px - 1.4, pz(i), u, 'rgba(243,242,242,0.9)', 5, false);
     if (i % 3 === 0) curve(wx + 2.2, wz[0], px - 1.4, pz(i), u, 'rgba(243,242,242,0.32)', 3, false);
-    const v = clamp((u - 0.85) / 0.15); dot(px, pz(i), 1.4, CHALK, null, v); lab(c.toUpperCase(), px + 2.6, pz(i), v);
+    dot(px, pz(i), 1.4, CHALK, null, clamp((u - 0.85) / 0.15));
   });
   // 3 what we have: the sport, its athletes and its stories
   PA.forEach((c, i) => curve(px + 1.4, pz(i), hx - 2.6, hz, clamp((r - 0.42) / 0.12), 'rgba(236,48,19,0.95)', 5, true));
+  // labels sit on top of the lines, cut out with a dark halo
+  PA.forEach((c, i) => lab(c.toUpperCase(), px + 2.6, pz(i), clamp((clamp((r - 0.1 - i * 0.022) / 0.14) - 0.85) / 0.15), { halo: 12 }));
   const dv = clamp((r - 0.52) / 0.05); dot(hx, hz, 2.6, null, RED, dv); dot(hx, hz, 1.1, RED, null, dv);
-  lab('03 WHAT WE HAVE', hx, hz + 5.4, dv, { align: 'center', size: 26 });
-  lab('SPORT · ATHLETES · STORIES', hx, hz + 8.8, dv, { align: 'center', size: 17, color: 'rgba(243,242,242,0.65)' });
   // 4 what it becomes
   OUT.forEach((m, j) => {
     const u = clamp((r - 0.57 - j * 0.03) / 0.14);
     curve(hx + 2.6, hz, ox - 1.6, oz(j), u, RED, 6, true);
     const v = clamp((u - 0.85) / 0.15); dot(ox, oz(j), 1.6, null, RED, v); lab(m.toUpperCase(), ox + 3, oz(j), v, { size: 30, color: '#ff7a5e' });
   });
+  lab('03 WHAT WE HAVE', hx, hz + 5.4, dv, { align: 'center', size: 26, halo: 12 });
+  lab('SPORT · ATHLETES · STORIES', hx, hz + 8.8, dv, { align: 'center', size: 17, color: 'rgba(243,242,242,0.75)', halo: 10 });
   lab('HOW I BUILD A BRIEF', -52, -25.4, b0, { size: 30, ls: '5px' });
   lab('START WITH WHAT THEY ALREADY LOVE', 52, -25.4, b0, { size: 22, align: 'right', color: 'rgba(243,242,242,0.6)' });
   const cap = clamp((r - 0.85) / 0.15);
   [['01 WHO WE WANT', wx, 'center'], ['02 WHAT THEY LOVE', px, 'left'], ['04 WHAT IT BECOMES', ox, 'left']].forEach(([s, x, al]) => lab(s, x, 16.2, cap, { size: 22, color: 'rgba(243,242,242,0.7)', align: al }));
+}
+
+// the same brief, drawn flat on screen so it stays straight and sharp whatever the camera does.
+// cw, ch are device pixels; the board's z -29..20 band is fitted to the box.
+export function drawBrief(g, cw, ch, r, d) {
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cw, ch);
+  if (r <= 0) return;
+  const VW = 1600, VH0 = 1047, y0 = (-29 + 36) / 72 * VH0, y1 = (20 + 36) / 72 * VH0, s = Math.min(cw / VW, ch / (y1 - y0));
+  g.setTransform(s, 0, 0, s, (cw - VW * s) / 2, (ch - (y1 - y0) * s) / 2 - y0 * s);
+  drawTactics(g, VW, VH0, r, d, true);
+  g.setTransform(1, 0, 0, 1, 0, 0);
 }

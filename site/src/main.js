@@ -1,6 +1,7 @@
 // Arena v12 — scroll controller. Maps scroll to match progress, drives the 3D engine, scrubs the DOM overlays.
 import './styles/modernist.css';
 import './styles/site.css';
+import { drawBrief } from './engine/broadcast-gfx.js';
 import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, FILM, TROPHIES, PROOF, STANDS, TALENT, BRANDS, PRESS, SEATS, TOPICS, STAT, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN } from './content.js';
 
 const BASE = import.meta.env.BASE_URL;
@@ -124,6 +125,25 @@ const row = (m, n, tag, go) => `<button class="menu-row" data-go="${go}" style="
 list('chapters', row('00', 'Kick-off', 'REPLAY', 'replay') + groups.map(([n, m, rows]) =>
   `<div style="display:flex;justify-content:space-between;gap:12px;padding:14px 16px 6px;font-size:10px;font-weight:800;letter-spacing:.18em;color:rgba(243,242,242,.5);border-bottom:1px solid rgba(243,242,242,.1)"><span>${esc(n)}</span><span style="color:var(--color-accent)">${esc(m)}</span></div>`
   + rows.map(([mm, nn, act]) => row(mm, nn, '', act)).join('')).join(''));
+
+// ---------- the brief (basketball timeout): drawn flat so it reads at any angle
+const briefEl = $('[data-brief]'), briefC = $('[data-brief-c]'), briefM = $('[data-brief-m]'), briefCard = $$('[data-sk^="bball:.53"]')[0];
+const briefG = briefC.getContext('2d'); let briefR = -1;
+const chip = (t, red) => `<span style="display:inline-block;margin:0 6px 6px 0;padding:4px 7px;border:2px solid ${red ? 'var(--color-accent)' : 'rgba(243,242,242,.35)'};font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;${red ? 'color:#ff7a5e' : ''}">${esc(t)}</span>`;
+briefM.innerHTML = [['01', 'Who we want', chip('Fans we have') + chip("Fans we don't", true)], ['02', 'What they already love', SCREEN_DATA.passions.map(t => chip(t)).join('')], ['03', 'What we have', chip('Sport') + chip('Athletes') + chip('Stories')], ['04', 'What it becomes', SCREEN_DATA.outputs.map(t => chip(t, true)).join('')]]
+  .map(([n, h, c], i) => `<div data-bs="${i}" style="opacity:.15;transition:opacity .4s ease"><div style="font-size:11px;font-weight:800;letter-spacing:.14em;margin-bottom:6px"><span style="color:var(--color-accent)">${n}</span> ${esc(h.toUpperCase())}</div><div>${c}</div></div>`).join('');
+function sizeBrief() {
+  const m = innerWidth < 760; briefC.hidden = m; briefM.hidden = !m;
+  if (briefCard) briefEl.style.bottom = Math.round(innerHeight - briefCard.getBoundingClientRect().top + (m ? 10 : 14)) + 'px';
+  const b = briefEl.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); briefC.width = Math.round(b.width * dpr); briefC.height = Math.round(b.height * dpr); briefR = -1;
+}
+function updateBrief(p) {
+  const a = G('bball', CH.TAC[0] + 0.04), b = G('bball', CH.TAC[1]), r = Math.min(1, Math.max(0, (p - a) / (b - a)));
+  if (Math.abs(r - briefR) < 0.002 && !(r === 1 && briefR !== 1)) return; briefR = r;
+  if (briefM.hidden) drawBrief(briefG, briefC.width, briefC.height, r, SCREEN_DATA);
+  else [0.06, 0.3, 0.52, 0.6].forEach((k, i) => { briefM.children[i].style.opacity = r >= k ? '1' : '.15'; });
+}
+addEventListener('resize', sizeBrief); sizeBrief();
 
 // ---------- state
 let eng = null, snd = null, kick = null, frozen = false, postN = 0, prevP = 0, hoverT = 0, goalTO = 0;
@@ -258,6 +278,7 @@ function frame({ p, ball }) {
     s.visibility = vis ? 'visible' : 'hidden';
     if (it.pe) s.pointerEvents = t > 0.6 && t < 1.4 ? 'auto' : 'none';
   }
+  if (p > G('bball', 0.5) && p < G('bball', 1)) updateBrief(p);
   stepIndex('r', p, RNG.rr, ri.length, i => { ri.forEach((el, j) => { el.style.opacity = j === i ? '1' : '.35'; }); rd.forEach((el, j) => { el.style.opacity = j === i ? '1' : '0'; }); });
   stepIndex('z', p, RNG.lap, 8, i => { const k = i > 6 ? -1 : i; zi.forEach((el, j) => { el.style.opacity = j === k ? '1' : j < k || k < 0 && i === 7 ? '.75' : '.4'; el.style.color = j === k ? '#ec3013' : ''; }); });
   stepIndex('k', p, RNG.pit, kc.length, i => { const k = Math.max(0, i); kc.forEach((el, j) => { el.style.opacity = j === k ? '1' : '0'; }); });
@@ -332,7 +353,7 @@ function engineOpts() {
     segs: segList.map(s => ({ id: s.id, a: s.a, b: s.b })), ch: CH, quality,
     logos: LOGOS, rights: RIGHTS, formation: XI.map(x => [x[0], x[1], x[2], x[4], x[3]]), drive: DRIVE, kit: KIT, markets: MARKETS,
     gates: GATES, photos: Object.fromEntries(Object.entries(PHOTOS).map(([k, v]) => [k, v ? BASE + v : v])), model: { url: BASE + 'models/matt.glb', height: 1.85 },
-    noDegrade: params.has('nodegrade'), stat: STAT, fansText: FANS_TEXT, screenData: SCREEN_DATA, messages: MESSAGES, ledPlan: LED_PLAN,
+    noDegrade: params.has('nodegrade'), flatTactics: true, stat: STAT, fansText: FANS_TEXT, screenData: SCREEN_DATA, messages: MESSAGES, ledPlan: LED_PLAN,
   };
 }
 
