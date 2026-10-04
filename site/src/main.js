@@ -1,7 +1,7 @@
 // Arena v12 — scroll controller. Maps scroll to match progress, drives the 3D engine, scrubs the DOM overlays.
 import './styles/modernist.css';
 import './styles/site.css';
-import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, TROPHIES, TALENT, BRANDS, SEATS, STAT, SCREEN_DATA, MESSAGES, LED_PLAN } from './content.js';
+import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, TROPHIES, TALENT, BRANDS, PRESS, SEATS, STAT, SCREEN_DATA, MESSAGES, LED_PLAN } from './content.js';
 
 const BASE = import.meta.env.BASE_URL;
 const KBG = '#0b0a0a', ZONE_ON = '#ec3013', ZONE_OFF = 'rgba(243,242,242,.3)';
@@ -34,8 +34,13 @@ list('ticks', ['x1', 'x2', 'x3', 'x4'].map(x => `<div style="position:absolute;t
 list('rights', RIGHTS.map((r, i) => `<div data-ri="${i}" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">${pad2(i + 1)}</span><span>${esc(r.name.toUpperCase())}</span></div>`).join(''));
 list('rightsDetail', RIGHTS.map((r, i) => `<div data-rd="${i}" style="grid-area:1/1;opacity:0">${esc(r.detail)}</div>`).join(''));
 list('drive', DRIVE.map((b, i) => `<div data-dc="${i}" style="grid-area:1/1;opacity:0;padding:14px 16px 16px">
-  <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:rgba(243,242,242,.6)"><span style="color:var(--color-accent)">${esc(b.down)}</span> · ${esc(b.years)}</div>
-  <div style="font-weight:800;text-transform:uppercase;font-size:clamp(26px,2.8vw,42px);line-height:.92;letter-spacing:-.025em;margin-top:6px">${esc(b.name)}</div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+    <div>
+      <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:rgba(243,242,242,.6)"><span style="color:var(--color-accent)">${esc(b.down)}</span> · ${esc(b.years)}</div>
+      <div style="font-weight:800;text-transform:uppercase;font-size:clamp(26px,2.8vw,42px);line-height:.92;letter-spacing:-.025em;margin-top:6px">${esc(b.name)}</div>
+    </div>
+    ${b.logo ? `<div style="flex-shrink:0;width:52px;height:52px;background:#f3f2f2;display:flex;align-items:center;justify-content:center"><img src="${BASE}logos/career/${b.logo}.png" alt="${esc(b.name)} logo" style="max-width:40px;max-height:40px;object-fit:contain"></div>` : ''}
+  </div>
   <div style="font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--color-accent-400);margin-top:8px;text-transform:uppercase">${esc(b.role)}</div>
   <div style="font-size:14px;line-height:1.45;color:rgba(243,242,242,.85);margin-top:10px;text-wrap:pretty">${esc(b.detail)}</div>
 </div>`).join(''));
@@ -69,6 +74,16 @@ list('brands', BRANDS.map(([n, f]) => `<div data-rv class="trophy" style="displa
   <div style="flex:1;display:flex;align-items:center;justify-content:center">${f ? `<img src="${BASE}logos/${f}" alt="" loading="lazy" style="max-width:70%;max-height:64px;object-fit:contain;filter:grayscale(1) invert(1) contrast(1.15);mix-blend-mode:screen;opacity:.92">` : `<span style="font-weight:800;text-transform:uppercase;font-size:clamp(15px,1.4vw,20px);line-height:.95;letter-spacing:-.01em;text-align:center">${esc(n)}</span>`}</div>
   <div style="font-size:10px;font-weight:800;letter-spacing:.12em;color:rgba(243,242,242,.5);text-transform:uppercase">${esc(n)}</div>
 </div>`).join(''));
+list('press', PRESS.map(p => `<article data-rv style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));border:2px solid rgba(243,242,242,.22);border-top:2px solid var(--color-bg)">
+  <div class="grayscale" style="min-height:220px;background:url('${BASE}${p.img}') center 30%/cover"></div>
+  <div style="padding:20px 20px 22px;display:flex;flex-direction:column;justify-content:space-between;gap:20px">
+    <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:800;letter-spacing:.14em"><span style="color:var(--color-accent)">${esc(p.source.toUpperCase())}</span><span style="color:rgba(243,242,242,.55)">${esc(p.date.toUpperCase())}</span></div>
+    <div>
+      <div style="font-weight:800;text-transform:uppercase;font-size:clamp(26px,2.6vw,40px);line-height:.92;letter-spacing:-.025em">${esc(p.headline)}</div>
+      <div style="margin-top:12px;font-size:15px;line-height:1.45;color:rgba(243,242,242,.85);text-wrap:pretty">${esc(p.line)}</div>
+    </div>
+  </div>
+</article>`).join(''));
 list('seats', SEATS.map(([who, line, subj], i) => `<a href="mailto:${EMAIL}?subject=${encodeURIComponent(subj)}" class="seat" style="display:flex;flex-direction:column;justify-content:space-between;gap:36px;min-height:200px;padding:18px 18px 20px;border-right:2px solid rgba(243,242,242,.22);border-bottom:2px solid rgba(243,242,242,.22);color:var(--color-bg)">
   <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:800;letter-spacing:.14em"><span>${pad2(i + 1)}</span><span>EMAIL →</span></div>
   <div>
@@ -300,7 +315,7 @@ function engineOpts() {
   return {
     segs: segList.map(s => ({ id: s.id, a: s.a, b: s.b })), ch: CH, quality,
     logos: LOGOS, rights: RIGHTS, formation: XI.map(x => [x[0], x[1], x[2]]), drive: DRIVE, kit: KIT, markets: MARKETS,
-    gates: GATES, photos: PHOTOS, model: { url: BASE + 'models/matt.glb', height: 1.85 },
+    gates: GATES, photos: Object.fromEntries(Object.entries(PHOTOS).map(([k, v]) => [k, v ? BASE + v : v])), model: { url: BASE + 'models/matt.glb', height: 1.85 },
     noDegrade: params.has('nodegrade'), stat: STAT, screenData: SCREEN_DATA, messages: MESSAGES, ledPlan: LED_PLAN,
   };
 }

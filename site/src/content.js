@@ -20,8 +20,8 @@ export const GATES = [
   { z: 60, lines: ['THE BEST GIVES PEOPLE', 'A REASON TO CARE.'], kind: 'care', red: true },
 ];
 // Photos: drop files into public/photos and set the path here (null = labelled placeholder in the 3D world).
-export const PHOTOS = { walkout: null };
-export const LOGOS = { 'puma': 'puma.png', 'adidas': 'adidas.png', 'la-galaxy': 'la-galaxy.png', 'fifa-world-cup': 'fifa-world-cup.png', 'national-league': 'national-league.png', 'fifa-plus': 'fifa-plus.png', 'laliga': 'laliga.png', 'arsenal': 'arsenal.png', 'man-city': 'man-city.png', 'uefa-europa-league': 'uefa-europa-league.png', 'serie-a': 'serie-a.png', 'bundesliga': 'bundesliga.png', 'uefa-champions-league': 'uefa-champions-league.png', 'fc-barcelona': 'fc-barcelona.png' };
+export const PHOTOS = { walkout: null, portrait: 'photos/portrait.jpg' };
+export const LOGOS = { 'copa-sudamericana': 'copa-sudamericana.png', 'career-webber': 'career/webber.png', 'career-gym-king': 'career/gym-king.png', 'career-american-golf': 'career/american-golf.png', 'career-couture-club': 'career/couture-club.png', 'career-swift': 'career/swift.png', 'career-80-four': 'career/80-four.png', 'career-dazn': 'career/dazn.png', 'puma': 'puma.png', 'adidas': 'adidas.png', 'la-galaxy': 'la-galaxy.png', 'fifa-world-cup': 'fifa-world-cup.png', 'national-league': 'national-league.png', 'fifa-plus': 'fifa-plus.png', 'laliga': 'laliga.png', 'arsenal': 'arsenal.png', 'man-city': 'man-city.png', 'uefa-europa-league': 'uefa-europa-league.png', 'serie-a': 'serie-a.png', 'bundesliga': 'bundesliga.png', 'uefa-champions-league': 'uefa-champions-league.png', 'fc-barcelona': 'fc-barcelona.png' };
 export const RIGHTS = [
   { slug: 'fifa-plus', name: 'FIFA+', sub: '3M+ users migrated', detail: "I led FIFA's move onto DAZN. Over 3M FIFA+ fans came across, and they're still signing up." },
   { slug: 'fifa-world-cup', name: 'FIFA World Cup', sub: 'Senior · U-20 · U-17', detail: "World Cups at every level: senior, U-20, U-20 Women's and U-17." },
@@ -47,13 +47,13 @@ export const XI = [
   [-14, -21.5, 11, 'AI workflows & automation', 'WR', 'I design the AI workflows that let teams move faster, with Claude, ChatGPT, Gemini and Make.com.'],
 ];
 export const DRIVE = [
-  { down: 'THE DRAFT', name: 'Webber International', years: '2019 – 2023', role: 'Scholarship · BSc Business Management', detail: 'I went to Florida on a scholarship and graduated in Business Management. Then I came home and started the drive.' },
-  { down: '1ST & 10', name: 'Gym King', years: '2021 – 2022', role: 'Social Media Executive & Influencer Manager', detail: 'Where it started. I ran every social page and brought in creators like Tom Aspinall, Ash Cain and Alex Bowen.' },
-  { down: '2ND & 4', name: 'American Golf', years: '2022 – 2023', role: 'Social Media & Influencer Executive', detail: 'I grew the channels by over 400%, working with ambassadors like Niall Horan and Judy Murray.' },
-  { down: '1ST & 10', name: 'The Couture Club', years: '2023 – 2024', role: 'Influencer, Ambassador & Ecommerce', detail: 'I closed Molly-Mae Hague and Phil Foden. Reach went up 600%. Online sales went up 41%.' },
-  { down: '3RD & 2', name: 'Swift Agency', years: '2024 – 2025', role: 'Head of Digital Marketing', detail: 'I ran every channel for the agency and its clients: 15+ accounts, one standard.' },
-  { down: '1ST & GOAL', name: '80 Four', years: '2025 – 2026', role: 'Co-founder · Head of Digital Marketing', detail: 'I co-founded a brand-elevation agency and won Crewe Alexandra FC. Fan engagement went up by more than 450%.' },
-  { down: 'TOUCHDOWN', name: 'DAZN', years: '2026 –', role: 'Global Marketing Manager, Football', detail: "I set the season-long campaign idea for DAZN's football rights worldwide, from FIFA+ to Serie A." },
+  { down: 'THE DRAFT', name: 'Webber International', logo: 'webber', years: '2019 – 2023', role: 'Scholarship · BSc Business Management', detail: 'I went to Florida on a scholarship and graduated in Business Management. Then I came home and started the drive.' },
+  { down: '1ST & 10', name: 'Gym King', logo: 'gym-king', years: '2021 – 2022', role: 'Social Media Executive & Influencer Manager', detail: 'Where it started. I ran every social page and brought in creators like Tom Aspinall, Ash Cain and Alex Bowen.' },
+  { down: '2ND & 4', name: 'American Golf', logo: 'american-golf', years: '2022 – 2023', role: 'Social Media & Influencer Executive', detail: 'I grew the channels by over 400%, working with ambassadors like Niall Horan and Judy Murray.' },
+  { down: '1ST & 10', name: 'The Couture Club', logo: 'couture-club', years: '2023 – 2024', role: 'Influencer, Ambassador & Ecommerce', detail: 'I closed Molly-Mae Hague and Phil Foden. Reach went up 600%. Online sales went up 41%.' },
+  { down: '3RD & 2', name: 'Swift Agency', logo: 'swift', years: '2024 – 2025', role: 'Head of Digital Marketing', detail: 'I ran every channel for the agency and its clients: 15+ accounts, one standard.' },
+  { down: '1ST & GOAL', name: '80 Four', logo: '80-four', years: '2025 – 2026', role: 'Co-founder · Head of Digital Marketing', detail: 'I co-founded a brand-elevation agency and won Crewe Alexandra FC. Fan engagement went up by more than 450%.' },
+  { down: 'TOUCHDOWN', name: 'DAZN', logo: 'dazn', years: '2026 –', role: 'Global Marketing Manager, Football', detail: "I set the season-long campaign idea for DAZN's football rights worldwide, from FIFA+ to Serie A." },
 ];
 
 // [value, what, where]
@@ -64,7 +64,9 @@ export const TROPHIES = [
 // [name, where] — from the CV's talent partnerships
 export const TALENT = [['Phil Foden', 'The Couture Club'], ['Molly-Mae Hague', 'The Couture Club'], ['Kyle Walker', 'Talent partnership'], ['Conor McGregor', 'Talent partnership'], ['Tom Aspinall', 'Gym King'], ['Ash Cain', 'Gym King'], ['Alex Bowen', 'Gym King'], ['Niall Horan', 'American Golf'], ['Judy Murray', 'American Golf'], ['Madeline Argy', 'Talent partnership']];
 // [name, logo file in public/logos or null]
-export const BRANDS = [['Manchester City FC', 'man-city.png'], ['FC Barcelona', 'fc-barcelona.png'], ['Arsenal FC', 'arsenal.png'], ['LA Galaxy', 'la-galaxy.png'], ['Crewe Alexandra FC', null], ['DP World Tour', null], ['adidas', 'adidas.png'], ['Puma', 'puma.png'], ['Under Armour', null]];
+export const BRANDS = [['Manchester City FC', 'man-city.png'], ['FC Barcelona', 'fc-barcelona.png'], ['Arsenal FC', 'arsenal.png'], ['LA Galaxy', 'la-galaxy.png'], ['Crewe Alexandra FC', 'crewe-alexandra.png'], ['DP World Tour', 'dp-world-tour.png'], ['adidas', 'adidas.png'], ['Puma', 'puma.png'], ['Under Armour', 'under-armour.png']];
+// press coverage (from the clipping in public/photos)
+export const PRESS = [{ img: 'photos/press-bdaily-photo.jpg', source: 'Bdaily Business News', date: '21 Oct 2025', headline: 'Trio launch new marketing agency', line: '80 Four, founded by Matt King, James Parker-Aiken and Emily Martin, specialises in sport, health and lifestyle branding and brand strategy.' }];
 // [who, line, email subject]
 export const SEATS = [
   ['Rights holders & leagues', 'Taking a property into new markets, or onto a new platform.', 'Rights & leagues'],
@@ -80,7 +82,7 @@ export const SCREEN_DATA = {
   channels: ['Social', 'Email', 'CRM', 'Platform', 'Creative', 'SEO', 'Paid', 'Demand'],
   markets: ['UK', 'North America', 'LATAM', 'MENA', 'SEA', 'ANZ', 'Rest of world'],
   talent: [['Phil Foden', 'The Couture Club'], ['Molly-Mae Hague', 'The Couture Club'], ['Kyle Walker', 'Talent partner'], ['Conor McGregor', 'Talent partner'], ['Tom Aspinall', 'Gym King'], ['Niall Horan', 'American Golf'], ['Judy Murray', 'American Golf'], ['Madeline Argy', 'Talent partner'], ['Alex Bowen', 'Gym King']],
-  route: [['2021', 'GYM KING'], ['2022', 'AMERICAN GOLF'], ['2023', 'COUTURE CLUB'], ['2024', 'SWIFT'], ['2025', '80 FOUR'], ['2026', 'DAZN']],
+  route: [['2021', 'GYM KING', 'gym-king'], ['2022', 'AMERICAN GOLF', 'american-golf'], ['2023', 'COUTURE CLUB', 'couture-club'], ['2024', 'SWIFT', 'swift'], ['2025', '80 FOUR', '80-four'], ['2026', 'DAZN', 'dazn']],
 };
 // LED ribbon messages around the venues
 export const MESSAGES = {

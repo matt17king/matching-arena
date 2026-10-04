@@ -46,6 +46,9 @@ export async function createArena(canvas, o = {}) {
   const phTex = (w, h, lines, img) => { const [c, g] = cnv(w, h); if (img) photo(g, img, 0, 0, w, h, true); else placeholder(g, 0, 0, w, h, lines); return texOf(c); };
   const logoImgs = {};
   await Promise.all(Object.entries(o.logos || {}).map(async ([k, f]) => { logoImgs[k] = await loadImg(import.meta.env.BASE_URL + 'logos/' + f); }));
+  sdata.logos = logoImgs;
+  // a logo on a white tile, fitted inside the square (logos arrive on white or transparent grounds)
+  const logoTile = (g, img, x, y, s) => { g.fillStyle = '#f3f2f2'; g.fillRect(x, y, s, s); if (!img) return; const p = s * 0.12, k = Math.min((s - p * 2) / img.width, (s - p * 2) / img.height); g.drawImage(img, x + (s - img.width * k) / 2, y + (s - img.height * k) / 2, img.width * k, img.height * k); };
   const wrapT = (g, text, maxW) => { const ws = text.split(' '); const lines = []; let cur = ''; for (const w of ws) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; } if (cur) lines.push(cur); return lines; };
   const fitText = (g, s, maxW, maxLines, fs, min) => { g.font = FONT(800, fs); let L = wrapT(g, s, maxW); while ((L.length > maxLines || L.some(l => g.measureText(l).width > maxW)) && fs > min) { fs -= 4; g.font = FONT(800, fs); L = wrapT(g, s, maxW); } return { L, fs }; };
 
@@ -774,6 +777,7 @@ export async function createArena(canvas, o = {}) {
     LS(g, '6px'); g.font = FONT(800, 30); g.fillStyle = 'rgba(243,242,242,0.7)'; g.textBaseline = 'alphabetic'; g.fillText(`${it.down} · ${it.years}`, 48, 92);
     LS(g, '-3px'); const ft = fitText(g, it.name.toUpperCase(), 920, 2, 150, 60); g.fillStyle = CHALK; const lh = ft.fs * 0.9; ft.L.forEach((l, k) => g.fillText(l, 48, 300 + (k - (ft.L.length - 1)) * lh + (ft.L.length > 1 ? lh * 0.5 : 0)));
     LS(g, '3px'); g.font = FONT(800, 30); g.fillStyle = '#ff7a5e'; wrapT(g, it.role.toUpperCase(), 920).slice(0, 2).forEach((l, k) => g.fillText(l, 48, 440 + k * 42));
+    if (it.logo && logoImgs['career-' + it.logo]) logoTile(g, logoImgs['career-' + it.logo], 1024 - 48 - 150, 44, 150);
     const m = new THREE.Mesh(new THREE.PlaneGeometry(12, 6.75), new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, opacity: 0, depthWrite: false }));
     m.position.set(DX[i] + 14, 4.6, 9); m.rotation.y = -Math.PI / 2 - 0.35; m.renderOrder = 6; m.visible = false; scene.add(m); return m;
   });

@@ -80,8 +80,7 @@ export function drawScreen(g, W, H, beat, b, t, d) {
       txt(g, '50–100 PEOPLE', px + 30, py + 368, { size: 20, ls: '4px' }); txt(g, '8 TEAMS · 7 MARKETS', px + 30, py + 392, { size: 16, ls: '4px', color: 'rgba(243,242,242,0.6)' });
     }
     g.restore();
-    if (d.photos && d.photos.portrait) { g.save(); g.globalAlpha = u; g.font = F(800, 170); LS(g, '-8px'); g.textAlign = 'right'; g.textBaseline = 'alphabetic'; g.fillStyle = RED; g.fillText('17', px - 14, py + ph); g.restore();
-      txt(g, 'SQUAD NO.', px - 18, py + ph - 150, { size: 16, ls: '4px', align: 'right', color: 'rgba(243,242,242,0.6)', a: u }); }
+    if (d.photos && d.photos.portrait) { g.save(); g.globalAlpha = u; g.fillStyle = RED; g.fillRect(px, py + ph - 44, 104, 44); g.restore(); txt(g, 'NO. 17', px + 14, py + ph - 14, { size: 20, ls: '4px', a: u }); }
   } else if (beat >= 1 && beat <= 3) {
     const P = [
       { n: '01', h: ['CONCEPT FIRST,', 'CHANNEL SECOND.'], s: 'One season idea, adapted by every team.' },
@@ -156,7 +155,7 @@ export function drawScreen(g, W, H, beat, b, t, d) {
     });
   } else if (beat === 6) {
     tag(g, 'THE ROUTE', M, 112, ss(k * 3));
-    rise(g, ['FROM GYM KING', 'TO GLOBAL.'], M, 268, 92, 92, k);
+    rise(g, ['FROM GYM KING', 'TO GLOBAL.'], M, 236, 78, 78, k);
     const R = d.route, x0 = M + 10, x1 = W - M - 10, y = 450, lu = eo((k - 0.25) / 0.6);
     g.fillStyle = 'rgba(243,242,242,0.18)'; g.fillRect(x0, y, x1 - x0, 3);
     g.fillStyle = RED; g.fillRect(x0, y, (x1 - x0) * lu, 3);
@@ -165,7 +164,9 @@ export function drawScreen(g, W, H, beat, b, t, d) {
       g.globalAlpha = u; g.fillStyle = i === R.length - 1 ? RED : CHALK; g.fillRect(x - 9, y - 8, 18, 18); g.globalAlpha = 1;
       const al = i === 0 ? 'left' : i === R.length - 1 ? 'right' : 'center';
       txt(g, yr, x, y - 26, { size: 18, ls: '3px', align: al, color: 'rgba(243,242,242,0.6)', a: u });
-      txt(g, n, x, y + 48, { size: 20, ls: '2px', align: al, a: u });
+      txt(g, n, x, y + 48, { size: 16, ls: '2px', align: al, a: u });
+      const lg = d.logos && R[i][2] && d.logos['career-' + R[i][2]];
+      if (lg) { const s = 52, lx = al === 'left' ? x - 9 : al === 'right' ? x + 9 - s : x - s / 2; g.globalAlpha = u; g.fillStyle = '#f3f2f2'; g.fillRect(lx, y - 100, s, s); const k = Math.min((s - 10) / lg.width, (s - 10) / lg.height); g.drawImage(lg, lx + (s - lg.width * k) / 2, y - 100 + (s - lg.height * k) / 2, lg.width * k, lg.height * k); g.globalAlpha = 1; }
     });
   } else if (beat === 'ft') {
     tag(g, 'FULL TIME', M, 112);
