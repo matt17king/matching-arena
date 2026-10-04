@@ -900,12 +900,51 @@ export async function createArena(canvas, o = {}) {
   // ---------- chapter: exhibitions that changed the court (tennis, overhead)
   // Battle of the Surfaces (2007): half grass, half clay. Battle of the Sexes (2025): one half about 9% smaller.
   const CTL = 11.885 * TN, CTW = 5.485 * TN;
-  const clayTex = (() => { const [c, g] = cnv(512, 512); g.fillStyle = '#d8743a'; g.fillRect(0, 0, 512, 512);
-    for (let i = 0; i < 9000; i++) { const v = Math.random(); g.fillStyle = v < 0.5 ? `rgba(150,62,24,${0.08 + Math.random() * 0.12})` : `rgba(246,170,116,${0.06 + Math.random() * 0.12})`; g.fillRect(Math.random() * 512, Math.random() * 512, 1 + Math.random() * 2, 1 + Math.random() * 2); }
-    for (let x = 0; x < 512; x += 64) { g.fillStyle = 'rgba(255,190,150,0.035)'; g.fillRect(x, 0, 32, 512); }
-    const t = texOf(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4, 4); return t; })();
-  const clay = new THREE.Mesh(new THREE.PlaneGeometry(63.6, 63.2), new THREE.MeshStandardMaterial({ map: clayTex, color: C('#ffb48a'), emissive: C('#c4581f'), emissiveIntensity: 0.45, emissiveMap: clayTex, roughness: 0.95, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }));
-  clay.rotation.x = -Math.PI / 2; clay.position.set(31.8, 0.02, 0); clay.renderOrder = 1; clay.visible = false; clay.userData.noCast = true; scene.add(clay);
+  // red clay, painted for this half court (u: net → stand, v: across): terracotta base, mottling, drag-mat sweeps,
+  // a scuffed baseline with slide marks, crushed-brick grain, plus a tiling grain normal map so the lights catch it
+  const CW_ = 63.6, CD_ = 63.2, clayRes = LOWQ ? 1024 : 2048;
+  const makeClayTex = () => {
+    const S = clayRes, [c, g] = cnv(S, S), U = x => x / CW_ * S, V = z => (z + CD_ / 2) / CD_ * S, rnd = (a, b) => a + Math.random() * (b - a);
+    g.fillStyle = '#c9683c'; g.fillRect(0, 0, S, S);
+    // broad mottling: damp and dry patches
+    for (let i = 0; i < 420; i++) { const x = rnd(0, S), y = rnd(0, S), r = rnd(S * 0.03, S * 0.14), dark = Math.random() < 0.5, gr = g.createRadialGradient(x, y, 0, x, y, r);
+      gr.addColorStop(0, dark ? 'rgba(150,62,30,0.06)' : 'rgba(222,134,88,0.06)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); }
+    // drag-mat sweeps: long, faint, slightly curved streaks across the court
+    g.lineCap = 'round';
+    for (let b = 0; b < 26; b++) { const y0 = rnd(-S * 0.1, S * 1.1), bend = rnd(-S * 0.12, S * 0.12), lite = Math.random() < 0.6;
+      for (let k = 0; k < 14; k++) { const y = y0 + k * S * 0.0035; g.strokeStyle = lite ? `rgba(226,140,96,${rnd(0.025, 0.06)})` : `rgba(110,40,18,${rnd(0.02, 0.05)})`; g.lineWidth = rnd(1, 3) * S / 2048;
+        g.beginPath(); g.moveTo(-10, y); g.quadraticCurveTo(S / 2, y + bend, S + 10, y + bend * 0.3); g.stroke(); } }
+    // baseline zone: dusty, lighter, scuffed (baseline at x 41.6, play happens just behind it)
+    const bx = U(11.885 * TN);
+    for (let i = 0; i < 160; i++) { const x = bx + rnd(-S * 0.02, S * 0.07), y = V(rnd(-14, 14)), r = rnd(S * 0.008, S * 0.03), gr = g.createRadialGradient(x, y, 0, x, y, r);
+      gr.addColorStop(0, 'rgba(232,160,116,0.08)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); }
+    // slide marks: players slide along the baseline, so streaks run across the court with a dark leading edge
+    for (let i = 0; i < 26; i++) { const x = bx + rnd(-S * 0.01, S * 0.05), y = V(rnd(-13, 13)), len = rnd(S * 0.008, S * 0.022), w = rnd(S * 0.002, S * 0.004), a = rnd(-0.25, 0.25);
+      g.save(); g.translate(x, y); g.rotate(Math.PI / 2 + a); g.fillStyle = `rgba(232,160,116,${rnd(0.06, 0.12)})`; g.beginPath(); g.ellipse(0, 0, len, w, 0, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = `rgba(120,44,20,${rnd(0.08, 0.16)})`; g.lineWidth = w * 0.3; g.beginPath(); g.ellipse(0, 0, len, w, 0, Math.PI * 0.9, Math.PI * 2.1); g.stroke(); g.restore(); }
+    // footwork scuffs inside the court and around the service line
+    for (let i = 0; i < 220; i++) { const x = U(rnd(1, 11.885 * TN + 3)), y = V(rnd(-20, 20)), r = rnd(S * 0.0012, S * 0.0028);
+      g.fillStyle = Math.random() < 0.5 ? `rgba(130,48,20,${rnd(0.05, 0.1)})` : `rgba(230,150,104,${rnd(0.05, 0.1)})`; g.beginPath(); g.ellipse(x, y, r * 1.8, r, rnd(0, Math.PI), 0, Math.PI * 2); g.fill(); }
+    // crushed-brick grain: per-pixel jitter with the odd light and dark speck
+    const id = g.getImageData(0, 0, S, S), d = id.data;
+    for (let p = 0; p < d.length; p += 4) { const n = (Math.random() - 0.5) * 16, sp = Math.random(); let m = sp < 0.003 ? 26 : sp > 0.997 ? -24 : 0;
+      d[p] = Math.max(0, Math.min(255, d[p] + n + m)); d[p + 1] = Math.max(0, Math.min(255, d[p + 1] + n * 0.75 + m * 0.7)); d[p + 2] = Math.max(0, Math.min(255, d[p + 2] + n * 0.55 + m * 0.5)); }
+    g.putImageData(id, 0, 0);
+    const t = texOf(c); t.anisotropy = 8; return t; };
+  const makeClayNrm = () => { // tiling grain: soft lumps plus fine grit, turned into a normal map
+    const S = 512, h = new Float32Array(S * S), [lc, lg] = cnv(64, 64), li = lg.createImageData(64, 64);
+    for (let p = 0; p < li.data.length; p += 4) { const v = Math.random() * 255; li.data[p] = li.data[p + 1] = li.data[p + 2] = v; li.data[p + 3] = 255; } lg.putImageData(li, 0, 0);
+    const [bc, bg] = cnv(S, S); bg.imageSmoothingEnabled = true; bg.drawImage(lc, 0, 0, S, S); const bd = bg.getImageData(0, 0, S, S).data;
+    for (let k = 0; k < S * S; k++) h[k] = bd[k * 4] / 255 * 0.6 + Math.random() * 0.4;
+    const [c, g] = cnv(S, S), o = g.createImageData(S, S);
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) { const k = y * S + x, dx = h[y * S + (x + 1) % S] - h[y * S + (x + S - 1) % S], dy = h[((y + 1) % S) * S + x] - h[((y + S - 1) % S) * S + x];
+      let nx = -dx * 2.2, ny = -dy * 2.2, nz = 1; const l = Math.hypot(nx, ny, nz); o.data[k * 4] = (nx / l * 0.5 + 0.5) * 255; o.data[k * 4 + 1] = (ny / l * 0.5 + 0.5) * 255; o.data[k * 4 + 2] = (nz / l * 0.5 + 0.5) * 255; o.data[k * 4 + 3] = 255; }
+    g.putImageData(o, 0, 0); const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(14, 14); t.anisotropy = 8; return t; };
+  const clay = new THREE.Mesh(new THREE.PlaneGeometry(CW_, CD_), new THREE.MeshStandardMaterial({ color: C('#c9683c'), normalScale: new THREE.Vector2(0.55, 0.55), roughness: 0.97, metalness: 0,
+    emissive: C('#c9683c'), emissiveIntensity: 0.2, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }));
+  { const build = () => { const m = clay.material, t = makeClayTex(); m.map = t; m.emissiveMap = t; m.normalMap = makeClayNrm(); m.color.set('#ffffff'); m.emissive.set('#ffffff'); m.needsUpdate = true; };
+    (window.requestIdleCallback || (f => setTimeout(f, 1)))(() => setTimeout(build, 2500), { timeout: 6000 }); }
+  clay.rotation.x = -Math.PI / 2; clay.position.set(CW_ / 2, 0.02, 0); clay.renderOrder = 1; clay.visible = false; clay.userData.noCast = true; scene.add(clay);
   const cut = (() => { const k = 0.91, [c, g] = cnv(512, 512), X = x => (x + CTL) / CTL * 512, Y = z => (z + CTW) / (2 * CTW) * 512;
     g.fillStyle = 'rgba(236,48,19,0.28)'; g.fillRect(0, 0, 512, 512); g.strokeStyle = 'rgba(236,48,19,0.95)'; g.lineWidth = 6; for (let d = -512; d < 1024; d += 28) { g.beginPath(); g.moveTo(d, 0); g.lineTo(d + 512, 512); g.stroke(); }
     g.clearRect(X(-CTL * k), Y(-CTW * k), X(0) - X(-CTL * k), Y(CTW * k) - Y(-CTW * k));
