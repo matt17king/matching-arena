@@ -1,6 +1,7 @@
 // Arena v12 — scroll controller. Maps scroll to match progress, drives the 3D engine, scrubs the DOM overlays.
 import './styles/modernist.css';
 import './styles/site.css';
+import './styles/mobile.css';
 import { drawBrief } from './engine/broadcast-gfx.js';
 import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, FILM, TROPHIES, PROOF, STANDS, TALENT, BRANDS, PRESS, SEATS, TOPICS, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN } from './content.js';
 

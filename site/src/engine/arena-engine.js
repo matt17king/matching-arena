@@ -29,7 +29,9 @@ export async function createArena(canvas, o = {}) {
   const CH = Object.assign({ RR: [0.08, 0.9], BEATS: [0.06, 0.44], TAC: [0.5, 0.92], DRIVE: [0.03, 0.5], XI: [0.55, 0.96], SURF: [0.03, 0.27], SEXES: [0.27, 0.5], PADEL: [0.5, 0.74], FANS: [0.77, 0.92], LAP: [0.08, 0.62], PIT: [0.66, 0.92] }, o.ch || {});
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(LOWQ ? 1 : Math.min(window.devicePixelRatio || 1, 1.6));
+  // phones get a little extra density on the low tier (their screens are 3x); the adaptive degrade drops it back to 1 if frames suffer
+  const PHONE = window.matchMedia('(pointer: coarse)').matches && Math.min(window.innerWidth, window.innerHeight) < 760;
+  renderer.setPixelRatio(LOWQ ? (PHONE ? Math.min(window.devicePixelRatio || 1, 1.5) : 1) : Math.min(window.devicePixelRatio || 1, 1.6));
   renderer.setClearColor(C(BG), 1);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
   if (!LOWQ) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
@@ -1181,7 +1183,9 @@ export async function createArena(canvas, o = {}) {
   const ptr = { x: 0, y: 0, sx: 0, sy: 0 };
   const onMove = e => { ptr.x = e.clientX / W * 2 - 1; ptr.y = e.clientY / H * 2 - 1; };
   window.addEventListener('pointermove', onMove, { passive: true });
-  function resize() { W = window.innerWidth; H = window.innerHeight; renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix(); if (post) post.setSize(W, H); }
+  // on phones the URL bar sliding in and out only changes the height: keep the tallest height for this width so the scene never jumps
+  let lastW = -1; const lvh = PHONE ? Object.assign(document.createElement('div'), { style: 'position:fixed;top:0;left:0;width:1px;height:100lvh;visibility:hidden;pointer-events:none' }) : null; if (lvh) document.body.appendChild(lvh);
+  function resize() { const w = window.innerWidth, h = Math.max(window.innerHeight, lvh ? lvh.offsetHeight : 0); if (PHONE && w === lastW && h <= H) return; lastW = w; W = w; H = h; renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix(); if (post) post.setSize(W, H); }
   window.addEventListener('resize', resize); resize();
   const ledP = (o.ledPlan || []).filter(([id]) => SEG[id]).map(([id, t, k]) => [SEG[id].a + t * (SEG[id].b - SEG[id].a), k]).sort((a, b) => a[0] - b[0]);
   const setLed = key => { if (!ledTex[key] || key === ledCur) return; allBoards.forEach(b => { b.u.uA.value = ledTex[ledCur].tex; b.u.uAspA.value = ledTex[ledCur].asp; b.u.uB.value = ledTex[key].tex; b.u.uAspB.value = ledTex[key].asp; }); ledCur = key; ledWipeStart = time; };
@@ -1442,6 +1446,6 @@ export async function createArena(canvas, o = {}) {
     get scene() { return scene; },
     get post() { return post; },
     get progress() { return p; },
-    dispose() { cancelAnimationFrame(raf); canvas.removeEventListener('pointerdown', onDown); window.removeEventListener('pointermove', onMove2); window.removeEventListener('pointerup', onUp); window.removeEventListener('resize', resize); window.removeEventListener('pointermove', onMove); renderer.dispose(); },
+    dispose() { cancelAnimationFrame(raf); canvas.removeEventListener('pointerdown', onDown); window.removeEventListener('pointermove', onMove2); window.removeEventListener('pointerup', onUp); window.removeEventListener('resize', resize); window.removeEventListener('pointermove', onMove); if (lvh) lvh.remove(); renderer.dispose(); },
   };
 }

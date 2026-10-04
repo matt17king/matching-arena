@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0a0a">
 <title>Matt King — Sport · Fashion · Culture</title>
 <meta name="description" content="Matt King on sport, fashion and culture. I take sport off the pitch and into culture: how fans are made, why culture is the side door, and the plays worth stealing.">
 <meta property="og:type" content="website">
@@ -29,7 +30,8 @@
 
 <canvas data-canvas style="position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;z-index:0"></canvas>
 <div style="position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 95% at 50% 50%, rgba(11,10,10,0) 58%, rgba(11,10,10,.55) 100%)"></div>
-<div style="position:fixed;inset:0;z-index:1;pointer-events:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0 clamp(20px,3vw,44px)">
+<div data-scrim aria-hidden="true"></div>
+<div data-grid style="position:fixed;inset:0;z-index:1;pointer-events:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0 clamp(20px,3vw,44px)">
   <div style="border-left:1px solid rgba(243,242,242,.05)"></div>
   <div style="border-left:1px solid rgba(243,242,242,.05)"></div>
   <div style="border-left:1px solid rgba(243,242,242,.05)"></div>
@@ -64,7 +66,7 @@
 <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Matt King — sport, fashion and culture. I take sport off the pitch and into culture.</h1>
 
 <!-- FOOTBALL · 05' the tunnel is the new runway -->
-<div data-sk="hero:.19,.215,.31,.335" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;width:min(540px,calc(100vw - 40px));background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px;display:flex;gap:18px;align-items:flex-end">
+<div data-m="card" data-sk="hero:.19,.215,.31,.335" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;width:min(540px,calc(100vw - 40px));background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px;display:flex;gap:18px;align-items:flex-end">
   <div style="flex:1;min-width:0">
   <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:8px">05' — THE TUNNEL IS THE NEW RUNWAY</div>
   <div style="font-weight:800;text-transform:uppercase;font-size:clamp(20px,2vw,30px);line-height:.95;letter-spacing:-.02em">Fashion is everywhere in sport.</div>
@@ -106,14 +108,14 @@
 </div>
 
 <!-- TRANSITIONS · the lines redraw into the next sport -->
-<div style="position:fixed;left:0;right:0;bottom:0;z-index:4;pointer-events:none;padding:0 clamp(20px,3vw,44px) clamp(64px,10vh,110px)">
+<div data-m="xwrap" style="position:fixed;left:0;right:0;bottom:0;z-index:4;pointer-events:none;padding:0 clamp(20px,3vw,44px) clamp(64px,10vh,110px)">
   <div style="display:grid">
     <div data-sk="x1:.14,.22,.74,.84" data-fx="fade" style="grid-area:1/1;opacity:0;display:flex;gap:14px;font-size:12px;font-weight:800;letter-spacing:.16em"><span style="color:var(--color-accent)">VENUE 02 / 05</span><span>THE COURT — CULTURE IS THE SIDE DOOR</span></div>
     <div data-sk="x2:.14,.22,.74,.84" data-fx="fade" style="grid-area:1/1;opacity:0;display:flex;gap:14px;font-size:12px;font-weight:800;letter-spacing:.16em"><span style="color:var(--color-accent)">VENUE 03 / 05</span><span>THE GRIDIRON — FIT BEATS SIZE</span></div>
     <div data-sk="x3:.14,.22,.74,.84" data-fx="fade" style="grid-area:1/1;opacity:0;display:flex;gap:14px;font-size:12px;font-weight:800;letter-spacing:.16em"><span style="color:var(--color-accent)">VENUE 04 / 05</span><span>THE SHOW COURT — THE FORMAT IS THE PRODUCT</span></div>
     <div data-sk="x4:.14,.22,.74,.84" data-fx="fade" style="grid-area:1/1;opacity:0;display:flex;gap:14px;font-size:12px;font-weight:800;letter-spacing:.16em"><span style="color:var(--color-accent)">VENUE 05 / 05</span><span>THE CIRCUIT — STORY BEFORE SPORT</span></div>
   </div>
-  <div style="display:grid;margin-top:14px;font-weight:800;text-transform:uppercase;font-size:clamp(64px,12vw,230px);line-height:.8;letter-spacing:-.055em">
+  <div data-m="xt" style="display:grid;margin-top:14px;font-weight:800;text-transform:uppercase;font-size:clamp(64px,12vw,230px);line-height:.8;letter-spacing:-.055em">
     <div style="grid-area:1/1;overflow:hidden;padding-top:.06em"><div data-sk="x1:.16,.28,.72,.84" data-fx="rise" style="transform:translateY(110%)">Basketball.</div></div>
     <div style="grid-area:1/1;overflow:hidden;padding-top:.06em"><div data-sk="x2:.16,.28,.72,.84" data-fx="rise" style="transform:translateY(110%)">NFL.</div></div>
     <div style="grid-area:1/1;overflow:hidden;padding-top:.06em"><div data-sk="x3:.16,.28,.72,.84" data-fx="rise" style="transform:translateY(110%)">Tennis.</div></div>
@@ -128,7 +130,7 @@
 </div>
 
 <!-- BASKETBALL · timeout, the playbook -->
-<div data-sk="bball:.53,.58,.94,.98" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
+<div data-m="card" data-sk="bball:.53,.58,.94,.98" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
   <div style="max-width:560px">
     <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:8px">TIMEOUT — HOW I BUILD A BRIEF</div>
     <div style="font-weight:800;text-transform:uppercase;font-size:clamp(20px,2vw,30px);line-height:.95;letter-spacing:-.02em">Start with what they already love.</div>
@@ -153,7 +155,7 @@
 </div>
 
 <!-- TENNIS · 15–0 battle of the surfaces, 30–0 battle of the sexes, 40–0 padel (the court changes under them) -->
-<div data-sk="tennis:.05,.08,.24,.27" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
+<div data-m="card" data-sk="tennis:.05,.08,.24,.27" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
   <div style="max-width:620px">
     <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:8px">15–0 — BATTLE OF THE SURFACES</div>
     <div style="font-weight:800;text-transform:uppercase;font-size:clamp(20px,2vw,30px);line-height:.95;letter-spacing:-.02em">Half grass. Half clay.</div>
@@ -164,7 +166,7 @@
     <span style="font-size:11px;font-weight:800;letter-spacing:.1em;color:rgba(243,242,242,.7);max-width:16ch">PALMA DE MALLORCA</span>
   </div>
 </div>
-<div data-sk="tennis:.29,.32,.47,.5" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
+<div data-m="card" data-sk="tennis:.29,.32,.47,.5" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
   <div style="max-width:620px">
     <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:8px">30–0 — BATTLE OF THE SEXES</div>
     <div style="font-weight:800;text-transform:uppercase;font-size:clamp(20px,2vw,30px);line-height:.95;letter-spacing:-.02em">Change the court, change the story.</div>
@@ -175,7 +177,7 @@
     <span style="font-size:11px;font-weight:800;letter-spacing:.1em;color:rgba(243,242,242,.7);max-width:16ch">SMALLER ON HER SIDE OF THE NET</span>
   </div>
 </div>
-<div data-sk="tennis:.53,.56,.71,.74" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
+<div data-m="card" data-sk="tennis:.53,.56,.71,.74" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
   <div style="max-width:620px">
     <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:8px">40–0 — PADEL</div>
     <div style="font-weight:800;text-transform:uppercase;font-size:clamp(20px,2vw,30px);line-height:.95;letter-spacing:-.02em">Same racket DNA. Built to be social.</div>
@@ -188,7 +190,7 @@
 </div>
 
 <!-- TENNIS · 30–0 free is a growth strategy -->
-<div data-sk="tennis:.76,.79,.96,.99" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
+<div data-m="card" data-sk="tennis:.76,.79,.96,.99" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
   <div style="max-width:560px">
     <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:8px">GAME — THE FORMAT IS THE PRODUCT</div>
     <div style="font-weight:800;text-transform:uppercase;font-size:clamp(20px,2vw,30px);line-height:.95;letter-spacing:-.02em">New formats find new fans.</div>
@@ -236,7 +238,7 @@
 </figure>
 
 <!-- MOTORSPORT · seven corners, seven markets -->
-<div data-sk="race:.09,.13,.6,.64" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
+<div data-m="card" data-sk="race:.09,.13,.6,.64" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
   <div style="max-width:640px">
     <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:8px">THE LAP — ONE IDEA, SEVEN MARKETS</div>
     <div style="font-weight:800;text-transform:uppercase;font-size:clamp(20px,2vw,30px);line-height:.95;letter-spacing:-.02em">Sneakers are a global language.</div>
@@ -246,10 +248,10 @@
 </div>
 
 <!-- MOTORSPORT · the pit wall, the kit -->
-<div data-list="kit" data-sk="race:.65,.68,.92,.95" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:grid;background:rgba(11,10,10,.86);border-top:2px solid var(--color-accent)"></div>
+<div data-m="card" data-list="kit" data-sk="race:.65,.68,.92,.95" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:grid;background:rgba(11,10,10,.86);border-top:2px solid var(--color-accent)"></div>
 
 <!-- MOTORSPORT · lights out -->
-<div data-sk="race:0,.004,.065,.075" data-fx="fade" style="opacity:0;position:fixed;left:0;right:0;top:0;bottom:0;z-index:3;pointer-events:none;display:flex;align-items:center;padding:0 clamp(20px,3vw,44px)">
+<div data-m="lights" data-sk="race:0,.004,.065,.075" data-fx="fade" style="opacity:0;position:fixed;left:0;right:0;top:0;bottom:0;z-index:3;pointer-events:none;display:flex;align-items:center;padding:0 clamp(20px,3vw,44px)">
   <div style="display:flex;flex-direction:column;gap:10px">
     <div style="font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--color-accent)">THE GRID — STORY BEFORE SPORT</div>
     <div style="font-weight:800;text-transform:uppercase;font-size:clamp(56px,9vw,160px);line-height:.82;letter-spacing:-.05em">Lights out.</div>

@@ -39,8 +39,5 @@ a.btn-out-red:hover { background: var(--color-accent-600); color: var(--color-bg
 .moment.top { top: 92px; bottom: auto; width: calc(min(40vh, 400px) * .75); }
 .moment.top .moment-ph { height: min(40vh, 400px); }
 .moment.left { right: auto; left: clamp(20px, 3vw, 44px); }
-@media (max-width: 760px) {
-  .moment, .moment.top, .moment.left { top: 84px; bottom: auto; right: 16px; left: auto; width: calc(22vh * .75 + 40px); }
-  .moment .moment-ph, .moment.top .moment-ph { height: 22vh; width: calc(22vh * .75); margin-left: auto; }
-  .moment figcaption { font-size: 12px; padding: 8px 10px; }
-}
+/* phone-only scrim behind bottom-anchored copy (shown in mobile.css) */
+[data-scrim] { display: none; }

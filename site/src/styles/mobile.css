@@ -1,0 +1,95 @@
+/* Phones. Everything here sits behind one breakpoint, so the desktop layout is untouched.
+   Inline styles in index.html carry the desktop design; these rules override them where a phone needs something different. */
+@media (max-width: 760px) {
+  :root { --gut: 16px; --sab: env(safe-area-inset-bottom, 0px); --sat: env(safe-area-inset-top, 0px); }
+  html, body { -webkit-text-size-adjust: 100%; }
+  body { -webkit-tap-highlight-color: transparent; }
+
+  /* the fixed canvas follows the small viewport so the URL bar never crops the scene */
+  [data-canvas] { height: 100lvh !important; }
+  [data-grid] { display: none !important; }
+  [data-scrim] { display: block; position: fixed; inset: 0; z-index: 2; pointer-events: none;
+    background: linear-gradient(to top, rgba(11,10,10,.86) 0, rgba(11,10,10,.55) 28%, rgba(11,10,10,0) 52%); }
+
+  /* header: tighter, clear of the notch */
+  #root > div[style*="z-index:6"] > div:first-child { padding: calc(14px + var(--sat)) var(--gut) 12px !important; }
+  [data-list="ticks"] { margin: 0 var(--gut) !important; }
+  [data-clock] { font-size: 26px !important; }
+  [data-sound-toggle], [data-menu-toggle] { min-height: 40px; }
+  [data-sound-toggle] { padding: 8px 6px !important; }
+
+  /* chapters: a full-width sheet with thumb-sized rows */
+  #chapters { top: calc(64px + var(--sat)) !important; left: var(--gut) !important; right: var(--gut) !important; width: auto !important; max-height: calc(100svh - 84px - var(--sat)) !important; overscroll-behavior: contain; }
+  #chapters .menu-row { grid-template-columns: 56px 1fr !important; padding: 12px 14px !important; min-height: 44px; }
+  #chapters .menu-row > span:last-child { display: none; }
+
+  /* bottom cards: full width, safe-area aware, never taller than the lower half */
+  [data-m="card"] { left: var(--gut) !important; right: var(--gut) !important; width: auto !important;
+    bottom: calc(56px + var(--sab)) !important; max-height: 52svh; overflow: hidden; padding: 12px 14px !important; gap: 10px 20px !important; }
+  [data-m="card"] [style*="font-size:14px"] { font-size: 13.5px !important; line-height: 1.42 !important; }
+  [data-m="card"] [style*="clamp(40px,4.4vw,72px)"] { font-size: 34px !important; }
+  [data-list="kit"] [style*="minmax(260px"] { grid-template-columns: 1fr !important; padding: 12px 14px !important; }
+
+  /* caption bar: one line, ellipsis rather than a two-line wrap */
+  [data-cap] { padding: 0 var(--gut) calc(16px + var(--sab)) !important; }
+  [data-cap] > div { padding-top: 10px !important; font-size: 11px !important; letter-spacing: .14em !important; }
+  [data-cap] [data-sk] { min-width: 0; gap: 10px !important; }
+  [data-cap] [data-sk] > span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  [data-cap] > div > div:first-child { min-width: 0; flex: 1; }
+
+  /* transitions: the sport name has to fit the width */
+  [data-m="xwrap"] { padding: 0 var(--gut) calc(70px + var(--sab)) !important; }
+  [data-m="xwrap"] > div:first-child > div { flex-direction: column; gap: 4px !important; font-size: 11px !important; }
+  [data-m="xt"] { font-size: 13.4vw !important; }
+
+  /* lights out: lower third, under the photo strip */
+  [data-m="lights"] { align-items: flex-end !important; padding: 0 var(--gut) calc(84px + var(--sab)) !important; }
+
+  /* the walk-out and full time: the big name, then the line, then the buttons */
+  [data-ft], #root > div[style*="z-index:4;padding:0 clamp(20px,3vw,44px) clamp(56px,9vh,96px)"] { padding-left: var(--gut) !important; padding-right: var(--gut) !important; padding-bottom: calc(56px + var(--sab)) !important; }
+  [data-pe] a.btn-red, [data-pe] a.btn-line { min-width: 0 !important; flex: 1 1 140px; gap: 16px !important; min-height: 48px; white-space: nowrap; }
+
+  [data-ft] > div:first-child { flex-direction: column; gap: 4px !important; font-size: 11px !important; }
+
+  /* photo moments: one strip under the header, photo left, caption right */
+  .moment, .moment.top, .moment.left { top: calc(84px + var(--sat)); bottom: auto; left: var(--gut); right: var(--gut); width: auto;
+    display: flex; align-items: stretch; background: rgba(11,10,10,.9); border-top: 2px solid var(--color-accent); }
+  .moment .moment-ph, .moment.top .moment-ph { width: 72px; height: 96px; flex: none; border-top: 0; margin: 0; }
+  .moment figcaption { flex: 1; min-width: 0; background: none; padding: 9px 12px; font-size: 12.5px; line-height: 1.35; align-self: center; }
+  .moment figcaption span { font-size: 9.5px; margin-bottom: 3px; }
+
+  /* sheets placed by main.js (rights, drive, huddle) sit above the caption bar */
+  [data-m="sheet"] { bottom: calc(56px + var(--sab)) !important; }
+
+  /* the brief: steps fill the space above the timeout card */
+  [data-brief] { left: var(--gut) !important; right: var(--gut) !important; top: calc(84px + var(--sat)) !important; }
+
+  /* kick-off: room for the buttons and the clock */
+  [data-kick-ui] { padding: calc(18px + var(--sat)) var(--gut) calc(24px + var(--sab)) !important; }
+  [data-kick-ui] > div:first-child { flex-direction: column; }
+  [data-kick-ui] button { min-height: 44px; }
+
+  /* tooltips and the ball hint are pointer affordances */
+  [data-tip] { display: none !important; }
+
+  /* post-match: denser rhythm, no hover-only states */
+  #root > div[style*="padding:55vh"] { padding-left: var(--gut) !important; padding-right: var(--gut) !important; }
+  section[data-post-sec] { padding-bottom: 72px !important; }
+  section#film-room { padding-top: 64px !important; }
+  section[data-post-sec] h2 { font-size: 12.4vw !important; }
+  [data-list="brands"] { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+  [data-list="stands"] { grid-template-columns: repeat(2, minmax(0,1fr)) !important; gap: 12px !important; }
+  [data-list="talent"] > div { grid-template-columns: 30px 1fr !important; }
+  [data-list="talent"] > div > span:last-child { grid-column: 2; text-align: left !important; }
+  [data-list="press"] article > div:first-child { min-height: 180px !important; }
+  #press-box figure.life { width: 100% !important; }
+  #press-box figure.life img { aspect-ratio: 4/3 !important; }
+  #press-box img[alt="Matt King"] { float: none !important; width: 46vw !important; margin: 0 0 22px !important; }
+  #press-box img[alt="Matt King"] + div { font-size: 15vw !important; max-width: none !important; }
+  [data-list="trophies"] > div { min-height: 0 !important; gap: 18px !important; }
+  [data-list="seats"] > a { min-height: 0 !important; gap: 22px !important; }
+  [data-list="stands"] figcaption { flex-direction: column; gap: 2px !important; }
+  [data-list="stands"] figcaption span { text-align: left !important; }
+  #press-box a.btn-dark, #press-box a.btn-out-red { min-width: 0 !important; flex: 1 1 100%; }
+  .life img, .life video { filter: grayscale(1) contrast(1.05); }
+}
