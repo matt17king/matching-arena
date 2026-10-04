@@ -42,5 +42,9 @@ export function netKit({ THREE, cnv }) {
   }
   // chain-link / diamond fence panel material, `cell` metres per diamond
   const fence = (w, h, cell, color = '#3a3a3a') => mat(color, diamond, w / cell, h / cell);
-  return { courtNet, hoopNet, fence };
+  // netting on any surface: UVs are rewritten in metres so the mesh cells stay a constant size
+  const knot = (color = '#f3f2f2') => mat(color, tex, 1, 1);
+  const metric = (geo, cell, axes = ['x', 'y']) => { const p = geo.attributes.position, uv = geo.attributes.uv;
+    for (let i = 0; i < p.count; i++) uv.setXY(i, p['get' + axes[0].toUpperCase()](i) / cell, p['get' + axes[1].toUpperCase()](i) / cell); uv.needsUpdate = true; return geo; };
+  return { courtNet, hoopNet, fence, knot, metric };
 }

@@ -466,21 +466,7 @@ export async function createArena(canvas, o = {}) {
   const vF = venue('football', 1);
   [{ len: 116, tier: 15, pos: [0, -43], ry: Math.PI, roof: true }, { len: 76, tier: 13, pos: [61, 0], ry: Math.PI / 2, roof: true }, { len: 76, tier: 13, pos: [-61, 0], ry: -Math.PI / 2, roof: true }, { len: 116, tier: 15, pos: [0, 43], ry: 0, gap: true, roof: true }].forEach(d => addStand(vF, d));
   {
-    const goals = new THREE.Group(); vF.root.add(goals);
-    const netMat = new THREE.LineBasicMaterial({ color: C(CHALK), transparent: true, opacity: 0.28 });
-    for (const sx of [-1, 1]) {
-      const gx = sx * 52.6, bx = sx * 54.6;
-      cyl(goals, 0.06, 2.44, 'y', gx, 1.22, -3.66, 'white'); cyl(goals, 0.06, 2.44, 'y', gx, 1.22, 3.66, 'white'); cyl(goals, 0.06, 7.44, 'z', gx, 2.44, 0, 'white');
-      cyl(goals, 0.03, 1.2, 'y', bx, 0.6, -3.66, 'white', 8); cyl(goals, 0.03, 1.2, 'y', bx, 0.6, 3.66, 'white', 8); cyl(goals, 0.03, 7.32, 'z', bx, 0.02, 0, 'white', 8);
-      const p = [];
-      for (let z = -3.66; z <= 3.67; z += 0.6) p.push(gx, 2.44, z, bx, 1.2, z, bx, 1.2, z, bx, 0, z);
-      for (let k = 0; k <= 8; k++) { const t = k / 8, x = gx + (bx - gx) * t, y = 2.44 - 1.24 * t; p.push(x, y, -3.66, x, y, 3.66); }
-      for (let y = 0; y <= 1.2; y += 0.4) p.push(bx, y, -3.66, bx, y, 3.66);
-      for (const z of [-3.66, 3.66]) for (let k = 0; k <= 6; k++) { const t = k / 6, x = gx + (bx - gx) * t; p.push(x, 0, z, x, 2.44 - 1.24 * t, z); }
-      const ng = new THREE.BufferGeometry(); ng.setAttribute('position', new THREE.Float32BufferAttribute(p, 3)); goals.add(new THREE.LineSegments(ng, netMat));
-      for (const sz of [-1, 1]) { cyl(goals, 0.025, 1.5, 'y', sx * 52.5, 0.75, sz * 34, 'white', 8); const f = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.36), new THREE.MeshBasicMaterial({ color: C(RED), side: THREE.DoubleSide })); f.position.set(sx * 52.5 - sx * 0.25, 1.32, sz * 34); goals.add(f); }
-    }
-    vF.fix.push({ o: goals, kind: 'growY', t0: 0.62 });
+    // goals, nets and corner flags live in venue-detail.js
     for (const [x, z, len, ry] of [[0, 38.6, 108, Math.PI], [0, -38.6, 108, 0], [57.2, 0, 66, -Math.PI / 2], [-57.2, 0, 66, Math.PI / 2]]) {
       const grp = new THREE.Group(); grp.position.set(x, 0, z); grp.rotation.y = ry; vF.root.add(grp);
       const lean = new THREE.Group(); lean.position.set(0, 0.08, 0); lean.rotation.x = -0.1; grp.add(lean);
@@ -579,13 +565,7 @@ export async function createArena(canvas, o = {}) {
   vN.fix.push({ kind: 'fade', t0: 0.55, dur: 0.15, set: f => { nflDecal.visible = f > 0.5; } });
   {
     [{ len: 128, tier: 16, pos: [0, -31], ry: Math.PI, roof: true, sp: 0.7 }, { len: 62, tier: 11, pos: [62, 0], ry: Math.PI / 2, sp: 0.7 }, { len: 62, tier: 11, pos: [-62, 0], ry: -Math.PI / 2, sp: 0.7 }, { len: 128, tier: 16, pos: [0, 31], ry: 0, roof: true, sp: 0.7 }].forEach(d => addStand(vN, d));
-    for (const sx of [-1, 1]) {
-      const gp = new THREE.Group(); gp.position.set(sx * 54.86, 0, 0); vN.root.add(gp);
-      cyl(gp, 0.12, 3.05, 'y', sx * 1.3, 1.525, 0, 'white', 12); box(gp, 0.45, 2.1, 0.45, sx * 1.3, 1.05, 0, 'redS');
-      cyl(gp, 0.09, 1.3, 'x', sx * 0.65, 3.05, 0, 'white', 10); cyl(gp, 0.09, 5.64, 'z', 0, 3.05, 0, 'white', 10);
-      for (const sz of [-1, 1]) { cyl(gp, 0.06, 9.2, 'y', 0, 3.05 + 4.6, sz * 2.82, 'white', 10); const fl = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 1.0), new THREE.MeshBasicMaterial({ color: C(RED), side: THREE.DoubleSide })); fl.position.set(0, 12.4, sz * 2.82); gp.add(fl); }
-      vN.fix.push({ o: gp, kind: 'grow', t0: 0.62 });
-    }
+    // gooseneck goalposts live in venue-detail.js
     const pyl = new THREE.Group(); vN.root.add(pyl);
     for (const x of [-54.86, -45.72, 45.72, 54.86]) for (const z of [-24.5, 24.5]) box(pyl, 0.12, 0.46, 0.12, x, 0.23, z, 'redS');
     vN.fix.push({ o: pyl, kind: 'growY', t0: 0.66 });
@@ -1366,7 +1346,7 @@ export async function createArena(canvas, o = {}) {
       const pf = rc ? clamp((t - CH.PIT[0]) / (CH.PIT[1] - CH.PIT[0])) * 3 : -1, pk = Math.min(2, Math.floor(pf)), pon = rc ? R(t, CH.PIT[0] - 0.02, CH.PIT[0]) : 0;
       kitLED.forEach((m, k) => { m.color.setScalar(0.18 + (k === pk ? pon * 0.5 : 0)); });
       if (raceX && vR.root.visible) raceX.update({ rc, t, LAP: CH.LAP, lapS, time }); }
-    venueX.update({ camera, fdX: fdLine.position.x, driveOn: fdLine.visible, time });
+    venueX.update({ camera, fdX: fdLine.position.x, driveOn: fdLine.visible, time, goalT, ballX: ball.position.x, ballZ: ball.position.z });
     const bloomK = 0.42 + 0.25 * lit + 0.2 * spot + (xi ? 0.08 * Math.sin(xt * Math.PI) : 0);
     // fireworks: full time over the circuit, a salvo for the touchdown and for a goal
     fwU.uTime.value = time;
