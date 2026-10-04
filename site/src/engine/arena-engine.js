@@ -2,6 +2,7 @@
 import { drawScreen, drawTactics, placeholder, photo } from './broadcast-gfx.js';
 import { buildRaceDetail } from './race-detail.js';
 import { buildVenueDetail } from './venue-detail.js';
+import { netKit } from './nets.js';
 import { N, P, ORDER, SPORTS, circuit, strandSet, strandShared, BB, TN, tennis as tennisCourt, padel as padelCourt } from './arena-sports.js';
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const ss = x => { x = clamp(x); return x * x * (3 - 2 * x); };
@@ -39,6 +40,7 @@ export async function createArena(canvas, o = {}) {
   const fogU = { uFogDen: { value: 0.0048 }, uFogCol: { value: C(BG) } };
   const texOf = (c, rep) => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = ANISO; if (rep) t.wrapS = THREE.RepeatWrapping; return t; };
   const cnv = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
+  const nets = netKit({ THREE, cnv });
   const loadImg = src => new Promise(r => { const im = new Image(); im.onload = () => r(im); im.onerror = () => r(null); im.src = src; });
   const photos = {};
   await Promise.all(Object.entries(o.photos || {}).map(async ([k, v]) => { if (v && !Array.isArray(v)) photos[k] = await loadImg(v); }));
@@ -495,19 +497,44 @@ export async function createArena(canvas, o = {}) {
   let scrSig = '', scrT = -1;
   {
     [{ len: 34, tier: 9, pos: [0, -10], ry: Math.PI, sp: 0.7, col: 'red' }, { len: 24, tier: 9, pos: [17.5, 0], ry: Math.PI / 2, sp: 0.7, col: 'red' }, { len: 24, tier: 9, pos: [-17.5, 0], ry: -Math.PI / 2, sp: 0.7, col: 'red' }, { len: 34, tier: 9, pos: [0, 10], ry: 0, sp: 0.7, col: 'red' }].forEach(d => addStand(vB, d));
-    const netMat = new THREE.LineBasicMaterial({ color: C(CHALK), transparent: true, opacity: 0.5 });
-    for (const sx of [-1, 1]) {
-      const h = new THREE.Group(); h.position.set(sx * 14, 0, 0); vB.root.add(h);
-      rbox(h, 1.4, 0.9, 1.2, sx * 1.9, 0.45, 0, 'dark', 0.1, true);
-      cyl(h, 0.09, 3.2, 'y', sx * 1.6, 2.0, 0, 'steel', 10);
-      struts(h, [[V3(sx * 1.6, 3.5, 0), V3(sx * -0.95, 3.45, 0), 0.07], [V3(sx * 1.6, 2.7, 0), V3(sx * -0.95, 3.15, 0), 0.05]], mats.steel);
-      box(h, 0.05, 1.05, 1.8, sx * -1.2, 3.425, 0, mats.glass);
-      for (const [w, hh, y, z] of [[1.8, 0.05, 3.93, 0], [1.8, 0.05, 2.92, 0], [0.05, 1.05, 3.425, 0.9], [0.05, 1.05, 3.425, -0.9], [0.59, 0.05, 3.5, 0], [0.59, 0.05, 3.06, 0], [0.05, 0.45, 3.28, 0.295], [0.05, 0.45, 3.28, -0.295]]) box(h, 0.06, hh, w, sx * -1.22, y, z, w > 1 || hh > 1 ? mats.white : redMat);
-      const rim = new THREE.Mesh(new THREE.TorusGeometry(0.225, 0.02, 8, 28), redMat); rim.rotation.x = Math.PI / 2; rim.position.set(sx * -1.575, 3.05, 0); h.add(rim);
-      const np = []; for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2, b = (k + 1.5) / 14 * Math.PI * 2; np.push(sx * -1.575 + Math.cos(a) * 0.225, 3.05, Math.sin(a) * 0.225, sx * -1.575 + Math.cos(b) * 0.13, 2.62, Math.sin(b) * 0.13); }
-      const ng = new THREE.BufferGeometry(); ng.setAttribute('position', new THREE.Float32BufferAttribute(np, 3)); h.add(new THREE.LineSegments(ng, netMat));
-      vB.fix.push({ o: h, kind: 'grow', t0: 0.62 });
-    }
+    // hoops: padded stanchion, curved boom, tempered-glass board with LED edge, orange breakaway rim, hanging net
+    { const pad = new THREE.MeshStandardMaterial({ color: C('#151414'), roughness: 0.7 }), padR = new THREE.MeshStandardMaterial({ color: C(RED), roughness: 0.55 });
+      const boom = new THREE.MeshStandardMaterial({ color: C('#1c1c1d'), roughness: 0.35, metalness: 0.7 }); boom.userData.env = 0.7;
+      const orange = new THREE.MeshStandardMaterial({ color: C('#e0571c'), roughness: 0.35, metalness: 0.55 }); orange.userData.env = 0.8;
+      const bGlass = new THREE.MeshPhysicalMaterial({ color: C('#dfeef2'), roughness: 0.03, metalness: 0, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide }); bGlass.userData.env = 1.4;
+      const paint = new THREE.MeshStandardMaterial({ color: C('#f3f2f2'), roughness: 0.5 }), led = new THREE.MeshBasicMaterial({ color: C(RED).multiplyScalar(2.4) });
+      for (const sx of [-1, 1]) {
+        const h = new THREE.Group(); h.position.set(sx * 14, 0, 0); vB.root.add(h);
+        const X0 = x => sx * x;                                                                     // local x measured from the baseline, outward positive
+        // base: weighted cabinet wrapped in padding, branded front pad
+        rbox(h, 1.7, 0.95, 1.3, X0(2.15), 0.48, 0, pad, 0.12); rbox(h, 0.12, 0.8, 1.2, X0(1.28), 0.5, 0, padR, 0.05);
+        const [bc, bg] = cnv(256, 160); bg.fillStyle = RED; bg.fillRect(0, 0, 256, 160); bg.fillStyle = CHALK; bg.font = FONT(800, 92); LS(bg, '-4px'); bg.textAlign = 'center'; bg.textBaseline = 'middle'; bg.fillText('MK', 128, 86);
+        const bp = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.62), new THREE.MeshStandardMaterial({ map: texOf(bc), roughness: 0.55 })); bp.position.set(X0(1.215), 0.5, 0); bp.rotation.y = sx > 0 ? -Math.PI / 2 : Math.PI / 2; h.add(bp);
+        // boom: rises from the cabinet and arcs out over the baseline to the board
+        const path = new THREE.CatmullRomCurve3([V3(X0(2.3), 0.9, 0), V3(X0(2.05), 2.3, 0), V3(X0(1.65), 3.35, 0), V3(X0(0.9), 3.62, 0), V3(X0(-0.95), 3.62, 0)]);
+        h.add(new THREE.Mesh(new THREE.TubeGeometry(path, 48, 0.1, 14, false), boom));
+        const sleeve = new THREE.CatmullRomCurve3([V3(X0(2.3), 0.9, 0), V3(X0(2.15), 1.9, 0), V3(X0(2.02), 2.5, 0)]);
+        h.add(new THREE.Mesh(new THREE.TubeGeometry(sleeve, 16, 0.17, 14, false), pad));
+        struts(h, [[V3(X0(1.95), 2.6, 0.18), V3(X0(-0.95), 3.2, 0.36), 0.03], [V3(X0(1.95), 2.6, -0.18), V3(X0(-0.95), 3.2, -0.36), 0.03]], boom);
+        // board frame behind the glass
+        struts(h, [[V3(X0(-1.0), 2.95, -0.75), V3(X0(-1.0), 3.9, -0.75), 0.03], [V3(X0(-1.0), 2.95, 0.75), V3(X0(-1.0), 3.9, 0.75), 0.03], [V3(X0(-1.0), 3.62, -0.75), V3(X0(-1.0), 3.62, 0.75), 0.035]], boom);
+        // tempered glass 1.83 x 1.07, bottom edge at 2.90
+        const gx = X0(-1.2), yb = 2.9;
+        const gl = new THREE.Mesh(new THREE.BoxGeometry(0.035, 1.07, 1.83), bGlass); gl.position.set(gx, yb + 0.535, 0); h.add(gl);
+        const face = gx - sx * 0.02, edge = (w, hh, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.008, hh, w), paint); m.position.set(face, y, z); h.add(m); };
+        edge(1.83, 0.05, yb + 1.045, 0); edge(0.05, 1.07, yb + 0.535, 0.89); edge(0.05, 1.07, yb + 0.535, -0.89);                 // border
+        edge(0.59, 0.05, yb + 0.15 + 0.45 - 0.025, 0); edge(0.59, 0.05, yb + 0.15 + 0.025, 0); edge(0.05, 0.45, yb + 0.375, 0.27); edge(0.05, 0.45, yb + 0.375, -0.27); // target square
+        for (const [w, hh, y, z] of [[1.85, 0.025, yb + 1.075, 0], [0.025, 1.07, yb + 0.535, 0.925], [0.025, 1.07, yb + 0.535, -0.925]]) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.04, hh, w), led); m.position.set(gx, y, z); h.add(m); } // LED edge
+        rbox(h, 0.14, 0.09, 1.9, gx, yb - 0.02, 0, pad, 0.04); for (const sz of [-1, 1]) rbox(h, 0.14, 0.4, 0.09, gx, yb + 0.18, sz * 0.93, pad, 0.04); // edge padding
+        // rim: 18-inch ring on a flange with spring housing, then the net
+        const rx = X0(-1.575), ry = 3.05;
+        const rim = new THREE.Mesh(new THREE.TorusGeometry(0.2286, 0.011, 10, 40), orange); rim.rotation.x = Math.PI / 2; rim.position.set(rx, ry, 0); h.add(rim);
+        rbox(h, 0.16, 0.05, 0.2, X0(-1.29), ry - 0.01, 0, orange, 0.01); rbox(h, 0.06, 0.16, 0.22, X0(-1.24), ry - 0.06, 0, orange, 0.01);
+        for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2, hk = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.03, 0.012), orange); hk.position.set(rx + Math.cos(a) * 0.235, ry - 0.02, Math.sin(a) * 0.235); h.add(hk); }
+        const nt = nets.hoopNet(0.228, 0.14, 0.44); nt.position.set(rx, ry - 0.005, 0); h.add(nt);
+        h.traverse(m => { if (m.isMesh) m.userData.noCast = m.material === bGlass; });
+        vB.fix.push({ o: h, kind: 'grow', t0: 0.62 });
+      } }
     // lighting rig, lowered from the rafters
     const rig = new THREE.Group(); rig.position.y = 19; vB.root.add(rig);
     const RX = 15, RZ = 11, S = [];
@@ -570,21 +597,11 @@ export async function createArena(canvas, o = {}) {
   const vT = venue('tennis', TN);
   {
     [{ len: 32, tier: 8, pos: [0, -9.4], ry: Math.PI, roof: true, sp: 0.62, col: 'green' }, { len: 20, tier: 7, pos: [18.6, 0], ry: Math.PI / 2, sp: 0.62, col: 'green' }, { len: 20, tier: 7, pos: [-18.6, 0], ry: -Math.PI / 2, sp: 0.62, col: 'green' }, { len: 32, tier: 8, pos: [0, 9.4], ry: 0, roof: true, sp: 0.62, col: 'green' }].forEach(d => addStand(vT, d));
-    const net = new THREE.Group(); vT.root.add(net);
-    const hz = 6.4, top = z => 0.914 + (1.07 - 0.914) * Math.pow(Math.abs(z) / hz, 2);
-    for (const sz of [-1, 1]) cyl(net, 0.05, 1.07, 'y', 0, 0.535, sz * hz, 'steel', 10);
-    const np = []; for (let z = -hz; z <= hz + 1e-6; z += 0.22) np.push(0, 0.02, z, 0, top(z), z); for (let y = 0.1; y < 0.9; y += 0.12) np.push(0, y, -hz, 0, y, hz);
-    const ng = new THREE.BufferGeometry(); ng.setAttribute('position', new THREE.Float32BufferAttribute(np, 3)); net.add(new THREE.LineSegments(ng, new THREE.LineBasicMaterial({ color: C(CHALK), transparent: true, opacity: 0.32 })));
-    const tp = []; for (let k = 0; k < 12; k++) { const z0 = -hz + 2 * hz * k / 12, z1 = -hz + 2 * hz * (k + 1) / 12; tp.push([V3(0, top(z0), z0), V3(0, top(z1), z1), 0.03]); } struts(net, tp, mats.white);
-    box(net, 0.05, 0.9, 0.05, 0, 0.45, 0, 'white');
-    const chair = new THREE.Group(); chair.position.set(0, 0, 7.3); net.add(chair);
-    struts(chair, [[-0.35, -0.35], [0.35, -0.35], [0.35, 0.35], [-0.35, 0.35]].map(([x, z]) => [V3(x * 1.6, 0, z * 1.6), V3(x, 1.9, z), 0.035]), mats.steel);
-    box(chair, 0.9, 0.08, 0.8, 0, 1.95, 0, 'dark'); box(chair, 0.9, 0.7, 0.08, 0, 2.3, 0.38, 'dark'); box(chair, 1.1, 0.06, 0.4, 0, 2.15, -0.5, 'redS');
-    vT.fix.push({ o: net, kind: 'grow', t0: 0.62 });
+    // net, umpire's chair, benches and line-judge chairs are built in venue-detail.js
     [[-21, -13], [21, -13], [21, 13], [-21, 13]].forEach(([x, z], i) => mast(vT, x, z, 15, i / 4, 4, 3, 0.5, 30));
     addCones(vT, 0.14); finishVenue(vT, 0.5);
   }
-  const venueX = buildVenueDetail({ THREE, vF, vB, vN, vT, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, mats, glowTex, redMat, makeBoard, seatGeoBase });
+  const venueX = buildVenueDetail({ THREE, nets, vF, vB, vN, vT, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, mats, glowTex, redMat, makeBoard, seatGeoBase });
 
   // ===== 05 RACE (night circuit, real metres)
   const vR = venue('race', 1);
@@ -942,29 +959,69 @@ export async function createArena(canvas, o = {}) {
     g.font = FONT(800, 40); LS(g, '8px'); g.lineWidth = 12; g.strokeText(sub, 512, 168); g.fillStyle = red ? '#ff7a5e' : 'rgba(243,242,242,0.85)'; g.fillText(sub, 512, 168);
     const m = new THREE.Mesh(new THREE.PlaneGeometry(30, 5.86), new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, opacity: 0, depthWrite: false }));
     m.rotation.x = -Math.PI / 2; m.position.set(x, 0.08, z); m.renderOrder = 7; m.visible = false; scene.add(m); return m; };
-  const PDL = 10 * TN, PDW = 5 * TN, PGH = 3 * TN, PMH = 4 * TN;
-  const turf = (() => { const S = LOWQ ? 512 : 1024, [c, g] = cnv(S, S / 2); g.fillStyle = '#1f5fa8'; g.fillRect(0, 0, S, S / 2);
-    const id = g.getImageData(0, 0, S, S / 2), d = id.data; for (let k = 0; k < d.length; k += 4) { const n = (Math.random() - 0.5) * 26, sand = Math.random() < 0.02 ? 40 : 0; d[k] += n * 0.6 + sand; d[k + 1] += n * 0.8 + sand * 0.9; d[k + 2] += n + sand * 0.6; } g.putImageData(id, 0, 0);
-    for (let x = 0; x < S; x += S / 40) { g.fillStyle = 'rgba(255,255,255,0.025)'; g.fillRect(x, 0, S / 80, S / 2); }
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(PDL * 2 + 0.6, PDW * 2 + 0.6), new THREE.MeshStandardMaterial({ map: texOf(c), roughness: 0.92, emissive: C('#ffffff'), emissiveMap: texOf(c), emissiveIntensity: 0.12, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }));
+  // ---------- padel: blue turf, glass and mesh cage, posts and clamps, doors at the net, net, floodlights (real metres x TN)
+  const PDL = 10 * TN, PDW = 5 * TN, M_ = TN;
+  const turf = (() => { const S = LOWQ ? 1024 : 2048, [c, g] = cnv(S, S / 2), U = x => (x / (2 * PDL) + 0.5) * S, V = z => (z / (2 * PDW) + 0.5) * S / 2;
+    g.fillStyle = '#2459a0'; g.fillRect(0, 0, S, S / 2);
+    // worn, sandier zones: behind each service line and around the net where players stand
+    for (const [x0, x1, a] of [[-PDL, -6.95 * TN, 0.12], [6.95 * TN, PDL, 0.12], [-2 * TN, 2 * TN, 0.07]]) for (let i = 0; i < 70; i++) {
+      const x = U(x0 + Math.random() * (x1 - x0)), y = V((Math.random() - 0.5) * 2 * PDW * 0.8), r = S * (0.01 + Math.random() * 0.03), gr = g.createRadialGradient(x, y, 0, x, y, r);
+      gr.addColorStop(0, `rgba(196,182,150,${a})`); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r); }
+    // fibre grain and sand grains
+    const id = g.getImageData(0, 0, S, S / 2), d = id.data;
+    for (let k = 0; k < d.length; k += 4) { const px = (k / 4) % S, n = (Math.random() - 0.5) * 30 + Math.sin(px * 0.9) * 4, sand = Math.random() < 0.035 ? 70 + Math.random() * 60 : 0;
+      d[k] = Math.min(255, Math.max(0, d[k] + n * 0.6 + sand * 1.0)); d[k + 1] = Math.min(255, Math.max(0, d[k + 1] + n * 0.75 + sand * 0.92)); d[k + 2] = Math.min(255, Math.max(0, d[k + 2] + n + sand * 0.7)); }
+    g.putImageData(id, 0, 0);
+    const t = texOf(c); t.anisotropy = 8;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(PDL * 2 + 0.5, PDW * 2 + 0.5), new THREE.MeshStandardMaterial({ map: t, roughness: 0.9, emissive: C('#ffffff'), emissiveMap: t, emissiveIntensity: 0.12, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }));
     m.rotation.x = -Math.PI / 2; m.position.y = 0.026; m.renderOrder = 1; m.visible = false; m.userData.noCast = true; scene.add(m); return m; })();
   const padelMats = [], padelWalls = new THREE.Group(); padelWalls.visible = false; scene.add(padelWalls);
-  { const glass = new THREE.MeshStandardMaterial({ color: C('#d6ecf5'), roughness: 0.06, metalness: 0.1, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }); padelMats.push([glass, 0.16]);
-    const [mc, mg] = cnv(64, 64); mg.strokeStyle = 'rgba(30,30,30,1)'; mg.lineWidth = 5; mg.beginPath(); mg.moveTo(0, 32); mg.lineTo(32, 0); mg.lineTo(64, 32); mg.lineTo(32, 64); mg.closePath(); mg.stroke();
-    const mt = texOf(mc, true); mt.wrapT = THREE.RepeatWrapping;
-    const mesh = new THREE.MeshBasicMaterial({ map: mt, color: C('#4a4a4a'), transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }); padelMats.push([mesh, 0.85]);
-    const post = new THREE.MeshStandardMaterial({ color: C('#151515'), roughness: 0.5, metalness: 0.6, transparent: true, opacity: 0 }); padelMats.push([post, 1]);
-    const pane = (w, h, mat, x, y, z, ry) => { const g = new THREE.PlaneGeometry(w, h); const m = new THREE.Mesh(g, mat); m.position.set(x, y, z); m.rotation.y = ry; if (mat === mesh) { const mm = mesh.clone(); mm.map = mt.clone(); mm.map.repeat.set(w / 1.6, h / 1.6); mm.map.needsUpdate = true; m.material = mm; padelMats.push([mm, 0.85]); } m.userData.noCast = true; padelWalls.add(m); };
-    const pst = (x, z, h) => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.35, h, 0.35), post); m.position.set(x, h / 2, z); m.userData.noCast = true; padelWalls.add(m); };
+  {
+    const glassM = new THREE.MeshPhysicalMaterial({ color: C('#d8eef0'), roughness: 0.02, metalness: 0, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }); glassM.userData.env = 1.6; padelMats.push([glassM, 0.13]);
+    const edgeM = new THREE.MeshStandardMaterial({ color: C('#6fa39a'), roughness: 0.1, transparent: true, opacity: 0 }); padelMats.push([edgeM, 0.55]);
+    const steel = new THREE.MeshStandardMaterial({ color: C('#161617'), roughness: 0.45, metalness: 0.65 }); steel.userData.env = 0.6;
+    const lampM = new THREE.MeshBasicMaterial({ color: C('#fff6ea').multiplyScalar(3), transparent: true, opacity: 0 }); padelMats.push([lampM, 1]);
+    const add = (m) => { m.userData.noCast = true; padelWalls.add(m); return m; };
+    const GT = 0.012 * M_ * 2.4;                                                                   // glass thickness, slightly exaggerated so it reads
+    // a glass panel lying in the plane of its wall: `along` is x (side walls) or z (back walls)
+    const glass = (cx, cz, w, h, alongX) => { const g = new THREE.Mesh(new THREE.BoxGeometry(alongX ? w : GT, h, alongX ? GT : w), glassM); g.position.set(cx, h / 2, cz); add(g);
+      for (const [ew, eh, ox, oy] of [[w, 0.05, 0, h / 2 - 0.025], [w, 0.05, 0, -h / 2 + 0.025], [0.05, h, w / 2 - 0.025, 0], [0.05, h, -w / 2 + 0.025, 0]]) {
+        const e = new THREE.Mesh(new THREE.BoxGeometry(alongX ? ew : GT * 1.05, eh, alongX ? GT * 1.05 : ew), edgeM); e.position.set(cx + (alongX ? ox : 0), h / 2 + oy, cz + (alongX ? 0 : ox)); add(e); }
+      // stainless clamps where the panel meets its posts
+      for (const sgn of [-1, 1]) for (const y of [0.25, h - 0.3]) { const c = new THREE.Mesh(new THREE.BoxGeometry(alongX ? 0.28 : 0.22, 0.32, alongX ? 0.22 : 0.28), steel); c.position.set(cx + (alongX ? sgn * (w / 2) : 0), y, cz + (alongX ? 0 : sgn * (w / 2))); add(c); } };
+    const mesh = (cx, cz, w, y0, y1, alongX) => { const h = y1 - y0, m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), nets.fence(w, h, 0.055 * M_, '#2a2a2b')); m.position.set(cx, y0 + h / 2, cz); if (!alongX) m.rotation.y = Math.PI / 2; add(m);
+      const a = alongX ? [cx - w / 2, cz] : [cx, cz - w / 2], b = alongX ? [cx + w / 2, cz] : [cx, cz + w / 2];
+      struts(padelWalls, [[V3(a[0], y1, a[1]), V3(b[0], y1, b[1]), 0.07], [V3(a[0], y0 + 0.05, a[1]), V3(b[0], y0 + 0.05, b[1]), 0.05]], steel); };
+    const post = (x, z, h) => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.1 * M_, h, 0.1 * M_), steel); m.position.set(x, h / 2, z); add(m);
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(0.12 * M_, 0.06, 0.12 * M_), steel); cap.position.set(x, h + 0.03, z); add(cap); };
     for (const sx of [-1, 1]) {
-      pane(PDW * 2, PGH, glass, sx * PDL, PGH / 2, 0, Math.PI / 2); pane(PDW * 2, PMH - PGH, mesh, sx * PDL, PGH + (PMH - PGH) / 2, 0, Math.PI / 2);   // back wall: glass, mesh above
+      // back wall: five 2 m glass panels (3 m), mesh to 4 m
+      for (let k = 0; k < 5; k++) { const z = -PDW + (k + 0.5) * 2 * M_; glass(sx * PDL, z, 2 * M_ - 0.25, 3 * M_, false); }
+      mesh(sx * PDL, 0, 2 * PDW, 3 * M_, 4 * M_, false);
+      for (let k = 0; k <= 5; k++) post(sx * PDL, -PDW + k * 2 * M_, 4 * M_);
       for (const sz of [-1, 1]) {
-        pane(2 * TN, PGH, glass, sx * (PDL - TN), PGH / 2, sz * PDW, 0); pane(2 * TN, 2 * TN, glass, sx * (PDL - 3 * TN), TN, sz * PDW, 0);   // stepped side glass
-        pane(2 * TN, PMH - PGH, mesh, sx * (PDL - TN), PGH + (PMH - PGH) / 2, sz * PDW, 0);
+        // side walls: 2 m of 3 m glass, then 2 m of 2 m glass (the step), mesh above both
+        glass(sx * (PDL - 1 * M_), sz * PDW, 2 * M_ - 0.25, 3 * M_, true); mesh(sx * (PDL - 1 * M_), sz * PDW, 2 * M_, 3 * M_, 4 * M_, true);
+        glass(sx * (PDL - 3 * M_), sz * PDW, 2 * M_ - 0.25, 2 * M_, true); mesh(sx * (PDL - 3 * M_), sz * PDW, 2 * M_, 2 * M_, 3 * M_, true);
+        post(sx * (PDL - 2 * M_), sz * PDW, 4 * M_); post(sx * (PDL - 4 * M_), sz * PDW, 3 * M_);
+        // mesh run toward the net, with a door opening either side of it
+        mesh(sx * 3.8 * M_, sz * PDW, 4.4 * M_, 0, 3 * M_, true); post(sx * 1.6 * M_, sz * PDW, 3 * M_); post(sx * 0.6 * M_, sz * PDW, 3 * M_);
       }
-      for (let k = 0; k <= 5; k++) pst(sx * PDL, -PDW + k * PDW * 2 / 5, PMH);
     }
-    for (const sz of [-1, 1]) { pane(PDL * 2 - 8 * TN, PGH, mesh, 0, PGH / 2, sz * PDW, 0); for (let k = -5; k <= 5; k++) pst(k * PDL / 5, sz * PDW, Math.abs(k) >= 4 ? PMH : PGH); }
+    for (const sz of [-1, 1]) mesh(0, sz * PDW, 1.2 * M_, 0, 3 * M_, true);
+    // floodlights: four masts on the side posts 4 m from the net, LED heads angled at the court
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+      const x = sx * 4 * M_, z = sz * (PDW + 0.15 * M_);
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05 * M_, 0.06 * M_, 6 * M_, 12), steel); pole.position.set(x, 3 * M_, z); add(pole);
+      const head = new THREE.Group(); head.position.set(x, 6 * M_, z - sz * 0.25 * M_); head.rotation.x = sz * 0.7; padelWalls.add(head);
+      const hb = new THREE.Mesh(new THREE.BoxGeometry(0.7 * M_, 0.1 * M_, 0.4 * M_), steel); hb.userData.noCast = true; head.add(hb);
+      const lf = new THREE.Mesh(new THREE.PlaneGeometry(0.62 * M_, 0.32 * M_), lampM); lf.rotation.x = Math.PI / 2; lf.position.y = -0.052 * M_; head.add(lf);
+      const gl = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: C('#fff1df'), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); gl.scale.set(6, 6, 1); gl.position.y = -0.3; head.add(gl); padelMats.push([gl.material, 0.55]);
+    }
+    // padel net: 10 m, 0.88 m in the middle rising to 0.92 m, black posts at the walls
+    { const half = 5.0, top = z => 0.88 + 0.04 * Math.pow(Math.abs(z) / half, 2), n = nets.courtNet(half - 0.05, top, { cell: 0.045 }); n.scale.setScalar(M_); padelWalls.add(n);
+      for (const sz of [-1, 1]) post(0, sz * (PDW - 0.06 * M_), 0.95 * M_); }
+    padelWalls.traverse(m => { m.userData.noCast = true; });
   }
   const surfLab = [groundLabel('FEDERER', 'GRASS', -CTL / 2, -CTW - 9.1), groundLabel('NADAL', 'CLAY', CTL / 2, -CTW - 9.1, true)];
   const sexLab = [groundLabel('SABALENKA', 'SHORTER & NARROWER', -CTL / 2, -CTW - 9.1, true), groundLabel('KYRGIOS', 'FULL-SIZE HALF', CTL / 2, -CTW - 9.1)];
@@ -1294,6 +1351,7 @@ export async function createArena(canvas, o = {}) {
     // tennis
     {
       const pv = id === 'tennis' ? R(t, CH.PADEL[0] + 0.03, CH.PADEL[0] + 0.1) : id === 'x4' ? 1 - R(xt, 0.04, 0.28) : 0;
+      if (venueX.tennis && pv > 0.35) { venueX.tennis.net.visible = false; venueX.tennis.kit.forEach(k => { k.visible = false; }); }
       turf.visible = pv > 0.001; turf.material.opacity = pv; padelWalls.visible = pv > 0.001; padelWalls.scale.y = Math.max(0.0001, ss(pv)); padelMats.forEach(([m, o]) => { m.opacity = o * pv; });
       const cl = id === 'tennis' ? R(t, CH.SURF[0] + 0.01, CH.SURF[0] + 0.06) * (1 - R(t, CH.SURF[1] - 0.03, CH.SURF[1])) : 0;
       clay.visible = cl > 0.001; clay.material.opacity = cl; surfLab.forEach(m => { m.visible = cl > 0.001; m.material.opacity = R(cl, 0.5, 1); });
