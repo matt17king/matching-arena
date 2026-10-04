@@ -47,7 +47,7 @@ function ledGrid(W, H) {
   return grid;
 }
 
-// beat: 0 profile · 1 P01 · 2 P02 · 3 P03 · 4 route · 'idle' · 'ft'
+// beat: 0 profile · 1–3 culture plays · 4 Crewe · 5 roster · 6 route · 'idle' · 'ft'
 export function drawScreen(g, W, H, beat, b, t, d) {
   g.fillStyle = BG; g.fillRect(0, 0, W, H);
   const M = 64;
@@ -60,8 +60,8 @@ export function drawScreen(g, W, H, beat, b, t, d) {
   if (beat === 0) {
     tag(g, 'PLAYER PROFILE', M, 112, ss(k * 3));
     rise(g, ['MATT KING'], M, 300, 128, 0, k);
-    txt(g, 'GLOBAL MARKETING MANAGER, FOOTBALL', M + 4, 360, { size: 30, ls: '3px', a: ss((k - 0.3) * 3) });
-    const fields = [['CLUB', 'DAZN'], ['BASE', 'LONDON'], ['REPORTS TO', 'SVP MARKETING']];
+    txt(g, 'SPORT · FASHION · CULTURE', M + 4, 360, { size: 30, ls: '3px', a: ss((k - 0.3) * 3) });
+    const fields = [['DAY JOB', 'DAZN'], ['ROLE', 'GLOBAL MKTG'], ['LANE', 'OFF THE PITCH']];
     fields.forEach(([a, v], i) => {
       const u = ss((k - 0.45 - i * 0.12) * 4), x = M + 4 + i * 250;
       g.globalAlpha = u; g.fillStyle = 'rgba(243,242,242,0.25)'; g.fillRect(x, 410, 220, 2); g.globalAlpha = 1;
@@ -82,46 +82,30 @@ export function drawScreen(g, W, H, beat, b, t, d) {
     g.restore();
     if (d.photos && d.photos.portrait) { g.save(); g.globalAlpha = u; g.fillStyle = RED; g.fillRect(px, py + ph - 44, 104, 44); g.restore(); txt(g, 'NO. 17', px + 14, py + ph - 14, { size: 20, ls: '4px', a: u }); }
   } else if (beat >= 1 && beat <= 3) {
+    // culture plays: the thesis on the left, the crossover it came from on the right
     const P = [
-      { n: '01', h: ['CONCEPT FIRST,', 'CHANNEL SECOND.'], s: 'One season idea, adapted by every team.' },
-      { n: '02', h: ['LOCAL WINS', 'GLOBALLY.'], s: 'The same rights. A different plan for every market.' },
-      { n: '03', h: ['PLATFORMS ARE', 'PARTNERS.'], s: 'TikTok, Instagram and Meta as allies, not ad slots.' },
+      { n: '01', h: ['CULTURE IS', 'THE SIDE DOOR.'], s: 'Reach people through what they already love.', rows: [['TAYLOR SWIFT', 'MUSIC'], ['KANSAS CITY CHIEFS', 'NFL']], x: 'NEW EYES ON THE NFL' },
+      { n: '02', h: ['THE IT BOY', 'WEARS THE DROP.'], s: 'Athletes are culture figures. Treat them that way.', rows: [['ALCARAZ', 'TENNIS'], ['TRAVIS SCOTT', 'MUSIC'], ['NIKE', 'SNEAKERS']], x: 'TENNIS IN SNEAKER CULTURE' },
+      { n: '03', h: ['MUSIC IS', 'THE KICK-OFF.'], s: 'The halftime show is part of the product.', rows: [['BAD BUNNY', 'MUSIC'], ['ADIDAS', 'FASHION'], ['SUPER BOWL', 'NFL']], x: 'ONE ARTIST, THREE WORLDS' },
     ][beat - 1];
-    const w = tag(g, `PRINCIPLE ${P.n}`, M, 112, ss(k * 3));
-    txt(g, 'HOW I WORK', M + w + 18, 132, { size: 20, ls: '5px', base: 'middle', color: 'rgba(243,242,242,0.6)', a: ss(k * 3) });
-    rise(g, P.h, M, 268, 92, 92, k);
-    txt(g, P.s, M + 2, 440, { w: 600, size: 30, color: 'rgba(243,242,242,0.85)', a: ss((k - 0.4) * 3) });
-    const X0 = 760, X1 = W - M;
-    if (beat === 1) {
-      const ch = d.channels; const y0 = 120, step = (470 - y0) / (ch.length - 1);
-      const cu = eo(k * 2.2); g.fillStyle = RED; g.fillRect(X0, 286 - 26 * cu, 52 * cu, 52 * cu);
-      ch.forEach((c, i) => {
-        const u = eo((k - 0.25 - i * 0.05) / 0.4), y = y0 + i * step;
-        g.strokeStyle = `rgba(243,242,242,${0.35 * u})`; g.lineWidth = 2; g.beginPath(); g.moveTo(X0 + 52, 286);
-        g.bezierCurveTo(X0 + 140, 286, X0 + 120, y, X0 + 200, y); g.stroke();
-        g.fillStyle = `rgba(243,242,242,${u})`; g.fillRect(X0 + 206, y - 10, (X1 - X0 - 380) * u * (0.55 + 0.45 * ((i * 37) % 10) / 10), 20);
-        txt(g, c.toUpperCase(), X1, y + 8, { size: 20, ls: '4px', align: 'right', a: u });
-      });
-    } else if (beat === 2) {
-      const mk = d.markets; const cols = 2, cw = (X1 - X0) / cols, chh = 78;
-      mk.forEach((m, i) => {
-        const u = eo((k - 0.2 - i * 0.07) / 0.35), x = X0 + (i % cols) * cw, y = 120 + Math.floor(i / cols) * (chh + 10);
-        g.globalAlpha = u; g.fillStyle = 'rgba(243,242,242,0.08)'; g.fillRect(x, y, cw - 14, chh);
-        g.fillStyle = RED; g.fillRect(x + 16, y + 16, 18, 18); g.globalAlpha = 1;
-        txt(g, `PLAN ${String(i + 1).padStart(2, '0')}`, x + 46, y + 32, { size: 15, ls: '4px', color: 'rgba(243,242,242,0.6)', a: u });
-        txt(g, m.toUpperCase(), x + 16, y + 64, { size: 24, a: u });
-      });
-    } else {
-      ['TIKTOK', 'INSTAGRAM', 'META'].forEach((p, i) => {
-        const u = eo((k - 0.2 - i * 0.12) / 0.4), y = 210 + i * 120;
-        g.save(); g.beginPath(); g.rect(X0, y - 100, X1 - X0, 120); g.clip();
-        txt(g, p, X0 + (1 - u) * -200, y, { size: 96, ls: '-2px', a: u }); g.restore();
-        g.globalAlpha = u; g.fillStyle = RED; g.fillRect(X1 - 150, y - 44, 150, 34); g.globalAlpha = 1;
-        txt(g, 'PARTNER', X1 - 75, y - 21, { size: 18, ls: '4px', align: 'center', base: 'middle', a: u });
-      });
-    }
+    const w = tag(g, `PLAY ${P.n}`, M, 112, ss(k * 3));
+    txt(g, 'HOW I THINK', M + w + 18, 132, { size: 20, ls: '5px', base: 'middle', color: 'rgba(243,242,242,0.6)', a: ss(k * 3) });
+    let hs = 88; g.font = F(800, hs); LS(g, '-2px'); while (P.h.some(l => g.measureText(l).width > 640) && hs > 50) { hs -= 4; g.font = F(800, hs); }
+    rise(g, P.h, M, 268, hs, hs, k);
+    txt(g, P.s, M + 2, 440, { w: 600, size: 28, color: 'rgba(243,242,242,0.85)', a: ss((k - 0.4) * 3) });
+    const X0 = 760, X1 = W - M, n = P.rows.length, top = 150, step = n === 2 ? 150 : 108;
+    P.rows.forEach(([name, kind], i) => {
+      const u = eo((k - 0.2 - i * 0.12) / 0.4), y = top + i * step;
+      let fs = 70; g.font = F(800, fs); LS(g, '-2px'); while (g.measureText(name).width > X1 - X0 - 10 && fs > 30) { fs -= 2; g.font = F(800, fs); }
+      g.save(); g.beginPath(); g.rect(X0, y - 4, X1 - X0, fs + 12); g.clip();
+      txt(g, name, X0 + (1 - u) * -200, y + fs * 0.86, { size: fs, ls: '-2px', a: u }); g.restore();
+      txt(g, kind, X0, y - 12, { size: 16, ls: '4px', color: i ? 'rgba(243,242,242,0.6)' : '#ff7a5e', a: u });
+      if (i < n - 1) txt(g, '×', X1, y + step - 22, { size: 34, align: 'right', color: RED, a: eo((k - 0.3 - i * 0.12) / 0.4) });
+    });
+    const xu = ss((k - 0.55) * 3); g.globalAlpha = xu; g.fillStyle = RED; g.fillRect(X0, 470, X1 - X0, 40); g.globalAlpha = 1;
+    txt(g, P.x, X0 + 14, 491, { size: 18, ls: '4px', base: 'middle', a: xu });
   } else if (beat === 4) {
-    tag(g, 'THE WORK', M, 112, ss(k * 3));
+    tag(g, 'THE PROOF', M, 112, ss(k * 3));
     const iw = 600, ih = 380, ix = M, iy = 162, u = eo((k - 0.05) / 0.5);
     g.save(); g.beginPath(); g.rect(ix, iy, iw * u, ih); g.clip();
     if (d.photos && d.photos.work) photo(g, d.photos.work, ix, iy, iw, ih);
@@ -144,7 +128,7 @@ export function drawScreen(g, W, H, beat, b, t, d) {
     txt(g, 'Won as a client at 80 Four, then grown together.', X0, 514, { w: 600, size: 22, color: 'rgba(243,242,242,0.85)', a: ss((k - 0.5) * 3) });
   } else if (beat === 5) {
     const tw = tag(g, 'THE ROSTER', M, 112, ss(k * 3));
-    txt(g, 'TALENT PARTNERSHIPS', M + tw + 18, 132, { size: 20, ls: '5px', base: 'middle', color: 'rgba(243,242,242,0.6)', a: ss(k * 3) });
+    txt(g, "TALENT I'VE WORKED WITH", M + tw + 18, 132, { size: 20, ls: '5px', base: 'middle', color: 'rgba(243,242,242,0.6)', a: ss(k * 3) });
     const T = d.talent || [], cols = 3, cw = (W - M * 2) / cols, rh = 118;
     T.slice(0, 9).forEach(([n, w], i) => {
       const u = eo((k - 0.1 - i * 0.06) / 0.35), x = M + (i % cols) * cw, y = 190 + Math.floor(i / cols) * rh;
@@ -177,7 +161,7 @@ export function drawScreen(g, W, H, beat, b, t, d) {
     const pulse = 0.6 + 0.4 * Math.sin(t * 2.2);
     g.fillStyle = RED; g.globalAlpha = pulse; g.fillRect(M, 140, 18, 18); g.globalAlpha = 1;
     txt(g, 'MATT KING', M, 330, { size: 170, ls: '-4px' });
-    txt(g, 'FOOTBALL MARKETING AT GLOBAL SCALE', M + 4, 400, { size: 28, ls: '4px', color: 'rgba(243,242,242,0.7)' });
+    txt(g, 'SPORT · FASHION · CULTURE', M + 4, 400, { size: 28, ls: '4px', color: 'rgba(243,242,242,0.7)' });
   }
   // broadcast wipes between beats
   if (typeof beat === 'number') {
@@ -188,7 +172,7 @@ export function drawScreen(g, W, H, beat, b, t, d) {
   g.drawImage(ledGrid(W, H), 0, 0);
 }
 
-// tactics board on the pitch. canvas covers x -55..55, z -36..36
+// tactics board on the court: how a brief gets built. canvas covers x -55..55, z -36..36
 export function drawTactics(g, W, H, r, d) {
   g.clearRect(0, 0, W, H);
   if (r <= 0) return;
@@ -207,26 +191,33 @@ export function drawTactics(g, W, H, r, d) {
   };
   const dot = (x, z, rad, fill, stroke, u) => { if (u <= 0) return; g.save(); g.beginPath(); g.arc(X(x), Y(z), rad * S * eo(u), 0, Math.PI * 2); if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.strokeStyle = stroke; g.lineWidth = 4; g.stroke(); } g.restore(); };
   const lab = (s, x, z, u, o = {}) => { if (u <= 0) return; txt(g, s, X(x), Y(z), { size: 24, ls: '4px', base: 'middle', a: ss(u * 2), ...o }); };
-  const CH = d.channels, MK = d.markets;
-  const cx = -38, chx = -8, dvx = 14, mkx = 33;
-  const chz = i => -24.5 + i * 49 / (CH.length - 1), mkz = j => -24 + j * 48 / (MK.length - 1);
-  // concept
+  const PA = d.passions || [], OUT = d.outputs || [];
+  // who we want: the fans we have, and the ones we don't
+  const wx = -44, px = -14, hx = 12, ox = 31, wz = [-9, 9];
+  const pz = i => -24.5 + i * 49 / Math.max(1, PA.length - 1), oz = j => -24 + j * 48 / Math.max(1, OUT.length - 1);
   const c0 = clamp(r / 0.08);
-  dot(cx, 0, 3.4, RED, CHALK, c0);
-  lab('ONE SEASON', cx, 6.2, c0, { align: 'center', size: 26 }); lab('CONCEPT', cx, 8.6, c0, { align: 'center', size: 26 });
-  CH.forEach((c, i) => {
+  dot(wx, wz[0], 2.2, null, CHALK, c0); dot(wx, wz[1], 3.0, RED, CHALK, c0);
+  lab('FANS WE HAVE', wx, wz[0] + 4.6, c0, { align: 'center', size: 20, color: 'rgba(243,242,242,0.7)' });
+  lab('FANS WE DON\'T', wx, wz[1] + 5.4, c0, { align: 'center', size: 24 });
+  // what they already love
+  PA.forEach((c, i) => {
     const u = clamp((r - 0.08 - i * 0.022) / 0.14);
-    curve(cx + 3.4, 0, chx - 1.2, chz(i), u, 'rgba(243,242,242,0.85)', 3, false);
-    const v = clamp((u - 0.85) / 0.15); dot(chx, chz(i), 1.15, CHALK, null, v); lab(c.toUpperCase(), chx + 2.2, chz(i), v);
+    curve(wx + 3, wz[1], px - 1.2, pz(i), u, 'rgba(243,242,242,0.85)', 3, false);
+    if (i % 3 === 0) curve(wx + 2.2, wz[0], px - 1.2, pz(i), u, 'rgba(243,242,242,0.3)', 2, false);
+    const v = clamp((u - 0.85) / 0.15); dot(px, pz(i), 1.15, CHALK, null, v); lab(c.toUpperCase(), px + 2.2, pz(i), v);
   });
-  CH.forEach((c, i) => curve(chx + 1.2, chz(i), dvx - 2.2, 0, clamp((r - 0.4) / 0.12), 'rgba(236,48,19,0.9)', 3, true));
-  const dv = clamp((r - 0.5) / 0.05); dot(dvx, 0, 2.2, null, RED, dv); dot(dvx, 0, 0.9, RED, null, dv);
-  MK.forEach((m, j) => {
+  // what we have: the sport, its athletes and its stories
+  PA.forEach((c, i) => curve(px + 1.2, pz(i), hx - 2.2, 0, clamp((r - 0.4) / 0.12), 'rgba(236,48,19,0.9)', 3, true));
+  const dv = clamp((r - 0.5) / 0.05); dot(hx, 0, 2.2, null, RED, dv); dot(hx, 0, 0.9, RED, null, dv);
+  lab('WHAT WE HAVE', hx, -10.5, dv, { align: 'center', size: 20 });
+  lab('SPORT · ATHLETES · STORIES', hx, 10.5, dv, { align: 'center', size: 16, color: 'rgba(243,242,242,0.6)' });
+  // what it becomes
+  OUT.forEach((m, j) => {
     const u = clamp((r - 0.55 - j * 0.03) / 0.14);
-    curve(dvx + 2.2, 0, mkx - 1.4, mkz(j), u, RED, 4, true);
-    const v = clamp((u - 0.85) / 0.15); dot(mkx, mkz(j), 1.4, null, RED, v); lab(m.toUpperCase(), mkx + 2.6, mkz(j), v, { size: 26, color: '#ff7a5e' });
+    curve(hx + 2.2, 0, ox - 1.4, oz(j), u, RED, 4, true);
+    const v = clamp((u - 0.85) / 0.15); dot(ox, oz(j), 1.4, null, RED, v); lab(m.toUpperCase(), ox + 2.6, oz(j), v, { size: 24, color: '#ff7a5e' });
   });
-  lab('HOW ONE IDEA BECOMES A GLOBAL CAMPAIGN', -52, -31, clamp(r / 0.1), { size: 20, color: 'rgba(243,242,242,0.75)' });
+  lab('HOW I BUILD A BRIEF — START WITH WHAT THEY ALREADY LOVE', -52, -31, clamp(r / 0.1), { size: 20, color: 'rgba(243,242,242,0.75)' });
   const cap = clamp((r - 0.85) / 0.15);
-  [['THE IDEA', cx], ['8 TEAMS ADAPT IT', chx], ['7 MARKETS LAND IT', mkx]].forEach(([s, x]) => lab(s, x, 31.5, cap, { size: 18, color: 'rgba(243,242,242,0.6)', align: x === cx ? 'center' : 'left' }));
+  [['1 WHO WE WANT', wx, 'center'], ['2 WHAT THEY LOVE', px, 'left'], ['3 WHAT WE HAVE', hx, 'center'], ['4 WHAT IT BECOMES', ox, 'left']].forEach(([s, x, al]) => lab(s, x, 31.5, cap, { size: 18, color: 'rgba(243,242,242,0.6)', align: al }));
 }

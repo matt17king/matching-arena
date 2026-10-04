@@ -20,3 +20,7 @@ a.btn-out-red:hover { background: var(--color-accent-600); color: var(--color-bg
 .btn-intro-skip:hover { border-color: var(--color-accent) !important; color: var(--color-accent-400) !important; }
 
 :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* film room: label beside text, stacked on phones */
+.film-row { grid-template-columns: minmax(0, 120px) 1fr; }
+@media (max-width: 560px) { .film-row { grid-template-columns: 1fr; } }

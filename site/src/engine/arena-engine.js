@@ -768,7 +768,7 @@ export async function createArena(canvas, o = {}) {
   tac.rotation.x = -Math.PI / 2; tac.position.y = 0.12; tac.renderOrder = 5; tac.visible = false; scene.add(tac);
   let tacLast = -1;
 
-  // ---------- chapter: the drive (NFL) — career as a drive down the field
+  // ---------- chapter: the drive (NFL) — how a fan is made, down by down
   const DX = [-36.58, -27.43, -9.14, 9.14, 22.86, 36.58, 50.29];
   const fdLine = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 48.8), new THREE.MeshBasicMaterial({ color: C(RED).multiplyScalar(1.7), transparent: true, opacity: 0, depthWrite: false }));
   fdLine.rotation.x = -Math.PI / 2; fdLine.position.y = 0.07; fdLine.renderOrder = 4; scene.add(fdLine);
@@ -783,7 +783,7 @@ export async function createArena(canvas, o = {}) {
   });
   const pigskin = new THREE.Mesh(new THREE.SphereGeometry(0.15, 20, 12), new THREE.MeshStandardMaterial({ color: C('#5e2618'), roughness: 0.6 })); pigskin.scale.set(1.9, 1, 1); pigskin.position.y = 0.16; scene.add(pigskin);
   box(pigskin, 0.12, 0.02, 0.03, 0, 0.14, 0, 'white');
-  // the huddle — strengths XI in formation
+  // the huddle — talent rules XI in formation
   const players = [];
   {
     const discTex = (n, inv) => { const [c, g] = cnv(256, 256); g.fillStyle = inv ? CHALK : RED; g.beginPath(); g.arc(128, 128, 124, 0, Math.PI * 2); g.fill(); g.fillStyle = inv ? RED : CHALK; g.font = FONT(800, 120); g.textAlign = 'center'; g.textBaseline = 'middle'; LS(g, '-4px'); g.fillText(String(n), 128, 136); return texOf(c); };
@@ -797,7 +797,7 @@ export async function createArena(canvas, o = {}) {
   }
   let highlight = -1;
 
-  // ---------- chapter: dormant demand + 3M+ (tennis)
+  // ---------- chapter: dormant demand + the crowd re-forming (tennis)
   const stat = o.stat || { a: { v: '676K', n: 'Alexandra Eala', k: 676 }, b: { v: '70K', n: 'Novak Djokovic', k: 70 } };
   const colGeo = new THREE.BoxGeometry(6, 1, 6); colGeo.translate(0, 0.5, 0);
   const colA = new THREE.Mesh(colGeo, new THREE.MeshStandardMaterial({ color: C(RED), roughness: 0.5, emissive: C(RED), emissiveIntensity: 0.55 }));
@@ -814,7 +814,7 @@ export async function createArena(canvas, o = {}) {
   let fans = null;
   {
     const src = vT.crowdPts, nSrc = Math.floor(src.length / 3), n = Math.min(LOWQ ? 1400 : 2600, nSrc * 4);
-    const [, g] = cnv(512, 220); g.fillStyle = '#fff'; g.font = FONT(800, 200); LS(g, '-6px'); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('3M+', 256, 118);
+    const [, g] = cnv(512, 220); const ftx = o.fansText || 'NEW'; let ffs = 200; g.fillStyle = '#fff'; g.font = FONT(800, ffs); LS(g, '-6px'); while (g.measureText(ftx).width > 490 && ffs > 80) { ffs -= 8; g.font = FONT(800, ffs); } g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ftx, 256, 118);
     const d = g.getImageData(0, 0, 512, 220).data, cand = []; for (let y = 0; y < 220; y += 2) for (let x = 0; x < 512; x += 2) if (d[(y * 512 + x) * 4 + 3] > 128) cand.push([x, y]);
     if (nSrc && cand.length) {
       const from = new Float32Array(n * 3), to = new Float32Array(n * 3), ph = new Float32Array(n);

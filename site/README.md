@@ -16,7 +16,7 @@ npm run preview  # serve the build
 | Path | What it is |
 | --- | --- |
 | `index.html` | All page markup: HUD, chapter overlays, kick-off, post-match sections |
-| `src/content.js` | Everything editable: career drive, strengths XI, rights, results, contact seats, LED messages, scroll lengths |
+| `src/content.js` | Everything editable: the fan-journey drive, 11 talent rules, film-room breakdowns, AI pit wall, tunnel signs, rights, proof logos and results, Book Matt seats and topics, LED messages, scroll lengths |
 | `src/main.js` | Scroll controller: maps scroll to match progress, scrubs overlays, runs the clock, menu, sound and intro |
 | `src/engine/arena-engine.js` | The three.js world (venues, line morphs, camera, post-processing), carried over from the design |
 | `src/engine/post.js` | Post stack: N8AO contact shadows, floodlight shafts + anamorphic streaks, bloom, tilt-shift + motion blur, SMAA, broadcast grade with letterbox. Steps itself down on slow GPUs |

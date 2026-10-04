@@ -1,7 +1,7 @@
 // Arena v12 — scroll controller. Maps scroll to match progress, drives the 3D engine, scrubs the DOM overlays.
 import './styles/modernist.css';
 import './styles/site.css';
-import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, TROPHIES, TALENT, BRANDS, PRESS, SEATS, STAT, SCREEN_DATA, MESSAGES, LED_PLAN } from './content.js';
+import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, FILM, TROPHIES, PROOF, TALENT, BRANDS, PRESS, SEATS, TOPICS, STAT, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN } from './content.js';
 
 const BASE = import.meta.env.BASE_URL;
 const KBG = '#0b0a0a', ZONE_ON = '#ec3013', ZONE_OFF = 'rgba(243,242,242,.3)';
@@ -52,12 +52,22 @@ list('xi', XI.map((x, i) => `<div data-xi="${i}" class="xi-row" tabindex="0" rol
 list('markets', MARKETS.map((m, i) => `<div data-zi="${i}" style="display:flex;gap:6px;opacity:.4"><span>T${i + 1}</span><span>${esc(m.toUpperCase())}</span></div>`).join(''));
 list('kit', KIT.map((k, i) => `<div data-kc="${i}" style="grid-area:1/1;opacity:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:6px 28px;padding:12px 16px 14px;align-items:end">
   <div>
-    <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:rgba(243,242,242,.6)"><span style="color:var(--color-accent)">THE PIT WALL</span> · THE KIT · ${pad2(i + 1)} / ${pad2(KIT.length)}</div>
+    <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:rgba(243,242,242,.6)"><span style="color:var(--color-accent)">THE PIT WALL</span> · AI · ${pad2(i + 1)} / ${pad2(KIT.length)}</div>
     <div style="font-weight:800;text-transform:uppercase;font-size:clamp(20px,2.2vw,32px);line-height:.95;letter-spacing:-.02em;margin-top:6px">${esc(k.title)}</div>
     <div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--color-accent-400);margin-top:6px;text-transform:uppercase">${esc(k.tools)}</div>
   </div>
   <div style="font-size:14px;line-height:1.45;color:rgba(243,242,242,.85);text-wrap:pretty">${esc(k.detail)}</div>
 </div>`).join(''));
+list('film', FILM.map((f, i) => `<article data-rv style="display:flex;flex-direction:column;gap:22px;padding:20px 20px 24px;border-right:2px solid rgba(243,242,242,.22);border-bottom:2px solid rgba(243,242,242,.22)">
+  <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:800;letter-spacing:.14em"><span style="color:var(--color-accent)">TAPE ${pad2(i + 1)}</span><span style="color:rgba(243,242,242,.55)">${esc(f.tag)}</span></div>
+  <div style="font-weight:800;text-transform:uppercase;font-size:clamp(28px,3vw,48px);line-height:.9;letter-spacing:-.03em">${esc(f.title)}</div>
+  ${[['THE PLAY', f.play], ['WHY IT WORKED', f.why], ['THE STEAL', f.steal]].map(([h, t], k) => `<div class="film-row" style="display:grid;gap:6px 16px;border-top:1px solid rgba(243,242,242,.16);padding-top:12px">
+    <span style="font-size:10px;font-weight:800;letter-spacing:.14em;color:${k === 2 ? 'var(--color-accent)' : 'rgba(243,242,242,.55)'};padding-top:3px">${h}</span>
+    <span style="font-size:15px;line-height:1.45;${k === 2 ? 'font-weight:600;color:#f3f2f2' : 'color:rgba(243,242,242,.85)'};text-wrap:pretty">${esc(t)}</span>
+  </div>`).join('')}
+</article>`).join(''));
+list('proof', PROOF.map(([n, f]) => `<div data-rv title="${esc(n)}" style="display:flex;align-items:center;justify-content:center;aspect-ratio:3/2;padding:14px;background:#f3f2f2;border-right:2px solid #0b0a0a;border-bottom:2px solid #0b0a0a"><img src="${BASE}logos/${f}" alt="${esc(n)}" loading="lazy" style="max-width:72%;max-height:52px;object-fit:contain;filter:grayscale(1) contrast(1.1);mix-blend-mode:multiply"></div>`).join(''));
+list('topics', TOPICS.map(t => `<span style="border:2px solid rgba(243,242,242,.35);padding:7px 10px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">${esc(t)}</span>`).join(''));
 list('trophies', TROPHIES.map(([v, what, where], i) => `<div data-rv class="trophy" style="display:flex;flex-direction:column;justify-content:space-between;gap:28px;min-height:220px;padding:18px 18px 20px;border-right:2px solid rgba(243,242,242,.22);border-bottom:2px solid rgba(243,242,242,.22)">
   <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:800;letter-spacing:.14em"><span style="color:var(--color-accent)">${pad2(i + 1)}</span><span style="color:rgba(243,242,242,.55)">${esc(where)}</span></div>
   <div>
@@ -94,12 +104,12 @@ list('seats', SEATS.map(([who, line, subj], i) => `<a href="mailto:${EMAIL}?subj
 
 // chapters menu
 const groups = [
-  ['01 — FOOTBALL', 'NIGHT STADIUM', [["05'", 'The tunnel', G('hero', 0.05)], ["15'", 'The stadium builds', G('hero', 0.5)], ["20'", 'The walk-out', G('hero', 0.9)], ["35'", 'The centre spot', G('rights', 0.45)]]],
-  ['02 — BASKETBALL', 'INDOOR ARENA', [['Q1', 'The jumbotron', G('bball', 0.25)], ['TO', 'The playbook', G('bball', 0.8)]]],
-  ['03 — NFL', 'OPEN BOWL', [['1&10', 'The drive', G('nfl', 0.25)], ['XI', 'The huddle', G('nfl', 0.6)]]],
-  ['04 — TENNIS', 'SHOW COURT', [['15–0', 'Dormant demand', G('tennis', 0.3)], ['30–0', 'Free is a growth strategy', G('tennis', 0.8)]]],
-  ['05 — MOTORSPORT', 'NIGHT CIRCUIT', [['LAP', 'Seven markets', G('race', 0.12)], ['PIT', 'The kit', G('race', 0.72)], ['FLAG', 'Full time', G('ft', 0.98)]]],
-  ['POST-MATCH', '', [["90+1'", 'The trophy cabinet', 'sec:0'], ["90+2'", 'The dressing room', 'sec:1'], ["90+3'", 'The press box', 'sec:2']]],
+  ['01 — FOOTBALL', 'NIGHT STADIUM', [["05'", 'The tunnel is the new runway', G('hero', 0.25)], ["15'", 'Nobody falls for 90 minutes', G('hero', 0.5)], ["20'", 'Off the pitch, into culture', G('hero', 0.9)], ["35'", 'Who I tell stories for', G('rights', 0.45)]]],
+  ['02 — BASKETBALL', 'CULTURE IS THE SIDE DOOR', [['Q1', 'Culture plays', G('bball', 0.25)], ['TO', 'How I build a brief', G('bball', 0.8)]]],
+  ['03 — NFL', 'FIT BEATS SIZE', [['1&10', 'How a fan is made', G('nfl', 0.25)], ['XI', '11 talent rules', G('nfl', 0.6)]]],
+  ['04 — TENNIS', 'THE FORMAT IS THE PRODUCT', [['15–0', 'Demand is dormant', G('tennis', 0.3)], ['30–0', 'New formats, new fans', G('tennis', 0.8)]]],
+  ['05 — MOTORSPORT', 'STORY BEFORE SPORT', [['GRID', 'Story before sport', G('race', 0.03)], ['LAP', 'One idea, seven markets', G('race', 0.12)], ['PIT', 'AI is the pit crew', G('race', 0.72)], ['FLAG', 'Full time', G('ft', 0.98)]]],
+  ['POST-MATCH', '', [["90+1'", 'The film room', 'sec:0'], ["90+2'", 'The record', 'sec:1'], ["90+3'", 'The dressing room', 'sec:2'], ["90+4'", 'Book Matt', 'sec:3']]],
 ];
 const row = (m, n, tag, go) => `<button class="menu-row" data-go="${go}" style="display:grid;grid-template-columns:64px 1fr auto;align-items:baseline;gap:12px;width:100%;padding:10px 16px;background:none;border:0;border-bottom:1px solid rgba(243,242,242,.1);color:#f3f2f2;font-family:inherit;text-align:left;cursor:pointer">
   <span style="font-weight:800;font-variant-numeric:tabular-nums;color:var(--color-accent);font-size:13px">${esc(m)}</span>
@@ -190,6 +200,7 @@ window.addEventListener('pointermove', e => { if (tipEl.style.display === 'block
 
 if (innerWidth < 760) {
   $$('[data-hide-m]').forEach(e => { e.style.display = 'none'; });
+  $('[data-scroll-hint]').textContent = 'SCROLL ↓';
   $$('[data-m="sheet"]').forEach(e => Object.assign(e.style, { left: '16px', right: '16px', width: 'auto', top: 'auto', bottom: '78px', maxHeight: '42vh', overflow: 'auto' }));
 }
 
@@ -200,7 +211,7 @@ function postUI(d) {
   ftEl.style.opacity = String(1 - f); ftEl.style.visibility = f > 0.99 ? 'hidden' : 'visible';
   capEl.style.opacity = String(1 - f);
   let n = 0;
-  if (d > 0) { n = 1; postSecs.forEach((s, i) => { if (s.getBoundingClientRect().top < innerHeight * 0.5) n = [1, 2, 3][i]; }); }
+  if (d > 0) { n = 1; postSecs.forEach((s, i) => { if (s.getBoundingClientRect().top < innerHeight * 0.5) n = i + 1; }); }
   postN = n;
   if (eng) eng.setPaused(d > innerHeight * 1.1);
   if (n) { clockEl.textContent = `90+${n}'`; clabelEl.textContent = 'STOPPAGE TIME'; barEl.style.width = '100%'; }
@@ -316,7 +327,7 @@ function engineOpts() {
     segs: segList.map(s => ({ id: s.id, a: s.a, b: s.b })), ch: CH, quality,
     logos: LOGOS, rights: RIGHTS, formation: XI.map(x => [x[0], x[1], x[2]]), drive: DRIVE, kit: KIT, markets: MARKETS,
     gates: GATES, photos: Object.fromEntries(Object.entries(PHOTOS).map(([k, v]) => [k, v ? BASE + v : v])), model: { url: BASE + 'models/matt.glb', height: 1.85 },
-    noDegrade: params.has('nodegrade'), stat: STAT, screenData: SCREEN_DATA, messages: MESSAGES, ledPlan: LED_PLAN,
+    noDegrade: params.has('nodegrade'), stat: STAT, fansText: FANS_TEXT, screenData: SCREEN_DATA, messages: MESSAGES, ledPlan: LED_PLAN,
   };
 }
 
