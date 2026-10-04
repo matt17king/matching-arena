@@ -2,7 +2,7 @@
 import { drawScreen, drawTactics, placeholder, photo } from './broadcast-gfx.js';
 import { buildRaceDetail } from './race-detail.js';
 import { buildVenueDetail } from './venue-detail.js';
-import { N, P, ORDER, SPORTS, circuit, strandSet, strandShared, BB, TN } from './arena-sports.js';
+import { N, P, ORDER, SPORTS, circuit, strandSet, strandShared, BB, TN, tennis as tennisCourt } from './arena-sports.js';
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const ss = x => { x = clamp(x); return x * x * (3 - 2 * x); };
 const R = (p, a, b) => ss((p - a) / (b - a));
@@ -25,7 +25,7 @@ export async function createArena(canvas, o = {}) {
   const FONT = (w, s) => `${w} ${s}px Archivo, system-ui, sans-serif`;
   const LS = (g, v) => { try { g.letterSpacing = v; } catch (e) {} };
   const LOWQ = o.quality === 'low';
-  const CH = Object.assign({ RR: [0.08, 0.9], BEATS: [0.06, 0.44], TAC: [0.5, 0.92], DRIVE: [0.03, 0.5], XI: [0.55, 0.96], COL: [0.04, 0.48], FANS: [0.52, 0.82], LAP: [0.08, 0.62], PIT: [0.66, 0.92] }, o.ch || {});
+  const CH = Object.assign({ RR: [0.08, 0.9], BEATS: [0.06, 0.44], TAC: [0.5, 0.92], DRIVE: [0.03, 0.5], XI: [0.55, 0.96], COL: [0.028, 0.334], SURF: [0.39, 0.6], SEXES: [0.6, 0.82], FANS: [0.85, 0.95], LAP: [0.08, 0.62], PIT: [0.66, 0.92] }, o.ch || {});
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(LOWQ ? 1 : Math.min(window.devicePixelRatio || 1, 1.6));
@@ -223,7 +223,7 @@ export async function createArena(canvas, o = {}) {
 
 
   // ---------- the lines: N strands that draw themselves, then glide from one sport's markings into the next
-  const SD = {}; ORDER.forEach(k => { SD[k] = strandSet(SPORTS[k].strands); });
+  const SD = {}; ORDER.forEach(k => { SD[k] = strandSet(SPORTS[k].strands); }); SD.tennisBOS = strandSet(tennisCourt(0.91));
   const SH = strandShared(), VN = N * (P - 1) * 4;
   const lg = new THREE.BufferGeometry();
   const dyn = k => { const a = new THREE.BufferAttribute(new Float32Array(VN * k), k); a.setUsage(THREE.DynamicDrawUsage); return a; };
@@ -897,6 +897,25 @@ export async function createArena(canvas, o = {}) {
       fans.frustumCulled = false; fans.renderOrder = 7; scene.add(fans);
     }
   }
+  // ---------- chapter: exhibitions that changed the court (tennis, overhead)
+  // Battle of the Surfaces (2007): half grass, half clay. Battle of the Sexes (2025): one half about 9% smaller.
+  const CTL = 11.885 * TN, CTW = 5.485 * TN;
+  const clayTex = (() => { const [c, g] = cnv(512, 512); g.fillStyle = '#b4532a'; g.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 9000; i++) { const v = Math.random(); g.fillStyle = v < 0.5 ? `rgba(120,46,18,${0.08 + Math.random() * 0.12})` : `rgba(226,140,96,${0.05 + Math.random() * 0.1})`; g.fillRect(Math.random() * 512, Math.random() * 512, 1 + Math.random() * 2, 1 + Math.random() * 2); }
+    for (let x = 0; x < 512; x += 64) { g.fillStyle = 'rgba(255,190,150,0.035)'; g.fillRect(x, 0, 32, 512); }
+    const t = texOf(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4, 4); return t; })();
+  const clay = new THREE.Mesh(new THREE.PlaneGeometry(63.6, 63.2), new THREE.MeshStandardMaterial({ map: clayTex, roughness: 0.95, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }));
+  clay.rotation.x = -Math.PI / 2; clay.position.set(31.8, 0.02, 0); clay.renderOrder = 1; clay.visible = false; clay.userData.noCast = true; scene.add(clay);
+  const cut = (() => { const [c, g] = cnv(128, 512); g.fillStyle = 'rgba(236,48,19,0.28)'; g.fillRect(0, 0, 128, 512); g.strokeStyle = 'rgba(236,48,19,0.95)'; g.lineWidth = 10; for (let y = -128; y < 640; y += 48) { g.beginPath(); g.moveTo(0, y); g.lineTo(128, y + 128); g.stroke(); }
+    const w = CTL * 0.09; const m = new THREE.Mesh(new THREE.PlaneGeometry(w, CTW * 2), new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, opacity: 0, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2; m.position.set(-CTL + w / 2, 0.05, 0); m.renderOrder = 3; m.visible = false; scene.add(m); return m; })();
+  const groundLabel = (top, sub, x, z, red) => { const [c, g] = cnv(1024, 200); g.textBaseline = 'alphabetic'; g.textAlign = 'center';
+    g.font = FONT(800, 92); LS(g, '-2px'); g.lineJoin = 'round'; g.lineWidth = 16; g.strokeStyle = 'rgba(11,10,10,0.85)'; g.strokeText(top, 512, 100); g.fillStyle = CHALK; g.fillText(top, 512, 100);
+    g.font = FONT(800, 40); LS(g, '8px'); g.lineWidth = 12; g.strokeText(sub, 512, 168); g.fillStyle = red ? '#ff7a5e' : 'rgba(243,242,242,0.85)'; g.fillText(sub, 512, 168);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(30, 5.86), new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, opacity: 0, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2; m.position.set(x, 0.08, z); m.renderOrder = 7; m.visible = false; scene.add(m); return m; };
+  const surfLab = [groundLabel('FEDERER', 'GRASS', -CTL / 2, -CTW - 9.1), groundLabel('NADAL', 'CLAY', CTL / 2, -CTW - 9.1, true)];
+  const sexLab = [groundLabel('SABALENKA', 'HER HALF ~9% SMALLER', -CTL / 2, -CTW - 9.1, true), groundLabel('KYRGIOS', 'FULL-SIZE HALF', CTL / 2, -CTW - 9.1)];
 
   // ---------- fireworks: GPU shells (full time over the circuit, touchdown, goal)
   const FW_N = 8, FW_P = LOWQ ? 120 : 260;
@@ -1045,7 +1064,7 @@ export async function createArena(canvas, o = {}) {
     return { pos: [-15, 58 - 3 * u, 12], tgt: [-15, 0, 11], fov: 40 }; };
   const mixPose = (A, B, u) => { const L = (p, q) => p.map((v, j) => v + (q[j] - v) * u); return { pos: L(A.pos, B.pos), tgt: L(A.tgt, B.tgt), fov: A.fov + (B.fov - A.fov) * u }; };
   CAM.nfl = t => { const t0 = CH.XI[0] - 0.045; if (t < t0) return lin(nflK, t); const hp = huddlePose(Math.max(t, CH.XI[0])); return t >= CH.XI[0] ? hp : mixPose(lin(nflK, t0), hp, ss((t - t0) / (CH.XI[0] - t0))); };
-  const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.COL[0] + 0.08, pos: [0, 28, 40], tgt: [2, 9, 0], fov: 52 }, { t: CH.COL[1] - 0.02, pos: [7, 28, 37], tgt: [2, 9, 0], fov: 52 }, { t: CH.FANS[0] + 0.02, pos: [0, 96, 20], tgt: [0, 0, 0], fov: 44 }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
+  const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.COL[0] + 0.08, pos: [0, 28, 40], tgt: [2, 9, 0], fov: 52 }, { t: CH.COL[1] - 0.02, pos: [7, 28, 37], tgt: [2, 9, 0], fov: 52 }, { t: CH.SURF[0], pos: [0, 96, 20], tgt: [0, 0, 0], fov: 44 }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
   CAM.tennis = t => lin(tenK, t);
   const rAt3 = (s, y) => { const [x, z] = raceX.racingAt(s); return [x, y, z]; };
   const chase = s => ({ pos: rAt3(s + 4.5, 3.1), tgt: rAt3(s + 30, 0.9), fov: 58 });
@@ -1080,7 +1099,7 @@ export async function createArena(canvas, o = {}) {
     if (id === 'rights') return K(t, [[0, 0.38], [0.07, 0.6]]);
     if (id === 'bball') return K(t, [[0, 0.72], [CH.BEATS[1], 0.72], [CH.TAC[0], 0.5], [0.96, 0.5], [1, 0.85]]);
     if (id === 'nfl') return K(t, [[0, 0.9], [CH.DRIVE[1], 0.9], [CH.XI[0], 0.6], [CH.XI[1], 0.6], [1, 0.9]]);
-    if (id === 'tennis') return K(t, [[0, 0.8], [CH.COL[1], 0.8], [CH.FANS[0], 0.45], [0.95, 0.45], [1, 0.85]]);
+    if (id === 'tennis') return K(t, [[0, 0.8], [CH.COL[1], 0.8], [CH.SURF[0], 0.45], [0.95, 0.45], [1, 0.85]]);
     if (id === 'ft') return K(t, [[0, 0.95], [1, 0.7]]);
     return 0.95;
   };
@@ -1151,8 +1170,10 @@ export async function createArena(canvas, o = {}) {
     spots.forEach((s, i) => { const k = mainV.keys[i]; s.intensity = k ? (k.lamp ? k.lamp.on : lit) * mainV.spotK : 0; });
     skyU.uGlow.value = lit; skyU.uTime.value = time; skyU.uStars.value = mainV.id === 'basketball' ? 0 : 1; coneTime.value = time; hemi.intensity = 0.05 + 0.22 * lit;
     // lines
-    setPair(ORDER[A], ORDER[B]);
-    lineU.uMorph.value = xi ? clamp((xt - 0.14) / 0.62) : 0;
+    // tennis: the lines glide into the Battle of the Sexes court and back out before the next venue
+    const bos = id === 'tennis' ? R(t, CH.SEXES[0] + 0.01, CH.SEXES[0] + 0.08) * (1 - R(t, CH.SEXES[1] - 0.01, CH.SEXES[1] + 0.04)) : 0;
+    if (bos > 0) { setPair('tennis', 'tennisBOS'); lineU.uMorph.value = bos; }
+    else { setPair(ORDER[A], ORDER[B]); lineU.uMorph.value = xi ? clamp((xt - 0.14) / 0.62) : 0; }
     lineU.uLift.value = xi ? 1 + Math.max(sa.ext, sb.ext) * 0.022 : 0;
     lineU.uReveal.value = hero ? R(h, 0.38, 0.52) * 1.001 : 1.001;
     const red = hero ? 1 - R(h, 0.645, 0.7) : xi ? R(xt, 0.1, 0.2) * (1 - R(xt, 0.8, 0.95)) : 0;
@@ -1221,7 +1242,11 @@ export async function createArena(canvas, o = {}) {
       const la = id === 'tennis' ? R(t, CH.COL[0] + 0.08, CH.COL[0] + 0.12) * (1 - R(t, CH.COL[1] - 0.05, CH.COL[1] - 0.02)) : 0;
       colLab.forEach((m, i) => { m.visible = la > 0.001; m.material.opacity = la; m.position.y = i ? colH[i] * rise + 5 : colH[i] * 0.55 * rise; });
       vT.boards.forEach(b => { if (b.ribbon) b.u.uOp.value *= 1 - la * 0.85; });
-      if (fans) { const u = fans.material.uniforms, fo = id === 'tennis' ? R(t, CH.FANS[0] - 0.03, CH.FANS[0]) * (1 - R(t, 0.95, 1)) : 0; fans.visible = fo > 0.001; u.uOp.value = fo; u.uT.value = id === 'tennis' ? R(t, CH.FANS[0], CH.FANS[1]) : 0; u.uTime.value = time; } }
+      const cl = id === 'tennis' ? R(t, CH.SURF[0] + 0.01, CH.SURF[0] + 0.06) * (1 - R(t, CH.SURF[1] - 0.03, CH.SURF[1])) : 0;
+      clay.visible = cl > 0.001; clay.material.opacity = cl; surfLab.forEach(m => { m.visible = cl > 0.001; m.material.opacity = R(cl, 0.5, 1); });
+      const sx = id === 'tennis' ? R(t, CH.SEXES[0] + 0.06, CH.SEXES[0] + 0.1) * (1 - R(t, CH.SEXES[1] - 0.03, CH.SEXES[1])) : 0;
+      cut.visible = sx > 0.001; cut.material.opacity = sx * 0.9; sexLab.forEach(m => { m.visible = sx > 0.001; m.material.opacity = sx; });
+      if (fans) { const u = fans.material.uniforms, fo = id === 'tennis' ? R(t, CH.FANS[0] - 0.03, CH.FANS[0]) * (1 - R(t, 0.97, 1)) : 0; fans.visible = fo > 0.001; u.uOp.value = fo; u.uT.value = id === 'tennis' ? R(t, CH.FANS[0], CH.FANS[1]) : 0; u.uTime.value = time; } }
     // race: start lights, apex flashes, garages
     { const rc = id === 'race';
       startM.forEach((m, k) => { const on = rc && t > 0.005 + k * 0.011 && t < 0.066 ? 1 : 0; m.color.copy(on ? C(RED).multiplyScalar(2.4) : C('#1a0a08')); });

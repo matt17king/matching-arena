@@ -113,7 +113,7 @@ const groups = [
   ['01 — FOOTBALL', 'NIGHT STADIUM', [["05'", 'The tunnel is the new runway', G('hero', 0.25)], ["15'", 'Nobody falls for 90 minutes', G('hero', 0.5)], ["20'", 'Off the pitch, into culture', G('hero', 0.9)], ["35'", 'Who I tell stories for', G('rights', 0.45)]]],
   ['02 — BASKETBALL', 'CULTURE IS THE SIDE DOOR', [['Q1', 'Culture plays', G('bball', 0.25)], ['TO', 'How I build a brief', G('bball', 0.8)]]],
   ['03 — NFL', 'FIT BEATS SIZE', [['1&10', 'How a fan is made', G('nfl', 0.25)], ['XI', '11 talent rules', G('nfl', 0.6)]]],
-  ['04 — TENNIS', 'THE FORMAT IS THE PRODUCT', [['15–0', 'Demand is dormant', G('tennis', 0.3)], ['30–0', 'New formats, new fans', G('tennis', 0.8)]]],
+  ['04 — TENNIS', 'THE FORMAT IS THE PRODUCT', [['15–0', 'Demand is dormant', G('tennis', 0.2)], ['30–0', 'Battle of the Surfaces', G('tennis', 0.48)], ['40–0', 'Battle of the Sexes', G('tennis', 0.72)], ['GAME', 'New formats, new fans', G('tennis', 0.92)]]],
   ['05 — MOTORSPORT', 'STORY BEFORE SPORT', [['GRID', 'Story before sport', G('race', 0.03)], ['LAP', 'One idea, seven markets', G('race', 0.12)], ['PIT', 'AI is the pit crew', G('race', 0.72)], ['FLAG', 'Full time', G('ft', 0.98)]]],
   ['POST-MATCH', '', [["90+1'", 'The film room', 'sec:0'], ["90+2'", 'The record', 'sec:1'], ["90+3'", 'In the stands', 'sec:2'], ["90+4'", 'The dressing room', 'sec:3'], ["90+5'", 'Book Matt', 'sec:4']]],
 ];
@@ -256,7 +256,7 @@ function clock(id, t) {
   if (id === 'x2') return ['DOWN & DISTANCE', '1ST & 10'];
   if (id === 'nfl') { if (t >= CH.XI[0] - 0.03) return ['DOWN & DISTANCE', 'HUDDLE']; const k = Math.min(DRIVE.length - 1, Math.max(0, Math.floor((t - CH.DRIVE[0]) / (CH.DRIVE[1] - CH.DRIVE[0]) * DRIVE.length))); return ['DOWN & DISTANCE', DRIVE[k].down]; }
   if (id === 'x3') return ['SCORE', '0–0'];
-  if (id === 'tennis') return ['SCORE', t < 0.5 ? '15–0' : t < 0.97 ? '30–0' : '40–0'];
+  if (id === 'tennis') return ['SCORE', t < CH.SURF[0] - 0.03 ? '15–0' : t < CH.SEXES[0] ? '30–0' : t < CH.SEXES[1] ? '40–0' : 'GAME'];
   if (id === 'x4') return ['LAP', 'GRID'];
   if (id === 'race') { if (t < CH.LAP[0]) return ['LAP', 'LIGHTS']; if (t < CH.LAP[1]) { const k = Math.min(6, Math.floor((t - CH.LAP[0]) / (CH.LAP[1] - CH.LAP[0]) * 8)); return ['LAP', `1 · T${k + 1}`]; } return ['LAP', 'PIT']; }
   return ['RESULT', 'FLAG'];

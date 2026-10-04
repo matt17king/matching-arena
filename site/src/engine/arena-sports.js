@@ -54,7 +54,8 @@ function nfl() {
 }
 
 export const TN = 3.5; // tennis display scale
-function tennis() {
+// k shortens the left half (x < 0): 0.91 is the Battle of the Sexes court, where Sabalenka's side was about 9% smaller
+export function tennis(k = 1) {
   const L = 11.885, W = 5.485, Ws = 4.115, SL = 6.4, S = [];
   S.push({ pts: rect(-L, -W, L, W), t: [0, 0.35], closed: true });
   S.push({ pts: [[-SL, 0], [SL, 0]], t: [0.6, 0.75] });
@@ -64,7 +65,7 @@ function tennis() {
     S.push({ pts: [[sx * SL, Ws], [sx * SL, -Ws]], t: [0.5, 0.65] });
     S.push({ pts: [[sx * L, 0], [sx * (L - 0.3), 0]], t: [0.7, 0.75] });
   }
-  return scl(S, TN).map(s => ({ ...s, hw: 0.2 }));
+  return scl(S.map(st => ({ ...st, pts: st.pts.map(([x, z]) => [x < 0 ? x * k : x, z]) })), TN).map(s => ({ ...s, hw: 0.2 }));
 }
 
 // ---------- circuit (centripetal Catmull-Rom through control points, closed)
