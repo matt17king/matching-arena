@@ -50,7 +50,7 @@ export function buildVenueDetail(X) {
   const goalNets = [];
   {
     // goals: elliptical white posts, box nets on stanchions that sag between the frame and ripple when the ball goes in
-    const netM = nets.knot('#efeeea'), CELL = 0.12, HW = 3.72, POST = 0.06;
+    const netM = nets.knot('#efeeea', true), netV = nets.veil('#efeeea', 0.07), CELL = 0.12, HW = 3.72, POST = 0.06;
     const prof = new THREE.CatmullRomCurve3([V3(POST, 2.5, 0), V3(0.75, 2.47, 0), V3(1.3, 2.36, 0), V3(1.66, 2.06, 0), V3(1.88, 1.4, 0), V3(1.98, 0.62, 0), V3(2.0, 0.03, 0)], false, 'centripetal');
     const L = prof.getLength(), NU = 44, NV = 34;
     const postG = new THREE.CylinderGeometry(POST, POST, 2.56, 18); postG.scale(1, 1, 1.0); postG.translate(0, 1.28, 0);
@@ -69,11 +69,11 @@ export function buildVenueDetail(X) {
           pos.set([x, y, z], k * 3); uv.set([z / CELL, s * L / CELL], k * 2); base.push(x, y, z); wt.push(f); } }
       const idx = []; for (let j = 0; j < NV; j++) for (let i = 0; i < NU; i++) { const a = j * (NU + 1) + i, b = a + NU + 1; idx.push(a, a + 1, b, a + 1, b + 1, b); }
       const ng = new THREE.BufferGeometry(); ng.setAttribute('position', new THREE.BufferAttribute(pos, 3)); ng.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); ng.setIndex(idx); ng.computeVertexNormals();
-      const net = new THREE.Mesh(ng, netM); g.add(net);
+      const net = new THREE.Mesh(ng, netM); g.add(net, new THREE.Mesh(ng, netV));
       goalNets.push({ sx, geo: ng, base: Float32Array.from(base), wt, dirty: false });
       // side panels, cut to the same profile
       const sh = new THREE.Shape(); sh.moveTo(POST, 0); for (let k = 0; k <= 40; k++) { const p = prof.getPointAt(k / 40); sh.lineTo(p.x, p.y); } sh.lineTo(POST, 0);
-      for (const sz of [-1, 1]) { const sg = nets.metric(new THREE.ShapeGeometry(sh, 40), CELL, ['x', 'y']); const m = new THREE.Mesh(sg, netM); m.position.z = sz * HW; g.add(m); }
+      for (const sz of [-1, 1]) { const sg = nets.metric(new THREE.ShapeGeometry(sh, 40), CELL, ['x', 'y']); const m = new THREE.Mesh(sg, netM); m.position.z = sz * HW; const v = new THREE.Mesh(sg, netV); v.position.z = sz * HW; g.add(m, v); }
       // stanchion frame: tubes along the profile, ground bars, net hooks along the crossbar
       for (const sz of [-1, 1]) { const pts = prof.getSpacedPoints(24).map(p => V3(p.x, p.y, sz * HW)); tube(g, pts, 0.022, paint, 48, 8); }
       cyl(g, 0.025, 2 * HW, 'z', 2.0, 0.025, 0, paint, 10);
@@ -90,7 +90,7 @@ export function buildVenueDetail(X) {
       const g = new THREE.Group(); g.position.set(x, 0, z); vF.root.add(g);
       cyl(g, 0.04, 0.1, 'y', 0, 0.05, 0, blackAl, 12); cyl(g, 0.026, 0.12, 'y', 0, 0.16, 0, 'steel', 10);
       cyl(g, 0.018, 1.5, 'y', 0, 0.75 + 0.2, 0, poleM, 10); const cap = new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 8), paint); cap.position.y = 1.7; g.add(cap);
-      const fw = new THREE.Group(); fw.position.set(0, 1.68, 0); fw.rotation.y = 0.6; g.add(fw); cloth(fw, 0.46, 0.36, flagRed, 0.05, 6);
+      const fw = new THREE.Group(); fw.position.set(0, 1.68, 0); fw.rotation.y = 0.6; g.add(fw); cloth(fw, 0.46, 0.36, flagRed, 0.09, 6);
       grow(vF, g, 0.64);
     }
     // dugouts on the halfway line: curved perspex shell on black ribs, padded seats on two tiers, kit around them
