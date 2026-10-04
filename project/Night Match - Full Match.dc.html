@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="_ds/modernist-5d18dd0d-31f2-4b11-bf08-43dda0094f02/styles.css">
+<script src="_ds/modernist-5d18dd0d-31f2-4b11-bf08-43dda0094f02/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&amp;display=swap">
+<style>
+html,body{margin:0;background:#0b0a0a;color:#f3f2f2;}
+body{overscroll-behavior:none;-webkit-font-smoothing:antialiased;}
+a{color:var(--color-accent);text-decoration:none}
+a:hover{color:var(--color-accent-400)}
+</style>
+</helmet>
+<div ref="{{ rootRef }}" style="position:relative;font-family:var(--font-heading);color:var(--color-bg);background:#0b0a0a">
+
+<canvas ref="{{ canvasRef }}" style="position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;z-index:0"></canvas>
+<div style="position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 95% at 50% 50%, rgba(11,10,10,0) 55%, rgba(11,10,10,.6) 100%)"></div>
+<div style="position:fixed;inset:0;z-index:1;pointer-events:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0 clamp(20px,3vw,44px)">
+  <div style="border-left:1px solid rgba(243,242,242,.06)"></div>
+  <div style="border-left:1px solid rgba(243,242,242,.06)"></div>
+  <div style="border-left:1px solid rgba(243,242,242,.06)"></div>
+  <div style="border-left:1px solid rgba(243,242,242,.06);border-right:1px solid rgba(243,242,242,.06)"></div>
+</div>
+
+<!-- 3D-anchored labels -->
+<div style="position:fixed;inset:0;z-index:2;pointer-events:none;font-weight:800;letter-spacing:.14em;font-size:10px">
+  <!-- big screen -->
+  <div data-quad="0,29,71.8,32,13.5" style="position:absolute;left:0;top:0;width:0;height:0;container-type:size;overflow:hidden">
+    <div style="position:absolute;inset:0;display:grid;padding:5cqh 4cqw;letter-spacing:0">
+      <div data-k=".353,.36,.369,.373" data-fx="fade" style="grid-area:1/1;opacity:0;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="display:flex;gap:2cqw;align-items:center"><span style="background:var(--color-accent);color:var(--color-bg);padding:1.2cqh 1.6cqw;font-size:5.5cqh;letter-spacing:.12em">PRINCIPLE 01</span><span style="font-size:5.5cqh;letter-spacing:.12em;color:rgba(243,242,242,.7)">HOW I WORK</span></div>
+        <div style="font-size:17cqh;line-height:.9;letter-spacing:-.03em;text-transform:uppercase">Concept first,<br>channel second.</div>
+        <div style="font-size:6.5cqh;font-weight:600;color:rgba(243,242,242,.8)">One season idea, adapted by every team.</div>
+      </div>
+      <div data-k=".373,.378,.384,.388" data-fx="fade" style="grid-area:1/1;opacity:0;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="display:flex;gap:2cqw;align-items:center"><span style="background:var(--color-accent);color:var(--color-bg);padding:1.2cqh 1.6cqw;font-size:5.5cqh;letter-spacing:.12em">PRINCIPLE 02</span><span style="font-size:5.5cqh;letter-spacing:.12em;color:rgba(243,242,242,.7)">HOW I WORK</span></div>
+        <div style="font-size:17cqh;line-height:.9;letter-spacing:-.03em;text-transform:uppercase">Local wins<br>globally.</div>
+        <div style="font-size:6.5cqh;font-weight:600;color:rgba(243,242,242,.8)">The same rights, a different plan for every market.</div>
+      </div>
+      <div data-k=".388,.393,.4,.405" data-fx="fade" style="grid-area:1/1;opacity:0;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="display:flex;gap:2cqw;align-items:center"><span style="background:var(--color-accent);color:var(--color-bg);padding:1.2cqh 1.6cqw;font-size:5.5cqh;letter-spacing:.12em">PRINCIPLE 03</span><span style="font-size:5.5cqh;letter-spacing:.12em;color:rgba(243,242,242,.7)">HOW I WORK</span></div>
+        <div style="font-size:17cqh;line-height:.9;letter-spacing:-.03em;text-transform:uppercase">Platforms are<br>partners.</div>
+        <div style="font-size:6.5cqh;font-weight:600;color:rgba(243,242,242,.8)">TikTok, Instagram and Meta as allies, not ad slots.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- tactics board -->
+  <div data-anchor="0,0,0" style="position:absolute;left:0;top:0"><div data-k=".615,.625,.69,.70" data-fx="fade" style="opacity:0;transform:translate(-50%,-50%) translateY(-34px);white-space:nowrap;background:#f3f2f2;color:#0b0a0a;padding:5px 8px;font-size:11px">ONE SEASON CONCEPT</div></div>
+  <div data-anchor="23.1,0,5.74" style="position:absolute;left:0;top:0"><div data-k=".628,.634,.69,.70" data-fx="fade" style="opacity:0;transform:translate(14px,-50%);white-space:nowrap">SOCIAL</div></div>
+  <div data-anchor="9.57,0,13.86" style="position:absolute;left:0;top:0"><div data-k=".629,.635,.69,.70" data-fx="fade" style="opacity:0;transform:translate(14px,-50%);white-space:nowrap">EMAIL</div></div>
+  <div data-anchor="-9.57,0,13.86" style="position:absolute;left:0;top:0"><div data-k=".63,.636,.69,.70" data-fx="fade" style="opacity:0;transform:translate(14px,-50%);white-space:nowrap">CRM</div></div>
+  <div data-anchor="-23.1,0,5.74" style="position:absolute;left:0;top:0"><div data-k=".631,.637,.69,.70" data-fx="fade" style="opacity:0;transform:translate(14px,-50%);white-space:nowrap">PLATFORM</div></div>
+  <div data-anchor="-23.1,0,-5.74" style="position:absolute;left:0;top:0"><div data-k=".632,.638,.69,.70" data-fx="fade" style="opacity:0;transform:translate(14px,-50%);white-space:nowrap">CREATIVE</div></div>
+  <div data-anchor="-9.57,0,-13.86" style="position:absolute;left:0;top:0"><div data-k=".633,.639,.69,.70" data-fx="fade" style="opacity:0;transform:translate(14px,-50%);white-space:nowrap">SEO</div></div>
+  <div data-anchor="9.57,0,-13.86" style="position:absolute;left:0;top:0"><div data-k=".634,.64,.69,.70" data-fx="fade" style="opacity:0;transform:translate(14px,-50%);white-space:nowrap">PAID</div></div>
+  <div data-anchor="23.1,0,-5.74" style="position:absolute;left:0;top:0"><div data-k=".635,.641,.69,.70" data-fx="fade" style="opacity:0;transform:translate(14px,-50%);white-space:nowrap">DEMAND</div></div>
+  <div data-anchor="45.5,0,7.3" style="position:absolute;left:0;top:0"><div data-k=".667,.673,.69,.70" data-fx="fade" style="opacity:0;transform:translate(16px,-50%);white-space:nowrap;color:var(--color-accent-400);font-size:11px">UK</div></div>
+  <div data-anchor="19.3,0,26.9" style="position:absolute;left:0;top:0"><div data-k=".669,.675,.69,.70" data-fx="fade" style="opacity:0;transform:translate(16px,-50%);white-space:nowrap;color:var(--color-accent-400);font-size:11px">NORTH AMERICA</div></div>
+  <div data-anchor="-21.5,0,26.2" style="position:absolute;left:0;top:0"><div data-k=".671,.677,.69,.70" data-fx="fade" style="opacity:0;transform:translate(16px,-50%);white-space:nowrap;color:var(--color-accent-400);font-size:11px">LATAM</div></div>
+  <div data-anchor="-46.1,0,5.8" style="position:absolute;left:0;top:0"><div data-k=".673,.679,.69,.70" data-fx="fade" style="opacity:0;transform:translate(16px,-50%);white-space:nowrap;color:var(--color-accent-400);font-size:11px">MENA</div></div>
+  <div data-anchor="-36,0,-19" style="position:absolute;left:0;top:0"><div data-k=".675,.681,.69,.70" data-fx="fade" style="opacity:0;transform:translate(16px,-50%);white-space:nowrap;color:var(--color-accent-400);font-size:11px">SEA</div></div>
+  <div data-anchor="1.2,0,-29.5" style="position:absolute;left:0;top:0"><div data-k=".677,.683,.69,.70" data-fx="fade" style="opacity:0;transform:translate(16px,-50%);white-space:nowrap;color:var(--color-accent-400);font-size:11px">ANZ</div></div>
+  <div data-anchor="37.5,0,-17.8" style="position:absolute;left:0;top:0"><div data-k=".679,.685,.69,.70" data-fx="fade" style="opacity:0;transform:translate(16px,-50%);white-space:nowrap;color:var(--color-accent-400);font-size:11px">REST OF WORLD</div></div>
+
+  <!-- the stands: numbers -->
+  <div data-anchor="0,14,50" style="position:absolute;left:0;top:0"><div data-k=".74,.75,.79,.80" data-fx="fade" style="opacity:0;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:flex-start;gap:6px;background:rgba(11,10,10,.82);border-top:2px solid var(--color-accent);padding:10px 14px 12px;letter-spacing:0"><div style="font-size:clamp(44px,6vw,104px);line-height:.85;letter-spacing:-.04em;font-variant-numeric:tabular-nums"><span data-count="3,.742,.768">0</span>M+</div><div style="font-size:11px;letter-spacing:.14em;color:rgba(243,242,242,.75)">FIFA+ USERS MOVED ONTO DAZN</div></div></div>
+  <div data-anchor="76,12,0" style="position:absolute;left:0;top:0"><div data-k=".745,.755,.79,.80" data-fx="fade" style="opacity:0;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:flex-start;gap:6px;background:rgba(11,10,10,.82);border-top:2px solid var(--color-accent);padding:10px 14px 12px;letter-spacing:0"><div style="font-size:clamp(44px,6vw,104px);line-height:.85;letter-spacing:-.04em;font-variant-numeric:tabular-nums"><span data-count="7,.747,.772">0</span></div><div style="font-size:11px;letter-spacing:.14em;color:rgba(243,242,242,.75)">CORE MARKET ZONES</div></div></div>
+  <div data-anchor="0,14,-48" style="position:absolute;left:0;top:0"><div data-k=".75,.76,.79,.80" data-fx="fade" style="opacity:0;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:flex-start;gap:6px;background:rgba(11,10,10,.82);border-top:2px solid var(--color-accent);padding:10px 14px 12px;letter-spacing:0"><div style="font-size:clamp(44px,6vw,104px);line-height:.85;letter-spacing:-.04em;font-variant-numeric:tabular-nums">50–<span data-count="100,.752,.778">0</span></div><div style="font-size:11px;letter-spacing:.14em;color:rgba(243,242,242,.75)">PEOPLE STEERED ACROSS GLOBAL OFFICES</div></div></div>
+  <div data-anchor="-76,12,0" style="position:absolute;left:0;top:0"><div data-k=".755,.765,.79,.80" data-fx="fade" style="opacity:0;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:flex-start;gap:6px;background:rgba(11,10,10,.82);border-top:2px solid var(--color-accent);padding:10px 14px 12px;letter-spacing:0"><div style="font-size:clamp(44px,6vw,104px);line-height:.85;letter-spacing:-.04em;font-variant-numeric:tabular-nums"><span data-count="8,.757,.782">0</span></div><div style="font-size:11px;letter-spacing:.14em;color:rgba(243,242,242,.75)">CROSS-FUNCTIONAL TEAMS LED</div></div></div>
+
+  <!-- team sheet: starting XI -->
+  <div data-anchor="-46,0,3.4" style="position:absolute;left:0;top:0"><div data-k=".815,.822,.89,.9" data-fx="fade" data-pe="" data-title="DAZN" data-role="Global Marketing Manager, Football · 2026 – now" data-detail="Reports to the SVP Marketing. Seven-figure budget, 50 to 100 people steered across global offices, eight cross-functional teams." style="opacity:0;transform:translate(-50%,0);display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer;padding:4px 6px;background:rgba(11,10,10,.7)"><span style="background:var(--color-accent);padding:1px 5px">1</span><span>DAZN</span></div></div>
+  <div data-anchor="-31,0,-17.6" style="position:absolute;left:0;top:0"><div data-k=".817,.824,.89,.9" data-fx="fade" data-pe="" data-title="FIFA+" data-role="FIFA partnership · lead marketing stakeholder" data-detail="Led the migration of FIFA+ onto DAZN, moving 3M+ users across and driving continued sign-up growth, with go-to-market plans for member associations worldwide." style="opacity:0;transform:translate(-50%,0);display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer;padding:4px 6px;background:rgba(11,10,10,.7)"><span style="background:var(--color-accent);padding:1px 5px">2</span><span>FIFA+</span></div></div>
+  <div data-anchor="-33,0,-3.6" style="position:absolute;left:0;top:0"><div data-k=".819,.826,.89,.9" data-fx="fade" data-pe="" data-title="FIFA World Cups" data-role="Tournament campaigns" data-detail="Campaigns for the FIFA World Cup, U-20, U-20 Women's and U-17 World Cups, with a high-volume tournament asset pipeline." style="opacity:0;transform:translate(-50%,0);display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer;padding:4px 6px;background:rgba(11,10,10,.7)"><span style="background:var(--color-accent);padding:1px 5px">4</span><span>FIFA WORLD CUP</span></div></div>
+  <div data-anchor="-33,0,10.4" style="position:absolute;left:0;top:0"><div data-k=".821,.828,.89,.9" data-fx="fade" data-pe="" data-title="National League" data-role="UK campaign · design and launch" data-detail="Designed and launched the campaign taking the National League to a wider UK football audience, growing its social channels and year-on-year subscriber acquisition." style="opacity:0;transform:translate(-50%,0);display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer;padding:4px 6px;background:rgba(11,10,10,.7)"><span style="background:var(--color-accent);padding:1px 5px">5</span><span>NATIONAL LEAGUE</span></div></div>
+  <div data-anchor="-31,0,24.4" style="position:absolute;left:0;top:0"><div data-k=".823,.83,.89,.9" data-fx="fade" data-pe="" data-title="Copa Sudamericana" data-role="Global rights portfolio" data-detail="Market-by-market campaign plans across DAZN's territories, localised with international offices." style="opacity:0;transform:translate(-50%,0);display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer;padding:4px 6px;background:rgba(11,10,10,.7)"><span style="background:var(--color-accent);padding:1px 5px">3</span><span>COPA SUDAMERICANA</span></div></div>
+  <div data-anchor="-14,0,-11.6" style="position:absolute;left:0;top:0"><div data-k=".825,.832,.89,.9" data-fx="fade" data-pe="" data-title="Serie A" data-role="UK marketing lead · exclusive rights" data-detail="Lead UK marketing for DAZN's exclusive Serie A rights, driving awareness and acquisition among UK football audiences." style="opacity:0;transform:translate(-50%,0);display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer;padding:4px 6px;background:rgba(11,10,10,.7)"><span style="background:var(--color-accent);padding:1px 5px">8</span><span>SERIE A</span></div></div>
+  <div data-anchor="-16,0,3.4" style="position:absolute;left:0;top:0"><div data-k=".827,.834,.89,.9" data-fx="fade" data-pe="" data-title="LaLiga" data-role="Global rights portfolio" data-detail="Market-by-market campaign plans, working with international offices to localise positioning and creative." style="opacity:0;transform:translate(-50%,0);display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer;padding:4px 6px;background:rgba(11,10,10,.7)"><span style="background:var(--color-accent);padding:1px 5px">6</span><span>LALIGA</span></div></div>
+  <div data-anchor="-14,0,18.4" style="position:absolute;left:0;top:0"><div data-k=".829,.836,.89,.9" data-fx="fade" data-pe="" data-title="Bundesliga" data-role="Global rights portfolio" data-detail="Market-by-market campaign plans, working with international offices to localise positioning and creative." style="opacity:0;transform:translate(-50%,0);display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer;padding:4px 6px;background:rgba(11,10,10,.7)"><span style="background:var(--color-accent);padding:1px 5px">10</span><span>BUNDESLIGA</span></div></div>
+  <div data-anchor="3,0,-17.6" style="position:absolute;left:0;top:0"><div data-k=".831,.838,.89,.9" data-fx="fade" data-pe="" data-title="UEFA Europa League" data-role="Market-specific propositions" data-detail="Developed market-specific propositions for the US, Canada and New Zealand, shaping how the competition is positioned in each territory." style="opacity:0;transform:translate(-50%,0);display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer;padding:4px 6px;background:rgba(11,10,10,.7)"><span style="background:var(--color-accent);padding:1px 5px">7</span><span>EUROPA LEAGUE</span></div></div>
+  <div data-anchor="6,0,3.4" style="position:absolute;left:0;top:0"><div data-k=".833,.84,.89,.9" data-fx="fade" data-pe="" data-title="UEFA Champions League" data-role="Market-specific propositions" data-detail="Developed market-specific propositions for the US, Canada and New Zealand, shaping how the competition is positioned in each territory." style="opacity:0;transform:translate(-50%,0);display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer;padding:4px 6px;background:rgba(11,10,10,.7)"><span style="background:var(--color-accent);padding:1px 5px">9</span><span>CHAMPIONS LEAGUE</span></div></div>
+  <div data-anchor="3,0,24.4" style="position:absolute;left:0;top:0"><div data-k=".835,.842,.89,.9" data-fx="fade" data-pe="" data-title="TikTok · Instagram · Meta" data-role="Platform partnerships · owned end to end" data-detail="Owns DAZN's football relationships with TikTok, Instagram and Meta across the full portfolio, plus clubs, associations, commercial partners and the creative agency." style="opacity:0;transform:translate(-50%,0);display:flex;gap:6px;align-items:center;white-space:nowrap;cursor:pointer;padding:4px 6px;background:rgba(11,10,10,.7)"><span style="background:var(--color-accent);padding:1px 5px">11</span><span>PLATFORMS</span></div></div>
+</div>
+
+<div style="position:fixed;top:0;left:0;right:0;z-index:6;pointer-events:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px clamp(20px,3vw,44px) 16px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:12px;height:12px;background:var(--color-accent)"></div>
+      <div style="font-weight:800;font-size:13px;letter-spacing:.16em">MATT KING</div>
+      <div style="font-size:12px;letter-spacing:.04em;color:rgba(243,242,242,.62)">Football marketing</div>
+    </div>
+    <button onClick="{{ toggleMenu }}" aria-label="Match clock — chapters" style="pointer-events:auto;display:flex;align-items:baseline;gap:12px;background:none;border:0;color:inherit;cursor:pointer;font-family:inherit;padding:4px 0" style-hover="color:var(--color-accent-400)">
+      <span style="font-size:11px;letter-spacing:.16em;font-weight:600;color:rgba(243,242,242,.62)">MATCH CLOCK</span>
+      <span data-clock="" style="font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1;min-width:2.2em;text-align:left">00'</span>
+    </button>
+  </div>
+  <div style="height:2px;background:rgba(243,242,242,.16);margin:0 clamp(20px,3vw,44px)"><div data-bar="" style="height:2px;width:0%;background:var(--color-accent)"></div></div>
+</div>
+
+<sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;top:76px;right:clamp(20px,3vw,44px);z-index:7;width:min(360px,calc(100vw - 40px));background:#0b0a0a;border:2px solid rgba(243,242,242,.35)">
+    <div style="padding:14px 16px;border-bottom:2px solid rgba(243,242,242,.2);font-size:11px;font-weight:800;letter-spacing:.16em;color:rgba(243,242,242,.62)">CHAPTERS</div>
+    <sc-for list="{{ chapters }}" as="c" hint-placeholder-count="11">
+      <button onClick="{{ c.go }}" style="display:grid;grid-template-columns:48px 1fr auto;align-items:baseline;gap:12px;width:100%;padding:10px 16px;background:none;border:0;border-bottom:1px solid rgba(243,242,242,.1);color:#f3f2f2;font-family:inherit;text-align:left;cursor:pointer" style-hover="background:rgba(236,48,19,.14)">
+        <span style="font-weight:800;font-variant-numeric:tabular-nums;color:var(--color-accent)">{{ c.m }}'</span>
+        <span style="font-weight:600;font-size:15px">{{ c.n }}</span>
+        <span style="font-size:10px;letter-spacing:.14em;font-weight:800;color:rgba(243,242,242,.5)">{{ c.tag }}</span>
+      </button>
+    </sc-for>
+  </div>
+</sc-if>
+
+<!-- 05' tunnel statement -->
+<div style="position:fixed;left:0;right:0;top:50%;transform:translateY(-50%);z-index:3;pointer-events:none;padding:0 clamp(20px,3vw,44px)">
+  <div style="display:grid;font-weight:800;text-transform:uppercase;font-size:clamp(44px,8.4vw,152px);line-height:.9;letter-spacing:-.04em">
+    <div style="grid-area:1/1">
+      <div style="overflow:hidden;padding:.04em 0"><div data-k=".0036,.015,.033,.0405" data-fx="rise" style="transform:translateY(110%)">Most football</div></div>
+      <div style="overflow:hidden;padding:.04em 0"><div data-k=".0096,.021,.0345,.042" data-fx="rise" style="transform:translateY(110%)">marketing shouts.</div></div>
+    </div>
+    <div style="grid-area:1/1">
+      <div style="overflow:hidden;padding:.04em 0"><div data-k=".045,.054,.0696,.0765" data-fx="rise" style="transform:translateY(110%)">The best gives</div></div>
+      <div style="overflow:hidden;padding:.04em 0"><div data-k=".0489,.0579,.0711,.078" data-fx="rise" style="transform:translateY(110%)">people a reason</div></div>
+      <div style="overflow:hidden;padding:.04em 0"><div data-k=".0528,.0618,.0726,.0795" data-fx="rise" style="transform:translateY(110%);color:var(--color-accent)">to care.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 15' build -->
+<div style="position:fixed;left:0;right:0;bottom:0;z-index:3;pointer-events:none;padding:0 clamp(20px,3vw,44px) clamp(92px,13vh,140px)">
+  <div style="display:flex;flex-direction:column;gap:2px;font-weight:800;text-transform:uppercase;font-size:clamp(30px,4.2vw,72px);line-height:.95;letter-spacing:-.03em">
+    <div style="overflow:hidden"><div data-k=".099,.108,.1725,.18" data-fx="rise" style="transform:translateY(110%)">One idea.</div></div>
+    <div style="overflow:hidden"><div data-k=".117,.126,.174,.1815" data-fx="rise" style="transform:translateY(110%)">Seven markets.</div></div>
+    <div style="overflow:hidden"><div data-k=".135,.144,.1755,.183" data-fx="rise" style="transform:translateY(110%);color:var(--color-accent)">Built piece by piece.</div></div>
+  </div>
+</div>
+
+<!-- 20' walk-out -->
+<div style="position:fixed;left:0;right:0;bottom:0;z-index:4;padding:0 clamp(20px,3vw,44px) clamp(56px,9vh,96px);pointer-events:none">
+  <div style="font-weight:800;text-transform:uppercase;font-size:clamp(84px,16vw,290px);line-height:.8;letter-spacing:-.055em">
+    <div style="overflow:hidden;padding-top:.06em"><div data-k=".216,.237,.296,.31" data-fx="rise" style="transform:translateY(110%)">Matt</div></div>
+    <div style="overflow:hidden;padding-top:.06em"><div data-k=".2235,.2445,.299,.313" data-fx="rise" style="transform:translateY(110%)">King</div></div>
+  </div>
+  <div data-k=".24,.258,.29,.302" data-fx="fade" style="opacity:0;margin-top:clamp(18px,3vh,32px);display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px clamp(20px,3vw,44px);max-width:1100px;align-items:end">
+    <div style="font-size:clamp(22px,2.1vw,32px);font-weight:600;line-height:1.1;letter-spacing:-.01em;text-wrap:pretty">Football marketing at global scale.</div>
+    <div style="font-size:13px;line-height:1.5;font-weight:400;color:rgba(243,242,242,.72);border-top:2px solid rgba(243,242,242,.3);padding-top:10px">Global Marketing Manager, Football — DAZN<br>FIFA+ · UEFA Champions League · Serie A · LaLiga · Bundesliga</div>
+  </div>
+  <div data-k=".252,.27,.29,.302" data-fx="fade" data-pe="" style="opacity:0;margin-top:clamp(18px,3vh,28px);display:flex;flex-wrap:wrap;gap:12px">
+    <a href="mailto:Matt17King@gmail.com" style="display:flex;align-items:center;justify-content:space-between;gap:48px;min-width:230px;padding:16px 18px;background:var(--color-accent);color:var(--color-bg);font-weight:800;font-size:15px;letter-spacing:.02em" style-hover="background:var(--color-accent-400);color:var(--color-bg)"><span>Let's talk</span><span>→</span></a>
+    <a href="https://linkedin.com/in/mattking17" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;gap:48px;min-width:180px;padding:14px 16px;border:2px solid rgba(243,242,242,.5);color:var(--color-bg);font-weight:800;font-size:15px" style-hover="border-color:var(--color-bg);color:var(--color-bg)"><span>LinkedIn</span><span>↗</span></a>
+  </div>
+</div>
+
+<!-- 35' the rights -->
+<div data-k=".418,.43,.5,.508" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);top:92px;bottom:64px;z-index:3;pointer-events:none;width:min(300px,26vw);display:flex;flex-direction:column;overflow:hidden">
+  <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:14px">35' — THE RIGHTS</div>
+  <div style="display:flex;flex-direction:column;border-top:2px solid rgba(243,242,242,.3)">
+    <div data-ri="0" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">01</span><span>FIFA+</span></div>
+    <div data-ri="1" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">02</span><span>FIFA WORLD CUP</span></div>
+    <div data-ri="2" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">03</span><span>UEFA CHAMPIONS LEAGUE</span></div>
+    <div data-ri="3" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">04</span><span>SERIE A</span></div>
+    <div data-ri="4" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">05</span><span>LALIGA</span></div>
+    <div data-ri="5" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">06</span><span>BUNDESLIGA</span></div>
+    <div data-ri="6" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">07</span><span>COPA SUDAMERICANA</span></div>
+    <div data-ri="7" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">08</span><span>NATIONAL LEAGUE</span></div>
+  </div>
+  <div style="display:grid;margin-top:clamp(8px,1.6vh,18px);font-size:14px;line-height:1.4;color:rgba(243,242,242,.85)">
+    <div data-rd="0" style="grid-area:1/1;opacity:0">Lead marketing stakeholder on the FIFA deal. Moved 3M+ FIFA+ users onto DAZN and kept sign-ups growing.</div>
+    <div data-rd="1" style="grid-area:1/1;opacity:0">Campaigns for the FIFA World Cup, U-20, U-20 Women's and U-17 World Cups.</div>
+    <div data-rd="2" style="grid-area:1/1;opacity:0">Market-specific propositions for the US, Canada and New Zealand — Champions League and Europa League.</div>
+    <div data-rd="3" style="grid-area:1/1;opacity:0">UK marketing lead for DAZN's exclusive Serie A rights.</div>
+    <div data-rd="4" style="grid-area:1/1;opacity:0">Market-by-market campaign plans across DAZN's territories, localised with international offices.</div>
+    <div data-rd="5" style="grid-area:1/1;opacity:0">Positioning and creative localised market by market, with every international office.</div>
+    <div data-rd="6" style="grid-area:1/1;opacity:0">A campaign plan for every territory DAZN serves.</div>
+    <div data-rd="7" style="grid-area:1/1;opacity:0">Designed and launched the campaign taking the National League to a wider UK audience.</div>
+  </div>
+</div>
+
+<!-- 40' portfolio -->
+<div data-k=".53,.545,.58,.588" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);bottom:clamp(64px,9vh,88px);z-index:3;pointer-events:none;background:rgba(11,10,10,.86);padding:18px 20px 20px;border-top:2px solid var(--color-accent);max-width:min(520px,calc(100vw - 40px))">
+  <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:10px">40' — THE PORTFOLIO</div>
+  <div style="font-weight:800;text-transform:uppercase;font-size:clamp(30px,3.6vw,58px);line-height:.92;letter-spacing:-.03em">Rights. Platforms.<br>Clubs. Brands. Talent.</div>
+</div>
+
+<!-- 45' half-time -->
+<div data-k=".615,.63,.69,.70" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);top:96px;z-index:3;pointer-events:none;max-width:min(560px,calc(100vw - 40px))">
+  <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:10px">45' — HALF-TIME: THE TACTICS BOARD</div>
+  <div style="font-weight:800;text-transform:uppercase;font-size:clamp(28px,3.4vw,54px);line-height:.92;letter-spacing:-.03em">One concept.<br>Eight teams.<br><span style="color:var(--color-accent)">Seven markets.</span></div>
+</div>
+
+<!-- 60' the stands -->
+<div data-k=".735,.745,.79,.80" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);top:96px;z-index:3;pointer-events:none">
+  <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent)">60' — THE STANDS</div>
+</div>
+
+<!-- 70' team sheet -->
+<div style="position:fixed;right:clamp(20px,3vw,44px);top:92px;bottom:64px;z-index:3;width:min(340px,32vw);display:flex;flex-direction:column;gap:12px;pointer-events:none">
+<div data-k=".815,.83,.89,.9" data-fx="fade" style="opacity:0">
+  <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:10px">70' — THE TEAM SHEET</div>
+  <div style="background:rgba(11,10,10,.88);border-top:2px solid var(--color-accent);padding:14px 16px 16px">
+    <div data-dtitle="" style="font-weight:800;text-transform:uppercase;font-size:clamp(22px,2.2vw,32px);line-height:.95;letter-spacing:-.02em">Starting XI</div>
+    <div data-drole="" style="font-size:11px;font-weight:800;letter-spacing:.12em;color:rgba(243,242,242,.6);margin-top:8px;text-transform:uppercase">Current work · DAZN</div>
+    <div data-ddetail="" style="font-size:14px;line-height:1.45;color:rgba(243,242,242,.85);margin-top:10px;text-wrap:pretty">Hover or tap a name on the pitch or the bench.</div>
+  </div>
+</div>
+<div data-k=".815,.83,.89,.9" data-fx="fade" data-pe="" style="opacity:0;min-height:0;overflow:auto;background:rgba(11,10,10,.88);border:2px solid rgba(243,242,242,.3)">
+  <div style="display:flex;justify-content:space-between;padding:12px 14px;border-bottom:2px solid rgba(243,242,242,.3);font-size:11px;font-weight:800;letter-spacing:.16em"><span>THE BENCH</span><span style="color:rgba(243,242,242,.55)">EARLIER CAREER</span></div>
+  <div data-title="80 Four Brand Elevation" data-role="Co-founder · Head of Digital Marketing · 2025–26" data-detail="Built and scaled a brand-elevation agency for sports, health and lifestyle clients. Won Crewe Alexandra FC, where fan engagement grew by over 450%." style="display:grid;grid-template-columns:62px 1fr;gap:10px;padding:clamp(6px,1.2vh,11px) 14px;border-bottom:1px solid rgba(243,242,242,.12);cursor:pointer" style-hover="background:rgba(236,48,19,.16)"><span style="font-size:11px;font-weight:800;color:var(--color-accent);font-variant-numeric:tabular-nums">2025–26</span><span><span style="display:block;font-weight:800;font-size:14px">80 Four</span><span style="font-size:12px;color:rgba(243,242,242,.65)">Co-founder</span></span></div>
+  <div data-title="Swift Agency" data-role="Head of Digital Marketing · Head of Social · 2024–25" data-detail="Ran every digital channel for the agency and its clients — organic and paid social, SEO, email, web and paid media. Oversaw 15+ client social accounts." style="display:grid;grid-template-columns:62px 1fr;gap:10px;padding:clamp(6px,1.2vh,11px) 14px;border-bottom:1px solid rgba(243,242,242,.12);cursor:pointer" style-hover="background:rgba(236,48,19,.16)"><span style="font-size:11px;font-weight:800;color:var(--color-accent);font-variant-numeric:tabular-nums">2024–25</span><span><span style="display:block;font-weight:800;font-size:14px">Swift Agency</span><span style="font-size:12px;color:rgba(243,242,242,.65)">Head of Digital Marketing</span></span></div>
+  <div data-title="The Couture Club" data-role="Influencer, Ambassador &amp; Ecommerce · 2023–24" data-detail="Negotiated and closed partnerships with Molly-Mae Hague and Phil Foden, driving a 600% increase in social reach. Grew online sales by 41%." style="display:grid;grid-template-columns:62px 1fr;gap:10px;padding:clamp(6px,1.2vh,11px) 14px;border-bottom:1px solid rgba(243,242,242,.12);cursor:pointer" style-hover="background:rgba(236,48,19,.16)"><span style="font-size:11px;font-weight:800;color:var(--color-accent);font-variant-numeric:tabular-nums">2023–24</span><span><span style="display:block;font-weight:800;font-size:14px">The Couture Club</span><span style="font-size:12px;color:rgba(243,242,242,.65)">Influencer &amp; Ecommerce</span></span></div>
+  <div data-title="American Golf" data-role="Social Media &amp; Influencer Executive · 2022–23" data-detail="Grew social channels and engagement by over 400%. Managed ambassador relationships including Niall Horan and Judy Murray." style="display:grid;grid-template-columns:62px 1fr;gap:10px;padding:clamp(6px,1.2vh,11px) 14px;border-bottom:1px solid rgba(243,242,242,.12);cursor:pointer" style-hover="background:rgba(236,48,19,.16)"><span style="font-size:11px;font-weight:800;color:var(--color-accent);font-variant-numeric:tabular-nums">2022–23</span><span><span style="display:block;font-weight:800;font-size:14px">American Golf</span><span style="font-size:12px;color:rgba(243,242,242,.65)">Social &amp; Influencer</span></span></div>
+  <div data-title="Gym King" data-role="Social Media Executive &amp; Influencer Manager · 2021–22" data-detail="Ran all social pages and campaigns. Led creator partnerships including Tom Aspinall, Ash Cain and Alex Bowen." style="display:grid;grid-template-columns:62px 1fr;gap:10px;padding:clamp(6px,1.2vh,11px) 14px;cursor:pointer" style-hover="background:rgba(236,48,19,.16)"><span style="font-size:11px;font-weight:800;color:var(--color-accent);font-variant-numeric:tabular-nums">2021–22</span><span><span style="display:block;font-weight:800;font-size:14px">Gym King</span><span style="font-size:12px;color:rgba(243,242,242,.65)">Social &amp; Influencer</span></span></div>
+</div>
+</div>
+
+<!-- 90' full time -->
+<div style="position:fixed;left:0;right:0;bottom:0;z-index:4;padding:0 clamp(20px,3vw,44px) clamp(64px,10vh,110px);pointer-events:none">
+  <div data-k=".95,.962" data-fx="fade" style="opacity:0;font-size:12px;font-weight:800;letter-spacing:.16em;display:flex;gap:14px;margin-bottom:14px"><span style="color:var(--color-accent)">90:00</span><span>FULL TIME</span></div>
+  <div style="font-weight:800;text-transform:uppercase;font-size:clamp(84px,16vw,290px);line-height:.8;letter-spacing:-.055em">
+    <div style="overflow:hidden;padding-top:.06em"><div data-k=".955,.975" data-fx="rise" style="transform:translateY(110%)">Matt</div></div>
+    <div style="overflow:hidden;padding-top:.06em"><div data-k=".96,.98" data-fx="rise" style="transform:translateY(110%)">King</div></div>
+  </div>
+  <div data-k=".97,.988" data-fx="fade" data-pe="" style="opacity:0;margin-top:clamp(18px,3vh,32px);display:flex;flex-wrap:wrap;gap:20px 28px;align-items:center">
+    <div style="font-size:clamp(22px,2.1vw,32px);font-weight:600;line-height:1.1">What's the next campaign?</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px">
+      <a href="mailto:Matt17King@gmail.com" style="display:flex;align-items:center;justify-content:space-between;gap:48px;min-width:230px;padding:16px 18px;background:var(--color-accent);color:var(--color-bg);font-weight:800;font-size:15px;letter-spacing:.02em" style-hover="background:var(--color-accent-400);color:var(--color-bg)"><span>Let's talk</span><span>→</span></a>
+      <a href="https://linkedin.com/in/mattking17" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;gap:48px;min-width:180px;padding:14px 16px;border:2px solid rgba(243,242,242,.5);color:var(--color-bg);font-weight:800;font-size:15px" style-hover="border-color:var(--color-bg);color:var(--color-bg)"><span>LinkedIn</span><span>↗</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- chapter caption bar -->
+<div style="position:fixed;left:0;right:0;bottom:0;z-index:5;pointer-events:none;padding:0 clamp(20px,3vw,44px) 22px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;border-top:2px solid rgba(243,242,242,.16);padding-top:12px;font-size:12px;font-weight:800;letter-spacing:.16em">
+    <div style="display:grid">
+      <div data-k="-1,-.5,.075,.084" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px"><span style="color:var(--color-accent)">05'</span><span>THE TUNNEL</span></div>
+      <div data-k=".087,.093,.18,.189" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">15'</span><span>THE STADIUM BUILDS</span></div>
+      <div data-k=".192,.201,.3,.31" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">20'</span><span>THE WALK-OUT</span></div>
+      <div data-k=".315,.33,.40,.41" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">30'</span><span>THE BIG SCREEN</span></div>
+      <div data-k=".415,.425,.495,.505" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">35'</span><span>THE CENTRE SPOT</span></div>
+      <div data-k=".51,.52,.58,.59" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">40'</span><span>THE PORTFOLIO</span></div>
+      <div data-k=".6,.61,.69,.70" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">45'</span><span>HALF-TIME</span></div>
+      <div data-k=".725,.735,.79,.80" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">60'</span><span>THE STANDS</span></div>
+      <div data-k=".81,.82,.89,.90" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">70'</span><span>THE TEAM SHEET</span></div>
+      <div data-k=".935,.945" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">90'</span><span>FULL TIME</span></div>
+    </div>
+    <div style="display:grid;text-align:right;color:rgba(243,242,242,.62)">
+      <div data-k="-1,-.5,.0036,.009" data-fx="fade" style="grid-area:1/1">SCROLL TO WALK OUT ↓</div>
+    </div>
+  </div>
+</div>
+
+<!-- kick-off -->
+<div ref="{{ kickWrapRef }}" style="position:fixed;inset:0;z-index:10;background:#0b0a0a">
+  <canvas ref="{{ kickRef }}" style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>
+  <div data-kick-ui="" style="position:absolute;inset:0;pointer-events:none;padding:clamp(20px,3vw,44px);display:flex;flex-direction:column;justify-content:space-between;transition:opacity .35s ease">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--color-accent)">KICK-OFF</div>
+        <div style="font-size:12px;font-weight:800;letter-spacing:.16em">MATT KING — GLOBAL FOOTBALL MARKETING</div>
+      </div>
+      <button onClick="{{ skipIntro }}" style="pointer-events:auto;display:flex;align-items:center;justify-content:space-between;gap:28px;padding:10px 12px;background:none;border:2px solid rgba(243,242,242,.4);color:#f3f2f2;font-family:inherit;font-weight:800;font-size:12px;letter-spacing:.12em;cursor:pointer" style-hover="border-color:var(--color-accent);color:var(--color-accent-400)"><span>SKIP</span><span>→</span></button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap">
+      <div data-kclock="" style="font-weight:800;font-variant-numeric:tabular-nums;font-size:clamp(64px,10vw,168px);line-height:.82;letter-spacing:-.05em">00:00</div>
+      <div style="display:grid;grid-template-columns:repeat(2,auto);gap:6px 28px;font-size:11px;font-weight:800;letter-spacing:.14em">
+        <div data-zone="0" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>01</span><span>UK</span></div>
+        <div data-zone="1" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>02</span><span>NORTH AMERICA</span></div>
+        <div data-zone="2" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>03</span><span>LATAM</span></div>
+        <div data-zone="3" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>04</span><span>MENA</span></div>
+        <div data-zone="4" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>05</span><span>SEA</span></div>
+        <div data-zone="5" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>06</span><span>ANZ</span></div>
+        <div data-zone="6" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>07</span><span>REST OF WORLD</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height:3600vh"></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  rootRef = React.createRef(); canvasRef = React.createRef(); kickRef = React.createRef(); kickWrapRef = React.createRef();
+  state = { menu: false };
+  MODE = 'night'; KBG = '#0b0a0a'; HERO_END = 0.30; RIGHTS_RANGE = [0.425, 0.505];
+  MIN = [[0, 5], [0.081, 15], [0.186, 20], [0.30, 30], [0.41, 35], [0.505, 40], [0.585, 45], [0.70, 60], [0.80, 70], [0.92, 85], [1, 90]];
+  ZONE_ON = '#ec3013'; ZONE_OFF = 'rgba(243,242,242,.3)';
+  // Licensed logo files: drop PNGs into /logos and map slug -> filename here, e.g. 'serie-a': 'serie-a.png'
+  LOGOS = {};
+  RIGHTS = [
+    { slug: 'fifa-plus', name: 'FIFA+', sub: '3M+ users migrated' },
+    { slug: 'fifa-world-cup', name: 'FIFA World Cup', sub: 'Senior · U-20 · U-17' },
+    { slug: 'uefa-champions-league', name: 'UEFA Champions League', sub: 'US · Canada · New Zealand' },
+    { slug: 'serie-a', name: 'Serie A', sub: 'UK exclusive' },
+    { slug: 'laliga', name: 'LaLiga', sub: 'Global markets' },
+    { slug: 'bundesliga', name: 'Bundesliga', sub: 'Global markets' },
+    { slug: 'copa-sudamericana', name: 'Copa Sudamericana', sub: 'Global markets' },
+    { slug: 'national-league', name: 'National League', sub: 'UK growth' },
+  ];
+  TILES = [
+    { cat: 'Rights', name: 'FIFA+', slug: 'fifa-plus' }, { cat: 'Club', name: 'Manchester City FC', slug: 'man-city' }, { cat: 'Rights', name: 'FIFA World Cup', slug: 'fifa-world-cup' }, { cat: 'Talent', name: 'Phil Foden', slug: 'phil-foden' }, { cat: 'Rights', name: 'UEFA Champions League', slug: 'uefa-champions-league' },
+    { cat: 'Platform', name: 'TikTok', slug: 'tiktok' }, { cat: 'Rights', name: 'Serie A', slug: 'serie-a' }, { cat: 'Club', name: 'FC Barcelona', slug: 'fc-barcelona' }, { cat: 'Rights', name: 'Europa League', slug: 'uefa-europa-league' }, { cat: 'Brand', name: 'adidas', slug: 'adidas' },
+    { cat: 'Talent', name: 'Molly-Mae Hague', slug: 'molly-mae' }, { cat: 'Rights', name: 'LaLiga', slug: 'laliga' }, { cat: 'Rights', name: 'Bundesliga', slug: 'bundesliga' }, { cat: 'Platform', name: 'Instagram', slug: 'instagram' },
+    { cat: 'Club', name: 'Arsenal FC', slug: 'arsenal' }, { cat: 'Brand', name: 'DP World Tour', slug: 'dp-world-tour' }, { cat: 'Rights', name: 'Copa Sudamericana', slug: 'copa-sudamericana' }, { cat: 'Talent', name: 'Conor McGregor', slug: 'conor-mcgregor' }, { cat: 'Club', name: 'LA Galaxy', slug: 'la-galaxy' },
+    { cat: 'Brand', name: 'PUMA', slug: 'puma' }, { cat: 'Platform', name: 'Meta', slug: 'meta' }, { cat: 'Club', name: 'Crewe Alexandra FC', slug: 'crewe' }, { cat: 'Brand', name: 'Under Armour', slug: 'under-armour' }, { cat: 'Talent', name: 'Niall Horan', slug: 'niall-horan' },
+  ];
+  CHANNELS = ['Social', 'Email', 'CRM', 'Platform', 'Creative', 'SEO', 'Paid', 'Demand'];
+  MARKETS = ['UK', 'North America', 'LATAM', 'MENA', 'SEA', 'ANZ', 'ROW'];
+  FORMATION = [[-46, 0], [-31, -21], [-33, -7], [-33, 7], [-31, 21], [-14, -15], [-16, 0], [-14, 15], [3, -21], [6, 0], [3, 21]];
+
+  componentDidMount() { this.boot(); }
+  componentWillUnmount() {
+    this.dead = true; this.eng && this.eng.dispose(); this.kick && this.kick.cancel();
+    window.removeEventListener('scroll', this.onScroll); window.removeEventListener('resize', this.onScroll);
+    document.documentElement.style.overflow = '';
+  }
+
+  async boot() {
+    const root = this.rootRef.current; if (!root) return;
+    this.scrub = [...root.querySelectorAll('[data-k]')].map(el => ({ el, k: el.dataset.k.split(',').map(Number), fx: el.dataset.fx || 'fade', pe: el.hasAttribute('data-pe'), t: -1 }));
+    this.anchors = [...root.querySelectorAll('[data-anchor]')].map(el => ({ el, v: el.dataset.anchor.split(',').map(Number) }));
+    this.quads = [...root.querySelectorAll('[data-quad]')].map(el => ({ el, v: el.dataset.quad.split(',').map(Number) }));
+    this.counts = [...root.querySelectorAll('[data-count]')].map(el => ({ el, v: el.dataset.count.split(',').map(Number), last: -1 }));
+    this.ri = [...root.querySelectorAll('[data-ri]')]; this.rd = [...root.querySelectorAll('[data-rd]')]; this.rIdx = -2;
+    this.clockEl = root.querySelector('[data-clock]'); this.barEl = root.querySelector('[data-bar]');
+    const dt = root.querySelector('[data-dtitle]'), dr = root.querySelector('[data-drole]'), dd = root.querySelector('[data-ddetail]');
+    root.querySelectorAll('[data-detail]').forEach(el => {
+      const show = () => { dt.textContent = el.dataset.title; dr.textContent = el.dataset.role; dd.textContent = el.dataset.detail; };
+      el.addEventListener('mouseenter', show); el.addEventListener('click', show);
+    });
+    window.scrollTo(0, 0);
+    const enginePromise = import(new URL('stadium-engine-v2.js', location.href).href)
+      .then(m => m.createStadium(this.canvasRef.current, {
+        mode: this.MODE, heroEnd: this.HERO_END, rightsRange: this.RIGHTS_RANGE, logos: this.LOGOS,
+        rights: this.RIGHTS, tiles: this.TILES, channels: this.CHANNELS, markets: this.MARKETS, formation: this.FORMATION,
+        onFrame: s => this.frame(s),
+      }))
+      .then(eng => { if (this.dead) { eng.dispose(); return; } this.eng = eng; window.__mkJump = v => { this.frozen = true; eng.jump(v); }; this.onScroll(); });
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+    window.addEventListener('resize', this.onScroll);
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { enginePromise.then(() => this.endIntro()); return; }
+    this.startIntro(enginePromise);
+  }
+
+  async startIntro(waitFor) {
+    const wrap = this.kickWrapRef.current; if (!wrap) return;
+    document.documentElement.style.overflow = 'hidden';
+    wrap.style.display = 'block'; wrap.style.background = this.KBG;
+    const ui = wrap.querySelector('[data-kick-ui]'); ui.style.opacity = '1';
+    const kc = wrap.querySelector('[data-kclock]');
+    const zones = [...wrap.querySelectorAll('[data-zone]')];
+    zones.forEach(z => z.style.color = this.ZONE_OFF);
+    const { runKickoff } = await import(new URL('kickoff.js', location.href).href);
+    this.kick = runKickoff(this.kickRef.current, {
+      mode: this.MODE, waitFor,
+      onStart: () => { wrap.style.background = 'transparent'; },
+      onClock: (str) => { kc.textContent = str; },
+      onZone: (i) => { if (zones[i]) zones[i].style.color = this.ZONE_ON; },
+      onPhase: (ph) => { if (ph === 'doors') ui.style.opacity = '0'; },
+      onDone: () => this.endIntro(),
+    });
+  }
+
+  endIntro() {
+    const wrap = this.kickWrapRef.current; if (wrap) wrap.style.display = 'none';
+    document.documentElement.style.overflow = '';
+  }
+
+  onScroll = () => {
+    if (!this.eng || this.frozen) return;
+    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    this.eng.setTarget(window.scrollY / max);
+  };
+
+  minute(p) {
+    const M = this.MIN; for (let i = 0; i < M.length - 1; i++) { const [a, ma] = M[i], [b, mb] = M[i + 1]; if (p <= b) return ma + (mb - ma) * (p - a) / (b - a); } return M[M.length - 1][1];
+  }
+
+  frame({ p, project }) {
+    const sm = x => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
+    for (const it of this.scrub) {
+      const [a, b, c, d] = it.k; let t;
+      if (p <= a) t = 0; else if (p < b) t = sm((p - a) / (b - a)); else if (c === undefined || isNaN(c) || p < c) t = 1; else if (p < d) t = 1 + sm((p - c) / (d - c)); else t = 2;
+      if (Math.abs(it.t - t) < 0.0005) continue; it.t = t;
+      const s = it.el.style, vis = t > 0.001 && t < 1.999;
+      if (it.fx === 'rise') s.transform = `translate3d(0,${t <= 1 ? (1 - t) * 110 : -(t - 1) * 110}%,0)`;
+      else { const op = t <= 1 ? t : 2 - t; s.opacity = op; s.translate = `0 ${(1 - op) * (t <= 1 ? 12 : -12)}px`; }
+      s.visibility = vis ? 'visible' : 'hidden';
+      if (it.pe) s.pointerEvents = t > 0.6 && t < 1.4 ? 'auto' : 'none';
+    }
+    for (const a of this.anchors) {
+      if (a.el.firstElementChild && a.el.firstElementChild.style.visibility === 'hidden') continue;
+      const q = project(a.v[0], a.v[1], a.v[2]); a.el.style.transform = `translate3d(${q.x}px,${q.y}px,0)`; a.el.style.display = q.on ? '' : 'none';
+    }
+    for (const qd of this.quads) {
+      if (p < 0.33 || p > 0.42) { qd.el.style.width = '0px'; continue; }
+      const [cx, cy, cz, w, h] = qd.v; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      for (const [dx, dy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const q = project(cx + dx * w / 2, cy + dy * h / 2, cz); x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); }
+      Object.assign(qd.el.style, { left: x0 + 'px', top: y0 + 'px', width: (x1 - x0) + 'px', height: (y1 - y0) + 'px' });
+    }
+    for (const c of this.counts) {
+      const [to, a, b] = c.v; const v = Math.round(to * sm((p - a) / (b - a)));
+      if (v !== c.last) { c.last = v; c.el.textContent = v; }
+    }
+    const [r0, r1] = this.RIGHTS_RANGE, n = this.ri.length;
+    const idx = p < r0 - 0.01 || p > r1 + 0.01 ? -1 : Math.min(n - 1, Math.max(0, Math.floor((p - r0) / (r1 - r0) * n)));
+    if (idx !== this.rIdx) {
+      this.rIdx = idx;
+      this.ri.forEach((el, i) => { el.style.opacity = i === idx ? '1' : '.35'; });
+      this.rd.forEach((el, i) => { el.style.opacity = i === idx ? '1' : '0'; });
+    }
+    const m = this.minute(p);
+    if (this.clockEl) this.clockEl.textContent = String(Math.floor(m)).padStart(2, '0') + "'";
+    if (this.barEl) this.barEl.style.width = (m / 90 * 100).toFixed(2) + '%';
+  }
+
+  goTo(p) {
+    this.setState({ menu: false }); this.frozen = false;
+    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    window.scrollTo({ top: p * max, behavior: 'smooth' });
+  }
+
+  replay() {
+    this.setState({ menu: false });
+    window.scrollTo(0, 0); if (this.eng) this.eng.jump(0);
+    this.kick && this.kick.cancel();
+    this.startIntro(Promise.resolve());
+  }
+
+  renderVals() {
+    const ch = [
+      ['00', 'Kick-off', 'replay'], ['05', 'The tunnel', 0.006], ['15', 'The stadium builds', 0.093], ['20', 'The walk-out', 0.215],
+      ['30', 'The big screen', 0.36], ['35', 'The centre spot', 0.432], ['40', 'The portfolio', 0.55], ['45', 'Half-time: tactics board', 0.66],
+      ['60', 'The stands', 0.77], ['70', 'The team sheet', 0.85], ['90', 'Full time', 0.99],
+    ];
+    return {
+      rootRef: this.rootRef, canvasRef: this.canvasRef, kickRef: this.kickRef, kickWrapRef: this.kickWrapRef,
+      menuOpen: this.state.menu,
+      toggleMenu: () => this.setState(s => ({ menu: !s.menu })),
+      skipIntro: () => { this.kick && this.kick.skip(); },
+      chapters: ch.map(([m, n, act]) => ({
+        m, n, tag: act === 'replay' ? 'REPLAY' : '',
+        go: () => { if (act === 'replay') this.replay(); else this.goTo(act); },
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

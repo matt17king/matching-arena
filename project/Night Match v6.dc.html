@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="_ds/modernist-5d18dd0d-31f2-4b11-bf08-43dda0094f02/styles.css">
+<script src="_ds/modernist-5d18dd0d-31f2-4b11-bf08-43dda0094f02/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&amp;display=swap">
+<style>
+html,body{margin:0;background:#0b0a0a;color:#f3f2f2;}
+body{overscroll-behavior:none;-webkit-font-smoothing:antialiased;}
+a{color:var(--color-accent);text-decoration:none}
+a:hover{color:var(--color-accent-400)}
+</style>
+</helmet>
+<div ref="{{ rootRef }}" style="position:relative;font-family:var(--font-heading);color:var(--color-bg);background:#0b0a0a">
+
+<canvas ref="{{ canvasRef }}" style="position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;z-index:0"></canvas>
+<div style="position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 95% at 50% 50%, rgba(11,10,10,0) 58%, rgba(11,10,10,.55) 100%)"></div>
+<div style="position:fixed;inset:0;z-index:1;pointer-events:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0 clamp(20px,3vw,44px)">
+  <div style="border-left:1px solid rgba(243,242,242,.05)"></div>
+  <div style="border-left:1px solid rgba(243,242,242,.05)"></div>
+  <div style="border-left:1px solid rgba(243,242,242,.05)"></div>
+  <div style="border-left:1px solid rgba(243,242,242,.05);border-right:1px solid rgba(243,242,242,.05)"></div>
+</div>
+
+<div style="position:fixed;top:0;left:0;right:0;z-index:6;pointer-events:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px clamp(20px,3vw,44px) 16px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:12px;height:12px;background:var(--color-accent)"></div>
+      <div style="font-weight:800;font-size:13px;letter-spacing:.16em">MATT KING</div>
+      <div data-hide-m="" style="font-size:12px;letter-spacing:.04em;color:rgba(243,242,242,.62)">Football marketing</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:22px">
+    <button onClick="{{ toggleSound }}" aria-label="Toggle stadium sound" style="pointer-events:auto;display:flex;align-items:center;gap:8px;background:none;border:0;color:inherit;cursor:pointer;font-family:inherit;padding:4px 0;font-size:11px;font-weight:800;letter-spacing:.16em" style-hover="color:var(--color-accent-400)"><span style="width:8px;height:8px;border:2px solid currentColor;background:{{ soundDot }}"></span><span data-hide-m="">{{ soundLabel }}</span></button>
+    <button onClick="{{ toggleMenu }}" aria-label="Match clock — chapters" style="pointer-events:auto;display:flex;align-items:baseline;gap:12px;background:none;border:0;color:inherit;cursor:pointer;font-family:inherit;padding:4px 0" style-hover="color:var(--color-accent-400)">
+      <span data-hide-m="" style="font-size:11px;letter-spacing:.16em;font-weight:600;color:rgba(243,242,242,.62)">MATCH CLOCK</span>
+      <span data-clock="" style="font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1;min-width:2.2em;text-align:left">00'</span>
+    </button>
+    </div>
+  </div>
+  <div style="height:2px;background:rgba(243,242,242,.16);margin:0 clamp(20px,3vw,44px)"><div data-bar="" style="height:2px;width:0%;background:var(--color-accent)"></div></div>
+</div>
+
+<sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;top:76px;right:clamp(20px,3vw,44px);z-index:7;width:min(360px,calc(100vw - 40px));max-height:calc(100vh - 100px);overflow:auto;background:#0b0a0a;border:2px solid rgba(243,242,242,.35)">
+    <div style="padding:14px 16px;border-bottom:2px solid rgba(243,242,242,.2);font-size:11px;font-weight:800;letter-spacing:.16em;color:rgba(243,242,242,.62)">CHAPTERS</div>
+    <sc-for list="{{ chapters }}" as="c" hint-placeholder-count="11">
+      <button onClick="{{ c.go }}" style="display:grid;grid-template-columns:48px 1fr auto;align-items:baseline;gap:12px;width:100%;padding:10px 16px;background:none;border:0;border-bottom:1px solid rgba(243,242,242,.1);color:#f3f2f2;font-family:inherit;text-align:left;cursor:pointer" style-hover="background:rgba(236,48,19,.14)">
+        <span style="font-weight:800;font-variant-numeric:tabular-nums;color:var(--color-accent)">{{ c.m }}'</span>
+        <span style="font-weight:600;font-size:15px">{{ c.n }}</span>
+        <span style="font-size:10px;letter-spacing:.14em;font-weight:800;color:rgba(243,242,242,.5)">{{ c.tag }}</span>
+      </button>
+    </sc-for>
+  </div>
+</sc-if>
+
+<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Matt King — Global Marketing Manager, Football. Most football marketing shouts. The best gives people a reason to care.</h1>
+
+<!-- 15' build -->
+<div style="position:fixed;left:0;right:0;bottom:0;z-index:3;pointer-events:none;padding:0 clamp(20px,3vw,44px) clamp(92px,13vh,140px)">
+  <div style="display:flex;flex-direction:column;gap:2px;font-weight:800;text-transform:uppercase;font-size:clamp(30px,4.2vw,72px);line-height:.95;letter-spacing:-.03em">
+    <div style="overflow:hidden"><div data-k=".104,.1118,.156,.1625" data-fx="rise" style="transform:translateY(110%)">One idea.</div></div>
+    <div style="overflow:hidden"><div data-k=".1196,.1274,.1573,.1638" data-fx="rise" style="transform:translateY(110%)">Seven markets.</div></div>
+    <div style="overflow:hidden"><div data-k=".1352,.143,.1586,.1651" data-fx="rise" style="transform:translateY(110%);color:var(--color-accent)">Built piece by piece.</div></div>
+  </div>
+</div>
+
+<!-- 20' walk-out -->
+<div style="position:fixed;left:0;right:0;bottom:0;z-index:4;padding:0 clamp(20px,3vw,44px) clamp(56px,9vh,96px);pointer-events:none">
+  <div style="font-weight:800;text-transform:uppercase;font-size:clamp(84px,16vw,290px);line-height:.8;letter-spacing:-.055em">
+    <div style="overflow:hidden;padding-top:.06em"><div data-k=".2054,.2236,.2483,.2561" data-fx="rise" style="transform:translateY(110%)">Matt</div></div>
+    <div style="overflow:hidden;padding-top:.06em"><div data-k=".2106,.2288,.2496,.2574" data-fx="rise" style="transform:translateY(110%)">King</div></div>
+  </div>
+  <div data-k=".2236,.2392,.247,.2548" data-fx="fade" style="opacity:0;margin-top:clamp(18px,3vh,32px);display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px clamp(20px,3vw,44px);max-width:1100px;align-items:end">
+    <div style="font-size:clamp(22px,2.1vw,32px);font-weight:600;line-height:1.1;letter-spacing:-.01em;text-wrap:pretty">I'm Matt. I make global football feel local.</div>
+    <div style="font-size:13px;line-height:1.5;font-weight:400;color:rgba(243,242,242,.72);border-top:2px solid rgba(243,242,242,.3);padding-top:10px">Global Marketing Manager, Football — DAZN<br>FIFA+ · UEFA Champions League · Serie A · LaLiga · Bundesliga</div>
+  </div>
+  <div data-k=".2314,.245,.2496,.2574" data-fx="fade" data-pe="" style="opacity:0;margin-top:clamp(18px,3vh,28px);display:flex;flex-wrap:wrap;gap:12px">
+    <a href="mailto:Matt17King@gmail.com" style="display:flex;align-items:center;justify-content:space-between;gap:48px;min-width:230px;padding:16px 18px;background:var(--color-accent);color:var(--color-bg);font-weight:800;font-size:15px;letter-spacing:.02em" style-hover="background:var(--color-accent-400);color:var(--color-bg)"><span>Let's talk</span><span>→</span></a>
+    <a href="https://linkedin.com/in/mattking17" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;gap:48px;min-width:180px;padding:14px 16px;border:2px solid rgba(243,242,242,.5);color:var(--color-bg);font-weight:800;font-size:15px" style-hover="border-color:var(--color-bg);color:var(--color-bg)"><span>LinkedIn</span><span>↗</span></a>
+  </div>
+</div>
+
+<!-- 35' the rights -->
+<div data-m="sheet" data-k=".372,.382,.441,.448" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);top:92px;bottom:64px;z-index:3;pointer-events:none;width:min(300px,26vw);display:flex;flex-direction:column;overflow:hidden">
+  <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:14px">35' — THE CENTRE SPOT</div>
+  <div data-hide-m="" style="display:flex;flex-direction:column;border-top:2px solid rgba(243,242,242,.3)">
+    <div data-ri="0" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">01</span><span>FIFA+</span></div>
+    <div data-ri="1" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">02</span><span>FIFA WORLD CUP</span></div>
+    <div data-ri="2" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">03</span><span>UEFA CHAMPIONS LEAGUE</span></div>
+    <div data-ri="3" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">04</span><span>SERIE A</span></div>
+    <div data-ri="4" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">05</span><span>LALIGA</span></div>
+    <div data-ri="5" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">06</span><span>BUNDESLIGA</span></div>
+    <div data-ri="6" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">07</span><span>COPA SUDAMERICANA</span></div>
+    <div data-ri="7" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">08</span><span>NATIONAL LEAGUE</span></div>
+  </div>
+  <div style="display:grid;margin-top:clamp(8px,1.6vh,18px);font-size:14px;line-height:1.4;color:rgba(243,242,242,.85)">
+    <div data-rd="0" style="grid-area:1/1;opacity:0">I led FIFA's move onto DAZN. Over 3M FIFA+ fans came across, and they're still signing up.</div>
+    <div data-rd="1" style="grid-area:1/1;opacity:0">World Cups at every level: senior, U-20, U-20 Women's and U-17.</div>
+    <div data-rd="2" style="grid-area:1/1;opacity:0">Champions League and Europa League, positioned differently for the US, Canada and New Zealand.</div>
+    <div data-rd="3" style="grid-area:1/1;opacity:0">I lead UK marketing for DAZN's exclusive Serie A rights.</div>
+    <div data-rd="4" style="grid-area:1/1;opacity:0">LaLiga, planned market by market with every international office.</div>
+    <div data-rd="5" style="grid-area:1/1;opacity:0">Bundesliga, localised territory by territory. Same rights, different story.</div>
+    <div data-rd="6" style="grid-area:1/1;opacity:0">Copa Sudamericana, taken to new audiences across DAZN's markets.</div>
+    <div data-rd="7" style="grid-area:1/1;opacity:0">I designed and launched the campaign taking the National League to a wider UK audience.</div>
+  </div>
+</div>
+
+<!-- 60' the stands -->
+<div data-k=".698,.708,.766,.774" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 32px;background:rgba(11,10,10,.84);border-top:2px solid var(--color-accent);padding:14px 16px">
+  <div style="max-width:520px">
+    <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent);margin-bottom:8px">60' — THE STANDS</div>
+    <div style="font-weight:800;text-transform:uppercase;font-size:clamp(20px,2vw,30px);line-height:.95;letter-spacing:-.02em">Seven market zones. One way of working.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:11px;font-weight:800;letter-spacing:.12em;padding-bottom:4px">
+    <div data-zi="0" style="opacity:.4">UK</div>
+    <div data-zi="1" style="opacity:.4">NORTH AMERICA</div>
+    <div data-zi="2" style="opacity:.4">LATAM</div>
+    <div data-zi="3" style="opacity:.4">MENA</div>
+    <div data-zi="4" style="opacity:.4">SOUTH EAST ASIA</div>
+    <div data-zi="5" style="opacity:.4">AUSTRALIA &amp; NZ</div>
+    <div data-zi="6" style="opacity:.4">REST OF WORLD</div>
+  </div>
+</div>
+
+<!-- 50' dressing room -->
+<div data-k=".634,.642,.672,.68" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:grid;background:rgba(11,10,10,.86);border-top:2px solid var(--color-accent)">
+  <sc-for list="{{ kit }}" as="k" hint-placeholder-count="3">
+    <div data-kc="{{ k.i }}" style="grid-area:1/1;opacity:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:6px 28px;padding:12px 16px 14px;align-items:end">
+      <div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:rgba(243,242,242,.6)"><span style="color:var(--color-accent)">50' — THE DRESSING ROOM</span> · THE KIT · {{ k.n }}</div>
+        <div style="font-weight:800;text-transform:uppercase;font-size:clamp(20px,2.2vw,32px);line-height:.95;letter-spacing:-.02em;margin-top:6px">{{ k.title }}</div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--color-accent-400);margin-top:6px;text-transform:uppercase">{{ k.tools }}</div>
+      </div>
+      <div style="font-size:14px;line-height:1.45;color:rgba(243,242,242,.85);text-wrap:pretty">{{ k.detail }}</div>
+    </div>
+  </sc-for>
+</div>
+
+<!-- 70' team sheet: core strengths XI -->
+<div data-m="sheet" data-k=".785,.795,.86,.868" data-fx="fade" data-pe="" style="opacity:0;position:fixed;right:clamp(20px,3vw,44px);top:92px;bottom:64px;z-index:3;width:min(360px,34vw);display:flex;flex-direction:column;gap:10px">
+  <div style="font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--color-accent)">70' — THE TEAM SHEET</div>
+  <div style="background:rgba(11,10,10,.88);border-top:2px solid var(--color-accent);padding:12px 14px 14px;flex-shrink:0">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><div data-xt="" style="font-weight:800;text-transform:uppercase;font-size:clamp(20px,2vw,28px);line-height:.95;letter-spacing:-.02em">Starting XI</div><div data-xp="" style="font-size:10px;font-weight:800;letter-spacing:.14em;color:rgba(243,242,242,.55)">CORE STRENGTHS</div></div>
+    <div data-xd="" style="font-size:13px;line-height:1.45;color:rgba(243,242,242,.85);margin-top:8px;text-wrap:pretty">Hover a player to see the evidence.</div>
+  </div>
+  <div data-hide-m="" style="min-height:0;overflow:auto;background:rgba(11,10,10,.88);border:2px solid rgba(243,242,242,.25)">
+    <sc-for list="{{ xi }}" as="x" hint-placeholder-count="11">
+      <div data-xi="{{ x.i }}" data-title="{{ x.name }}" data-pos="{{ x.pos }}" data-detail="{{ x.detail }}" style="display:grid;grid-template-columns:30px 1fr auto;align-items:baseline;gap:10px;padding:clamp(5px,.9vh,9px) 12px;border-bottom:1px solid rgba(243,242,242,.1);cursor:pointer" style-hover="background:rgba(236,48,19,.18)">
+        <span style="font-size:12px;font-weight:800;color:var(--color-accent);font-variant-numeric:tabular-nums">{{ x.n }}</span>
+        <span style="font-size:14px;font-weight:800">{{ x.name }}</span>
+        <span style="font-size:10px;font-weight:800;letter-spacing:.12em;color:rgba(243,242,242,.5)">{{ x.pos }}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+
+<!-- 75' the bench -->
+<div data-m="sheet" data-k=".874,.884,.932,.94" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);top:92px;z-index:3;pointer-events:none;width:min(420px,calc(100vw - 40px));background:rgba(11,10,10,.88);padding:12px 0 0">
+  <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:.16em;margin-bottom:10px;padding:0 16px"><span style="color:var(--color-accent)">75' — THE BENCH</span><span data-bn="" style="color:rgba(243,242,242,.6)">01 / 05</span></div>
+  <div style="display:grid;background:rgba(11,10,10,.86);border-top:2px solid var(--color-accent)">
+    <sc-for list="{{ bench }}" as="b" hint-placeholder-count="5">
+      <div data-bc="{{ b.i }}" style="grid-area:1/1;opacity:0;padding:14px 16px 16px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.14em;color:rgba(243,242,242,.6)">{{ b.years }}</div>
+        <div style="font-weight:800;text-transform:uppercase;font-size:clamp(26px,2.8vw,42px);line-height:.92;letter-spacing:-.025em;margin-top:6px">{{ b.name }}</div>
+        <div style="font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--color-accent-400);margin-top:8px;text-transform:uppercase">{{ b.role }}</div>
+        <div style="font-size:14px;line-height:1.45;color:rgba(243,242,242,.85);margin-top:10px;text-wrap:pretty">{{ b.detail }}</div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+
+<!-- 90' full time -->
+<div style="position:fixed;left:0;right:0;bottom:0;z-index:4;padding:0 clamp(20px,3vw,44px) clamp(64px,10vh,110px);pointer-events:none">
+  <div data-k=".965,.975" data-fx="fade" style="opacity:0;font-size:12px;font-weight:800;letter-spacing:.16em;display:flex;gap:14px;margin-bottom:14px"><span style="color:var(--color-accent)">90:00</span><span>FULL TIME</span></div>
+  <div style="font-weight:800;text-transform:uppercase;font-size:clamp(84px,16vw,290px);line-height:.8;letter-spacing:-.055em">
+    <div style="overflow:hidden;padding-top:.06em"><div data-k=".968,.985" data-fx="rise" style="transform:translateY(110%)">Matt</div></div>
+    <div style="overflow:hidden;padding-top:.06em"><div data-k=".97,.988" data-fx="rise" style="transform:translateY(110%)">King</div></div>
+  </div>
+  <div data-k=".978,.994" data-fx="fade" data-pe="" style="opacity:0;margin-top:clamp(18px,3vh,32px);display:flex;flex-wrap:wrap;gap:20px 28px;align-items:center">
+    <div style="font-size:clamp(22px,2.1vw,32px);font-weight:600;line-height:1.1">What's the next campaign?</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px">
+      <a href="mailto:Matt17King@gmail.com" style="display:flex;align-items:center;justify-content:space-between;gap:48px;min-width:230px;padding:16px 18px;background:var(--color-accent);color:var(--color-bg);font-weight:800;font-size:15px;letter-spacing:.02em" style-hover="background:var(--color-accent-400);color:var(--color-bg)"><span>Let's talk</span><span>→</span></a>
+      <a href="https://linkedin.com/in/mattking17" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;gap:48px;min-width:180px;padding:14px 16px;border:2px solid rgba(243,242,242,.5);color:var(--color-bg);font-weight:800;font-size:15px" style-hover="border-color:var(--color-bg);color:var(--color-bg)"><span>LinkedIn</span><span>↗</span></a>
+    </div>
+  </div>
+</div>
+
+<div data-tip="" style="position:fixed;left:0;top:0;z-index:8;pointer-events:none;display:none;background:#f3f2f2;color:#0b0a0a;padding:8px 10px;font-size:12px;font-weight:800;letter-spacing:.06em;max-width:260px;line-height:1.35"></div>
+<div data-ballhint="" style="position:fixed;left:0;top:0;z-index:3;pointer-events:none;display:none;transform:translate(26px,-50%);font-size:10px;font-weight:800;letter-spacing:.16em;white-space:nowrap;background:rgba(11,10,10,.8);padding:5px 8px;border-left:2px solid var(--color-accent)">CLICK THE BALL — TAKE A SHOT</div>
+<div data-goal="" style="position:fixed;inset:0;z-index:9;pointer-events:none;display:flex;align-items:center;padding:0 clamp(20px,3vw,44px);opacity:0;transition:opacity .25s ease">
+  <div style="font-weight:800;text-transform:uppercase;font-size:clamp(96px,22vw,380px);line-height:.8;letter-spacing:-.06em;color:var(--color-accent)">Goal.</div>
+</div>
+
+<!-- caption bar -->
+<div style="position:fixed;left:0;right:0;bottom:0;z-index:5;pointer-events:none;padding:0 clamp(20px,3vw,44px) 22px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;border-top:2px solid rgba(243,242,242,.16);padding-top:12px;font-size:12px;font-weight:800;letter-spacing:.16em">
+    <div style="display:grid">
+      <div data-k="-1,-.5,.088,.094" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px"><span style="color:var(--color-accent)">05'</span><span>THE TUNNEL</span></div>
+      <div data-k=".096,.1,.18,.188" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">15'</span><span>THE STADIUM BUILDS</span></div>
+      <div data-k=".19,.198,.254,.262" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">20'</span><span>THE WALK-OUT</span></div>
+      <div data-k=".268,.278,.362,.37" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">30'</span><span>THE BIG SCREEN</span></div>
+      <div data-k=".37,.38,.44,.446" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">35'</span><span>THE CENTRE SPOT</span></div>
+      <div data-k=".446,.456,.52,.528" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">40'</span><span>THE PORTFOLIO</span></div>
+      <div data-k=".53,.54,.6,.608" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">45'</span><span>HALF-TIME</span></div>
+      <div data-k=".604,.614,.676,.684" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">50'</span><span>THE DRESSING ROOM</span></div>
+      <div data-k=".69,.7,.77,.778" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">60'</span><span>THE STANDS</span></div>
+      <div data-k=".775,.785,.862,.87" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">70'</span><span>THE TEAM SHEET</span></div>
+      <div data-k=".866,.876,.936,.944" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">75'</span><span>THE BENCH</span></div>
+      <div data-k=".944,.952" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">90'</span><span>FULL TIME</span></div>
+    </div>
+    <div style="display:grid;text-align:right;color:rgba(243,242,242,.62)">
+      <div data-k="-1,-.5,.003,.008" data-fx="fade" style="grid-area:1/1">SCROLL TO WALK OUT ↓</div>
+      <div data-k=".198,.21,.254,.262" data-fx="fade" style="grid-area:1/1;opacity:0">DRAG TO LOOK AROUND</div>
+    </div>
+  </div>
+</div>
+
+<!-- kick-off -->
+<div ref="{{ kickWrapRef }}" style="position:fixed;inset:0;z-index:10;background:#0b0a0a">
+  <canvas ref="{{ kickRef }}" style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>
+  <div data-kick-ui="" style="position:absolute;inset:0;pointer-events:none;padding:clamp(20px,3vw,44px);display:flex;flex-direction:column;justify-content:space-between;transition:opacity .35s ease">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--color-accent)">KICK-OFF</div>
+        <div style="font-size:12px;font-weight:800;letter-spacing:.16em">MATT KING — GLOBAL FOOTBALL MARKETING</div>
+      </div>
+      <div style="display:flex;gap:10px;pointer-events:auto">
+      <button onClick="{{ soundOnIntro }}" style="display:flex;align-items:center;justify-content:space-between;gap:28px;padding:10px 12px;background:var(--color-accent);border:2px solid var(--color-accent);color:#f3f2f2;font-family:inherit;font-weight:800;font-size:12px;letter-spacing:.12em;cursor:pointer" style-hover="background:var(--color-accent-400);border-color:var(--color-accent-400)"><span>{{ introSoundLabel }}</span><span>♪</span></button>
+      <button onClick="{{ skipIntro }}" style="pointer-events:auto;display:flex;align-items:center;justify-content:space-between;gap:28px;padding:10px 12px;background:none;border:2px solid rgba(243,242,242,.4);color:#f3f2f2;font-family:inherit;font-weight:800;font-size:12px;letter-spacing:.12em;cursor:pointer" style-hover="border-color:var(--color-accent);color:var(--color-accent-400)"><span>SKIP</span><span>→</span></button>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap">
+      <div data-kclock="" style="font-weight:800;font-variant-numeric:tabular-nums;font-size:clamp(64px,10vw,168px);line-height:.82;letter-spacing:-.05em">00:00</div>
+      <div data-hide-m="" style="display:grid;grid-template-columns:repeat(2,auto);gap:6px 28px;font-size:11px;font-weight:800;letter-spacing:.14em">
+        <div data-zone="0" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>01</span><span>UK</span></div>
+        <div data-zone="1" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>02</span><span>NORTH AMERICA</span></div>
+        <div data-zone="2" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>03</span><span>LATAM</span></div>
+        <div data-zone="3" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>04</span><span>MENA</span></div>
+        <div data-zone="4" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>05</span><span>SEA</span></div>
+        <div data-zone="5" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>06</span><span>ANZ</span></div>
+        <div data-zone="6" style="display:flex;gap:10px;color:rgba(243,242,242,.3)"><span>07</span><span>REST OF WORLD</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height:5200vh"></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  rootRef = React.createRef(); canvasRef = React.createRef(); kickRef = React.createRef(); kickWrapRef = React.createRef();
+  state = { menu: false, sound: false };
+  KBG = '#0b0a0a'; HE = 0.26;
+  ZONE_ON = '#ec3013'; ZONE_OFF = 'rgba(243,242,242,.3)';
+  MIN = [[0, 5], [0.088, 15], [0.19, 20], [0.26, 29], [0.27, 30], [0.37, 35], [0.446, 40], [0.53, 45], [0.604, 50], [0.69, 60], [0.775, 70], [0.866, 75], [0.944, 85], [1, 90]];
+  RR = [0.382, 0.44]; TIFO_BEATS = [0.708, 0.766]; BENCH = [0.866, 0.936]; KIT_R = [0.636, 0.672]; XI_R = [0.792, 0.858];
+  KIT = [
+    { tag: 'DATA', wall: 'left', title: 'Performance & data', tools: 'Google Analytics · Meta Ads Manager · Google Ads', detail: 'I put budget where it performs: social ads optimised for ROI, weekly reporting, and a clear call on what to do next.', items: [['ANALYTICS', 1], ['META ADS', 2], ['GOOGLE ADS', 3]] },
+    { tag: 'COMMERCE', wall: 'back', title: 'Commerce, CRM & creative', tools: 'Klaviyo · Shopify Plus · Sprout Social · Adobe CC · Make.com', detail: 'I built the e-commerce strategy that grew online sales by 41%, with email, community and creative in-house.', items: [['KLAVIYO', 4], ['SHOPIFY', 5], ['SPROUT', 6], ['ADOBE', 7], ['MAKE', 8]] },
+    { tag: 'AI', wall: 'right', title: 'AI & automation', tools: 'Claude · ChatGPT · Gemini', detail: "I build AI workflows that make teams faster without losing the idea. It's how I work every day.", items: [['CLAUDE', 9], ['CHATGPT', 10], ['GEMINI', 11]] },
+  ];
+  GATES = [
+    { z: 114, lines: ['MOST'] }, { z: 104, lines: ['FOOTBALL'] }, { z: 94, lines: ['MARKETING'] }, { z: 84, lines: ['SHOUTS.'], red: true },
+    { z: 60, lines: ['THE BEST GIVES PEOPLE', 'A REASON TO CARE.'], kind: 'care', red: true },
+  ];
+  // Licensed logo files: drop PNG/SVG (white or full-colour on transparent) into /logos and map slug -> filename, e.g. 'serie-a': 'serie-a.png'
+  // Photos: drop files into /photos and set the path here (null = labelled placeholder in the 3D world)
+  PHOTOS = { walkout: null, portrait: null, work: null, team: null, lockers: [] };
+  LOGOS = { 'puma': 'puma.png', 'adidas': 'adidas.png', 'la-galaxy': 'la-galaxy.png', 'fifa-world-cup': 'fifa-world-cup.png', 'national-league': 'national-league.png', 'fifa-plus': 'fifa-plus.png', 'laliga': 'laliga.png', 'arsenal': 'arsenal.png', 'man-city': 'man-city.png', 'uefa-europa-league': 'uefa-europa-league.png', 'serie-a': 'serie-a.png', 'bundesliga': 'bundesliga.png', 'uefa-champions-league': 'uefa-champions-league.png', 'fc-barcelona': 'fc-barcelona.png' };
+  RIGHTS = [
+    { slug: 'fifa-plus', name: 'FIFA+', sub: '3M+ users migrated' },
+    { slug: 'fifa-world-cup', name: 'FIFA World Cup', sub: 'Senior · U-20 · U-17' },
+    { slug: 'uefa-champions-league', name: 'UEFA Champions League', sub: 'US · Canada · New Zealand' },
+    { slug: 'serie-a', name: 'Serie A', sub: 'UK exclusive' },
+    { slug: 'laliga', name: 'LaLiga', sub: 'Global markets' },
+    { slug: 'bundesliga', name: 'Bundesliga', sub: 'Global markets' },
+    { slug: 'copa-sudamericana', name: 'Copa Sudamericana', sub: 'Global markets' },
+    { slug: 'national-league', name: 'National League', sub: 'UK growth' },
+  ];
+  TILE_CATS = [
+    { name: 'Rights', items: ['FIFA+|fifa-plus', 'FIFA World Cup|fifa-world-cup', 'UEFA Champions League|uefa-champions-league', 'UEFA Europa League|uefa-europa-league', 'Serie A|serie-a', 'LaLiga|laliga', 'Bundesliga|bundesliga', 'Copa Sudamericana|copa-sudamericana', 'National League|national-league'] },
+    { name: 'Clubs & brands', items: ['Manchester City FC|man-city', 'FC Barcelona|fc-barcelona', 'Arsenal FC|arsenal', 'LA Galaxy|la-galaxy', 'Crewe Alexandra FC|crewe', 'DP World Tour|dp-world-tour', 'adidas|adidas', 'PUMA|puma', 'Under Armour|under-armour'] },
+    { name: 'Talent', items: ['Phil Foden|phil-foden', 'Kyle Walker|kyle-walker', 'Molly-Mae Hague|molly-mae', 'Conor McGregor|conor-mcgregor', 'Tom Aspinall|tom-aspinall', 'Niall Horan|niall-horan', 'Judy Murray|judy-murray', 'Madeline Argy|madeline-argy', 'Alex Bowen|alex-bowen'] },
+    { name: 'Platforms', items: ['TikTok|tiktok', 'Instagram|instagram', 'Meta|meta'] },
+  ];
+  XI = [
+    [-46, 0, 1, 'Budget management', 'GK', 'I look after a seven-figure budget and decide where every pound works hardest, channel by channel.'],
+    [-31, 21, 2, 'Rights-holder partnerships', 'RB', "I'm FIFA's lead marketing contact on the DAZN deal, and I work day to day with clubs, associations and commercial partners."],
+    [-31, -21, 3, 'Agency & creative partners', 'LB', 'I run the creative agency relationship, including a tournament asset pipeline that never stops.'],
+    [-33, -7, 4, 'Team building', 'CB', "I'm building the marketing team around DAZN's football arm. At 80 Four I hired and managed talent internationally."],
+    [-33, 7, 5, 'Process design', 'CB', 'I build the processes that let campaigns land the same way, on time, in every market.'],
+    [-16, 0, 6, 'Cross-functional leadership', 'DM', 'Eight teams across global offices: social, email, CRM, platform, creative, SEO, paid and demand. One plan.'],
+    [3, 21, 7, 'Platform partnerships', 'RW', "I own DAZN's football relationships with TikTok, Instagram and Meta, end to end."],
+    [-14, 13, 8, 'Multi-market growth', 'CM', 'North America, LATAM, MENA, SEA, ANZ and the rest of the world, each with its own go-to-market plan.'],
+    [6, 0, 9, 'Global go-to-market', 'ST', "I set the season-long campaign idea for DAZN's football rights worldwide. Everything else follows it."],
+    [-14, -13, 10, 'Brand & creative direction', 'CM', "One idea, executed so it feels native in every market. That's the job."],
+    [3, -21, 11, 'AI workflows & automation', 'LW', 'I design the AI workflows that let teams move faster, with Claude, ChatGPT, Gemini and Make.com.'],
+  ];
+  BENCH_ITEMS = [
+    { name: 'Gym King', years: '2021 – 2022', role: 'Social Media Executive & Influencer Manager', detail: 'Where it started. I ran every social page and brought in creators like Tom Aspinall, Ash Cain and Alex Bowen.' },
+    { name: 'American Golf', years: '2022 – 2023', role: 'Social Media & Influencer Executive', detail: 'I grew the channels by over 400%, working with ambassadors like Niall Horan and Judy Murray.' },
+    { name: 'The Couture Club', years: '2023 – 2024', role: 'Influencer, Ambassador & Ecommerce', detail: 'I closed Molly-Mae Hague and Phil Foden. Reach went up 600%. Online sales went up 41%.' },
+    { name: 'Swift Agency', years: '2024 – 2025', role: 'Head of Digital Marketing', detail: 'I ran every channel for the agency and its clients: 15+ accounts, one standard.' },
+    { name: '80 Four', years: '2025 – 2026', role: 'Co-founder · Head of Digital Marketing', detail: 'I co-founded a brand-elevation agency and won Crewe Alexandra FC. Fan engagement went up by more than 450%.' },
+  ];
+
+  componentDidMount() { this.boot(); }
+  componentWillUnmount() {
+    this.dead = true; this.eng && this.eng.dispose(); this.kick && this.kick.cancel();
+    window.removeEventListener('scroll', this.onScroll); window.removeEventListener('resize', this.onScroll);
+    document.documentElement.style.overflow = '';
+  }
+
+  engineOpts() {
+    return {
+      heroEnd: this.HE, logos: this.LOGOS, rights: this.RIGHTS,
+      tileCats: this.TILE_CATS.map(c => ({ name: c.name, items: c.items.map(s => { const [name, slug] = s.split('|'); return { name, slug }; }) })),
+      formation: this.XI.map(x => [x[0], x[1], x[2]]),
+      bench: this.BENCH_ITEMS, gates: this.GATES, kit: this.KIT, photos: this.PHOTOS,
+      quality: (matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.hardwareConcurrency || 8) <= 4) ? 'low' : 'high',
+      tifo: ['UK', 'NORTH AMERICA', 'LATAM', 'MENA', 'SOUTH EAST ASIA', 'ANZ', 'WORLD'],
+      screenData: {
+        channels: ['Social', 'Email', 'CRM', 'Platform', 'Creative', 'SEO', 'Paid', 'Demand'],
+        markets: ['UK', 'North America', 'LATAM', 'MENA', 'SEA', 'ANZ', 'Rest of world'],
+        route: [['2021', 'GYM KING'], ['2022', 'AMERICAN GOLF'], ['2023', 'COUTURE CLUB'], ['2024', 'SWIFT'], ['2025', '80 FOUR'], ['2026', 'DAZN']],
+      },
+      messages: {
+        identity: ['MATT KING', 'MARKETER', 'BUILDER', 'FOUNDER', 'STORYTELLER'],
+        principles: ['CONCEPT FIRST', 'LOCAL WINS GLOBALLY', 'PLATFORMS ARE PARTNERS'],
+        rights: ['FIFA+', 'FIFA WORLD CUP', 'UEFA CHAMPIONS LEAGUE', 'SERIE A', 'LALIGA', 'BUNDESLIGA', 'COPA SUDAMERICANA', 'NATIONAL LEAGUE'],
+        markets: ['UK', 'NORTH AMERICA', 'LATAM', 'MENA', 'SOUTH EAST ASIA', 'AUSTRALIA & NEW ZEALAND', 'REST OF WORLD'],
+        kit: ['GOOGLE ANALYTICS', 'META ADS MANAGER', 'GOOGLE ADS', 'KLAVIYO', 'SHOPIFY PLUS', 'SPROUT SOCIAL', 'ADOBE CC', 'MAKE.COM', 'CLAUDE', 'CHATGPT', 'GEMINI'],
+        squad: ['STRATEGY', 'PARTNERSHIPS', 'LEADERSHIP', 'CREATIVE DIRECTION', 'AI WORKFLOWS'],
+        bench: ['GYM KING', 'AMERICAN GOLF', 'THE COUTURE CLUB', 'SWIFT AGENCY', '80 FOUR', 'DAZN'],
+        goal: ['GOAL!', 'MATT KING', 'GOAL!', 'WHAT A FINISH'],
+        contact: ["LET'S TALK", 'MATT17KING@GMAIL.COM', 'LINKEDIN.COM/IN/MATTKING17'],
+      },
+      tl: {
+        dissolve: [0.446, 0.464], reform: [0.517, 0.532], board: [0.525, 0.538, 0.6, 0.61],
+        lights: [[0.26, 0.38], [0.365, 0.38], [0.38, 0.6], [0.69, 0.6], [0.7, 0.85], [0.77, 0.85], [0.78, 0.6], [0.862, 0.6], [0.87, 0.7], [0.94, 0.7], [0.95, 0.85]],
+        lightsOff: 0.955,
+        spot: [[0.26, 1], [0.365, 1], [0.38, 0]],
+        crowd: [[0.26, 1], [0.69, 1], [0.7, 0.12], [0.77, 0.12], [0.78, 1], [0.955, 1], [0.985, 0]],
+        ledPlan: [[0, 'identity'], [0.268, 'principles'], [0.37, 'rights'], [0.6, 'kit'], [0.69, 'markets'], [0.775, 'squad'], [0.866, 'bench'], [0.94, 'contact']],
+        boardsOn: [[0.26, 1], [1, 1]],
+        screen: [[0.262, 0], [0.28, 1], [0.365, 1], [0.38, 0.3], [0.92, 0.3], [0.95, 1], [1, 1]],
+        beats: [0.29, 0.36], ft: 0.95,
+        badge: [0.37, 0.382, 0.523, 0.532], rights: this.RR, summary: [0.446, 0.456],
+        wallIn: 0.464, wallOut: 0.508, tactics: [0.54, 0.595],
+        tifo: [0.692, 0.71, 0.766, 0.778], tifoBeats: this.TIFO_BEATS,
+        xi: [0.786, 0.862], bench: this.BENCH, kit: this.KIT_R, ballEnd: 0.268,
+      },
+      camera: this.cameraKeys(),
+    };
+  }
+
+  cameraKeys() {
+    const K = [
+      { p: 0.26, pos: [-7.5, 1.7, -6.5], tgt: [6, 1.5, 3], fov: 46 },
+      { p: 0.276, pos: [2, 9, 0], tgt: [0, 22, 70], fov: 38 },
+      { p: 0.288, pos: [0, 16.5, 24], tgt: [0, 28.5, 72], fov: 30 },
+      { p: 0.362, pos: [0, 16.5, 27], tgt: [0, 28.5, 72], fov: 30 },
+      { p: 0.378, pos: [0, 30, 0.6], tgt: [0, 0, 0], fov: 40 },
+      { p: 0.446, pos: [0, 33, 0.6], tgt: [0, 0, 0], fov: 40 },
+      { p: 0.462, pos: [0, 112, 1.5], tgt: [0, 0, 0], fov: 40 },
+      { p: 0.6, pos: [0, 112, 1.5], tgt: [0, 0, 0], fov: 40 },
+      { p: 0.612, pos: [0, 2.2, 30], tgt: [0, 1.8, 80], fov: 60 },
+      { p: 0.626, pos: [0, 1.8, 118], tgt: [0, 1.7, 150], fov: 62 },
+    ];
+    const [ka, kb] = this.KIT_R, ks = (kb - ka) / 3;
+    const snaps = [{ pos: [-1.8, 1.55, 134], tgt: [-8.6, 1.05, 134] }, { pos: [0, 1.55, 137.6], tgt: [0, 1.05, 146] }, { pos: [1.8, 1.55, 134], tgt: [8.6, 1.05, 134] }];
+    snaps.forEach((s, i) => { K.push({ p: ka + i * ks + 0.002, ...s, fov: i === 1 ? 62 : 58 }, { p: ka + (i + 1) * ks - 0.002, ...s, fov: i === 1 ? 62 : 58 }); });
+    K.push({ p: 0.68, pos: [0, 1.8, 92], tgt: [0, 1.7, 40], fov: 62 }, { p: 0.69, pos: [0, 2.4, 36], tgt: [0, 4, 0], fov: 56 },
+      { p: 0.7, pos: [-4, 12, 30], tgt: [0, 4.5, -60], fov: 44 }, { p: 0.77, pos: [4, 12.5, 26], tgt: [0, 4.5, -60], fov: 44 },
+      { p: 0.786, pos: [10, 95, 1.5], tgt: [10, 0, 0], fov: 40 });
+    const [xa, xb] = this.XI_R, xs = (xb - xa) / this.XI.length;
+    this.XI.forEach(([px, pz], i) => { const cx = 10 + (px - 10) * 0.3, cz = pz * 0.3; const k = { pos: [cx, 86, 3 + cz], tgt: [cx, 0, cz + 1.5], fov: 40 }; K.push({ p: xa + i * xs + 0.001, ...k }, { p: xa + (i + 1) * xs - 0.001, ...k }); });
+    const B0 = this.BENCH[0] + 0.01, bs = (this.BENCH[1] - B0) / this.BENCH_ITEMS.length;
+    this.BENCH_ITEMS.forEach((b, i) => { const x = (i - (this.BENCH_ITEMS.length - 1) / 2) * 2.3 - 1.2; const k = { pos: [x, 2.4, -29.4], tgt: [x, 1.4, -37], fov: 38 }; K.push({ p: B0 + i * bs + 0.002, ...k }, { p: B0 + (i + 1) * bs - 0.002, ...k }); });
+    K.push({ p: 0.96, pos: [-80, 30, -20], tgt: [0, 10, 30], fov: 50 }, { p: 1.0, pos: [-92, 38, -30], tgt: [0, 12, 34], fov: 52 });
+    return K;
+  }
+
+  crowdLevel(p) {
+    const h = p / this.HE;
+    if (h < 0.34) { const k = h / 0.34; return [(0.1 + 0.16 * k) * (p > 0.0468 ? 0.35 : 1), 0.04 + 0.22 * k]; }
+    if (p < this.HE) return [0.55, 1];
+    if (p >= 0.604 && p < 0.69) return [0.1, 0.06];
+    if (p > 0.955) return [0.1, 0.5];
+    return [0.38, 0.85];
+  }
+
+  async setSound(on) {
+    if (!this.snd) { const { createSound } = await import(new URL('sound.js', location.href).href); this.snd = createSound(); }
+    const v = this.snd.toggle(on); this.setState({ sound: v });
+    if (v && this.eng) { const [l, o] = this.crowdLevel(this.eng.progress); this.snd.setCrowd(l, o); }
+  }
+
+  onHover(pk) {
+    const tip = this.tipEl; if (!tip) return;
+    if (!pk || pk.type === 'ball') { tip.style.display = 'none'; return; }
+    let t = '';
+    if (pk.type === 'tile') { const it = this.tileList[pk.id]; t = it ? (it.header ? it.name.toUpperCase() : `${it.name} · ${it.cat}`) : ''; }
+    if (pk.type === 'kit') { const all = this.KIT.flatMap(k => k.items.map(x => [x[0], k.title])); const it = all[pk.id]; t = it ? `${it[0]} · ${it[1]}` : ''; }
+    if (pk.type === 'seat') { const b = this.BENCH_ITEMS[pk.id]; t = `${b.name} · ${b.years} — click to sit here`; }
+    if (pk.type === 'player') { const x = this.XI[pk.id]; t = `${x[2]} · ${x[3]}`; this.showXI(pk.id); }
+    tip.textContent = t; tip.style.display = t ? 'block' : 'none';
+  }
+  onPick(pk) {
+    if (pk.type === 'seat') { const B0 = this.BENCH[0] + 0.01, bs = (this.BENCH[1] - B0) / this.BENCH_ITEMS.length; this.goTo(B0 + (pk.id + 0.5) * bs); }
+    if (pk.type === 'player') this.showXI(pk.id);
+    if (pk.type === 'kit') { const all = this.KIT.flatMap((k, gi) => k.items.map(() => gi)); const gi = all[pk.id], [a, b] = this.KIT_R; this.goTo(a + (gi + 0.5) * (b - a) / 3); }
+  }
+  showXI(i) {
+    const el = this.xiEls && this.xiEls[i]; if (!el) return; this.hoverT = performance.now() + 2500; const { xt, xp, xd } = this.xiShow;
+    xt.textContent = el.dataset.title; xp.textContent = el.dataset.pos; xd.textContent = el.dataset.detail;
+    this.xiEls.forEach((e, j) => { e.style.background = j === i ? 'rgba(236,48,19,.22)' : ''; }); this.eng && this.eng.setHighlight(i);
+  }
+  goal() {
+    const g = this.goalEl; if (g) { g.style.opacity = '1'; clearTimeout(this.goalTO); this.goalTO = setTimeout(() => { g.style.opacity = '0'; }, 1800); }
+    if (this.snd) { this.snd.roar(); this.snd.whistle(1); }
+  }
+
+  async boot() {
+    const root = this.rootRef.current; if (!root) return;
+    this.scrub = [...root.querySelectorAll('[data-k]')].map(el => ({ el, k: el.dataset.k.split(',').map(Number), fx: el.dataset.fx || 'fade', pe: el.hasAttribute('data-pe'), t: -1 }));
+    this.ri = [...root.querySelectorAll('[data-ri]')]; this.rd = [...root.querySelectorAll('[data-rd]')];
+    this.zi = [...root.querySelectorAll('[data-zi]')];
+    this.bc = [...root.querySelectorAll('[data-bc]')]; this.bn = root.querySelector('[data-bn]');
+    this.idx = {};
+    this.clockEl = root.querySelector('[data-clock]'); this.barEl = root.querySelector('[data-bar]');
+    const xt = root.querySelector('[data-xt]'), xp = root.querySelector('[data-xp]'), xd = root.querySelector('[data-xd]');
+    this.xiEls = [...root.querySelectorAll('[data-xi]')]; this.xiShow = { xt, xp, xd }; this.hoverT = 0;
+    this.kc = [...root.querySelectorAll('[data-kc]')]; this.kn = root.querySelector('[data-kn]');
+    this.prevP = 0;
+    this.tipEl = root.querySelector('[data-tip]'); this.ballEl = root.querySelector('[data-ballhint]'); this.goalEl = root.querySelector('[data-goal]');
+    this.tileList = this.TILE_CATS.flatMap(c => [{ header: true, name: c.name }, ...c.items.map(s => ({ name: s.split('|')[0], cat: c.name }))]);
+    window.addEventListener('pointermove', e => { if (this.tipEl && this.tipEl.style.display === 'block') { this.tipEl.style.transform = `translate(${e.clientX + 16}px,${e.clientY + 14}px)`; } }, { passive: true });
+    if (innerWidth < 760) {
+      root.querySelectorAll('[data-hide-m]').forEach(e => { e.style.display = 'none'; });
+      root.querySelectorAll('[data-m="sheet"]').forEach(e => Object.assign(e.style, { left: '16px', right: '16px', width: 'auto', top: 'auto', bottom: '58px', maxHeight: '44vh', overflow: 'auto', translate: 'none' }));
+    }
+    root.querySelectorAll('[data-xi]').forEach(el => {
+      const show = () => { this.hoverT = performance.now() + 2500; xt.textContent = el.dataset.title; xp.textContent = el.dataset.pos; xd.textContent = el.dataset.detail; this.eng && this.eng.setHighlight(Number(el.dataset.xi)); };
+      el.addEventListener('mouseenter', show); el.addEventListener('click', show);
+    });
+    window.scrollTo(0, 0);
+    const enginePromise = import(new URL('stadium-engine-v7.js', location.href).href)
+      .then(m => m.createStadium(this.canvasRef.current, { ...this.engineOpts(), onFrame: s => this.frame(s), onHover: pk => this.onHover(pk), onPick: pk => this.onPick(pk), onKick: () => { this.snd && this.snd.whoosh(0.8); }, onGoal: () => this.goal() }))
+      .then(eng => { if (this.dead) { eng.dispose(); return; } this.eng = eng; window.__mkJump = v => { this.frozen = true; eng.jump(v); }; this.onScroll(); });
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+    window.addEventListener('resize', this.onScroll);
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { enginePromise.then(() => this.endIntro()); return; }
+    this.startIntro(enginePromise);
+  }
+
+  async startIntro(waitFor) {
+    const wrap = this.kickWrapRef.current; if (!wrap) return;
+    document.documentElement.style.overflow = 'hidden';
+    wrap.style.display = 'block'; wrap.style.background = this.KBG;
+    const ui = wrap.querySelector('[data-kick-ui]'); ui.style.opacity = '1';
+    const kc = wrap.querySelector('[data-kclock]');
+    const zones = [...wrap.querySelectorAll('[data-zone]')];
+    zones.forEach(z => z.style.color = this.ZONE_OFF);
+    const { runKickoff } = await import(new URL('kickoff.js', location.href).href);
+    this.kick = runKickoff(this.kickRef.current, {
+      mode: 'night', waitFor,
+      onStart: () => { wrap.style.background = 'transparent'; },
+      onClock: (str) => { kc.textContent = str; },
+      onZone: (i) => { if (zones[i]) zones[i].style.color = this.ZONE_ON; },
+      onVisitor: (v) => { const zEl = zones[v.z]; if (zEl && !zEl.querySelector('[data-you]')) { const y = document.createElement('span'); y.setAttribute('data-you', ''); y.textContent = '· YOU'; y.style.color = '#f3f2f2'; zEl.appendChild(y); } },
+      onPhase: (ph) => { if (ph === 'doors') { ui.style.opacity = '0'; this.snd && this.snd.whistle(1); } },
+      onDone: () => this.endIntro(),
+    });
+  }
+
+  endIntro() {
+    const wrap = this.kickWrapRef.current; if (wrap) wrap.style.display = 'none';
+    document.documentElement.style.overflow = '';
+  }
+
+  onScroll = () => {
+    if (!this.eng || this.frozen) return;
+    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    this.eng.setTarget(window.scrollY / max);
+  };
+
+  minute(p) {
+    const M = this.MIN; for (let i = 0; i < M.length - 1; i++) { const [a, ma] = M[i], [b, mb] = M[i + 1]; if (p <= b) return ma + (mb - ma) * (p - a) / (b - a); } return M[M.length - 1][1];
+  }
+
+  stepIndex(key, p, range, n, els, onFn) {
+    const [a, b] = range; const i = p < a - 0.012 || p > b + 0.012 ? -1 : Math.min(n - 1, Math.max(0, Math.floor((p - a) / (b - a) * n)));
+    if (this.idx[key] === i) return; this.idx[key] = i; onFn(i);
+  }
+
+  frame({ p, ball }) {
+    if (this.ballEl) { if (ball && ball.on && p > 0.247) { this.ballEl.style.display = 'block'; this.ballEl.style.left = ball.x + 'px'; this.ballEl.style.top = ball.y + 'px'; } else this.ballEl.style.display = 'none'; }
+    const sm = x => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
+    for (const it of this.scrub) {
+      const [a, b, c, d] = it.k; let t;
+      if (p <= a) t = 0; else if (p < b) t = sm((p - a) / (b - a)); else if (c === undefined || isNaN(c) || p < c) t = 1; else if (p < d) t = 1 + sm((p - c) / (d - c)); else t = 2;
+      if (Math.abs(it.t - t) < 0.0005) continue; it.t = t;
+      const s = it.el.style, vis = t > 0.001 && t < 1.999;
+      if (it.fx === 'rise') s.transform = `translate3d(0,${t <= 1 ? (1 - t) * 110 : -(t - 1) * 110}%,0)`;
+      else { const op = t <= 1 ? t : 2 - t; s.opacity = op; s.translate = `0 ${(1 - op) * (t <= 1 ? 12 : -12)}px`; }
+      s.visibility = vis ? 'visible' : 'hidden';
+      if (it.pe) s.pointerEvents = t > 0.6 && t < 1.4 ? 'auto' : 'none';
+    }
+    this.stepIndex('r', p, this.RR, this.ri.length, null, i => {
+      this.ri.forEach((el, j) => { el.style.opacity = j === i ? '1' : '.35'; });
+      this.rd.forEach((el, j) => { el.style.opacity = j === i ? '1' : '0'; });
+    });
+    this.stepIndex('z', p, this.TIFO_BEATS, this.zi.length, null, i => {
+      this.zi.forEach((el, j) => { el.style.opacity = j === i ? '1' : '.4'; el.style.color = j === i ? '#ec3013' : ''; });
+    });
+    this.stepIndex('k', p, this.KIT_R, this.kc.length, null, i => {
+      const k = Math.max(0, i); this.kc.forEach((el, j) => { el.style.opacity = j === k ? '1' : '0'; });
+      if (this.kn) this.kn.textContent = `${String(k + 1).padStart(2, '0')} / ${String(this.kc.length).padStart(2, '0')}`;
+    });
+    this.stepIndex('x', p, this.XI_R, this.XI.length, null, i => {
+      if (i < 0 || performance.now() < this.hoverT) return;
+      const el = this.xiEls[i]; if (!el) return; const { xt, xp, xd } = this.xiShow;
+      xt.textContent = el.dataset.title; xp.textContent = el.dataset.pos; xd.textContent = el.dataset.detail;
+      this.xiEls.forEach((e, j) => { e.style.background = j === i ? 'rgba(236,48,19,.22)' : ''; });
+      this.eng && this.eng.setHighlight(i);
+    });
+    if (this.snd && this.snd.enabled) {
+      const a = this.prevP, b = p, HE = this.HE, S = this.snd;
+      const ev = [[0.012, () => S.whoosh(1)], [0.0221, () => S.whoosh(1.1)], [0.0321, () => S.whoosh(1.2)], [0.0421, () => S.whoosh(1.5)], [0.0468, () => S.clunk()], [HE * 0.34, () => S.roar()],
+        [HE * 0.58, () => S.clunk()], [HE * 0.598, () => S.clunk()], [HE * 0.616, () => S.clunk()], [HE * 0.634, () => S.clunk()], [0.53, () => S.whistle(2)], [0.612, () => S.whoosh(1.4)], [0.68, () => S.whoosh(1.2)], [0.944, () => S.whistle(3)]];
+      if (b > a) ev.forEach(([q, f]) => { if (a < q && b >= q) f(); });
+      const [l, o] = this.crowdLevel(p); S.setCrowd(l, o);
+    }
+    this.prevP = p;
+    this.stepIndex('b', p, [this.BENCH[0] + 0.01, this.BENCH[1]], this.bc.length, null, i => {
+      const k = Math.max(0, i);
+      this.bc.forEach((el, j) => { el.style.opacity = j === k ? '1' : '0'; });
+      if (this.bn) this.bn.textContent = `${String(k + 1).padStart(2, '0')} / ${String(this.bc.length).padStart(2, '0')}`;
+    });
+    const m = this.minute(p);
+    if (this.clockEl) this.clockEl.textContent = String(Math.floor(m)).padStart(2, '0') + "'";
+    if (this.barEl) this.barEl.style.width = (m / 90 * 100).toFixed(2) + '%';
+  }
+
+  goTo(p) {
+    this.setState({ menu: false }); this.frozen = false;
+    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    window.scrollTo({ top: p * max, behavior: 'smooth' });
+  }
+
+  replay() {
+    this.setState({ menu: false });
+    window.scrollTo(0, 0); if (this.eng) this.eng.jump(0);
+    this.kick && this.kick.cancel();
+    this.startIntro(Promise.resolve());
+  }
+
+  renderVals() {
+    const ch = [
+      ['00', 'Kick-off', 'replay'], ['05', 'The tunnel', 0.003], ['15', 'The stadium builds', 0.1], ['20', 'The walk-out', 0.21],
+      ['30', 'The big screen', 0.292], ['35', 'The centre spot', 0.385], ['40', 'The portfolio', 0.485], ['45', 'Half-time', 0.57], ['50', 'The dressing room', 0.64],
+      ['60', 'The stands', 0.71], ['70', 'The team sheet', 0.793], ['75', 'The bench', 0.878], ['90', 'Full time', 0.995],
+    ];
+    return {
+      rootRef: this.rootRef, canvasRef: this.canvasRef, kickRef: this.kickRef, kickWrapRef: this.kickWrapRef,
+      menuOpen: this.state.menu,
+      toggleMenu: () => this.setState(s => ({ menu: !s.menu })),
+      skipIntro: () => { this.kick && this.kick.skip(); },
+      chapters: ch.map(([m, n, act]) => ({ m, n, tag: act === 'replay' ? 'REPLAY' : '', go: () => { if (act === 'replay') this.replay(); else this.goTo(act); } })),
+      xi: this.XI.map((x, i) => ({ i, n: x[2], name: x[3], pos: x[4], detail: x[5] })),
+      bench: this.BENCH_ITEMS.map((b, i) => ({ i, ...b })),
+      kit: this.KIT.map((k, i) => ({ i, n: `${String(i + 1).padStart(2, '0')} / ${String(this.KIT.length).padStart(2, '0')}`, tag: k.tag, title: k.title, tools: k.tools, detail: k.detail })),
+      soundLabel: this.state.sound ? 'SOUND ON' : 'SOUND OFF', soundDot: this.state.sound ? '#ec3013' : 'transparent',
+      introSoundLabel: this.state.sound ? 'SOUND ON' : 'ENTER WITH SOUND',
+      toggleSound: () => this.setSound(),
+      soundOnIntro: () => this.setSound(true),
+    };
+  }
+}
+</script>
+</body>
+</html>
