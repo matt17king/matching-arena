@@ -1,5 +1,6 @@
 // Arena engine v12 (photoreal pass) — one night, five venues. The lines redraw themselves from sport to sport, and each stadium rises around them.
 import { drawScreen, drawTactics, placeholder, photo } from './broadcast-gfx.js';
+import { buildRaceDetail } from './race-detail.js';
 import { N, P, ORDER, SPORTS, circuit, strandSet, strandShared, BB, TN } from './arena-sports.js';
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const ss = x => { x = clamp(x); return x * x * (3 - 2 * x); };
@@ -63,6 +64,9 @@ export async function createArena(canvas, o = {}) {
     blotch(g, S, 40, 10, 40, '60,48,40', 0.12); speck(g, S, 1500, '30,28,26', 0.3);
   });
   const texAsphalt = tile(256, '#5a5653', (g, S) => { speck(g, S, 14000, '20,18,17', 0.5, 2); speck(g, S, 6000, '200,196,190', 0.25, 1.5); blotch(g, S, 50, 10, 50, '20,18,16', 0.2); });
+  // derivative bump: perturbs the shading normal from a height expression (micro-relief without normal maps)
+  const BUMP = (h, k) => `{ float bh=(${h})*${k}; vec3 dpx=dFdx(-vViewPosition), dpy=dFdy(-vViewPosition); float dhx=dFdx(bh), dhy=dFdy(bh);
+    vec3 r1=cross(dpy,normal), r2=cross(normal,dpx); float det=dot(dpx,r1); vec3 gr=sign(det)*(dhx*r1+dhy*r2); normal=normalize(abs(det)*normal-gr); }`;
   const triplanar = (mat, tex, scale, ao = 1) => {
     mat.onBeforeCompile = sh => {
       sh.uniforms.tTri = { value: tex }; sh.uniforms.uTriS = { value: scale }; sh.uniforms.uTriAO = { value: ao };
@@ -73,7 +77,9 @@ export async function createArena(canvas, o = {}) {
           vec3 bw = pow(abs(normalize(vTriN)), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
           triC = texture2D(tTri, vTriP.zy * uTriS).rgb * bw.x + texture2D(tTri, vTriP.xz * uTriS).rgb * bw.y + texture2D(tTri, vTriP.xy * uTriS).rgb * bw.z;
           diffuseColor.rgb *= triC * mix(1.0, 0.55 + 0.45 * smoothstep(0.0, 3.5, vTriP.y), uTriAO);`)
-        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor * (0.8 + 0.45 * (1.0 - triC.r)), 0.05, 1.0);');
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor * (0.8 + 0.45 * (1.0 - triC.r)), 0.05, 1.0);')
+        .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+          ${BUMP('dot(triC,vec3(0.3333))', '0.7')}`);
     };
     return mat;
   };
@@ -149,7 +155,7 @@ export async function createArena(canvas, o = {}) {
     Object.assign(sh.uniforms, surfU);
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vSW;').replace('#include <project_vertex>', '#include <project_vertex>\nvSW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
-      uniform float uA; uniform float uB; uniform float uMix; uniform float uAmb; uniform float uRmax; uniform vec3 uRed; varying vec3 vSW; float gR; float gBand;
+      uniform float uA; uniform float uB; uniform float uMix; uniform float uAmb; uniform float uRmax; uniform vec3 uRed; varying vec3 vSW; float gR; float gBand; float gB;
       ${NOISE}
       float fbm(vec2 p){ return 0.5*noise(p)+0.25*noise(p*2.03)+0.125*noise(p*4.01)+0.0625*noise(p*8.07); }
       float bx(vec2 p, vec2 h){ vec2 d=abs(p)-h; return max(d.x,d.y); }
@@ -171,7 +177,7 @@ export async function createArena(canvas, o = {}) {
         vec2 a=abs(p); float key=step(a.x,44.8)*step(26.24,a.x)*step(a.y,7.84);
         c=mix(c,vec3(0.3,0.05,0.03)*(0.85+0.3*grain),max(key,1.0-step(5.76,length(p)))*0.85);
         c*=mix(1.0,0.5,step(0.0,bx(p,vec2(44.8,24.0))));
-        gR=0.24+0.18*noise(p*0.7)+0.1*(1.0-grain);
+        gR=0.24+0.18*noise(p*0.7)+0.1*(1.0-grain); gB=1.2;
         return vec4(c,1.0-smoothstep(0.0,6.0,bx(p,vec2(54.0,33.0)))); }
       vec4 fNfl(vec2 p, vec3 V){ vec2 a=abs(p); vec3 c=grass(p,vec3(0.15,0.25,0.11),vec3(0.115,0.2,0.085),9.144,45.72,V);
         float ez=step(45.72,a.x)*step(a.x,54.86)*step(a.y,24.38); float hz=step(0.5,fract((p.x+p.y)/3.2));
@@ -188,10 +194,12 @@ export async function createArena(canvas, o = {}) {
       vec4 SS(float id, vec2 p, vec3 V){ if(id<0.5) return fFoot(p,V); if(id<1.5) return fBask(p,V); if(id<2.5) return fNfl(p,V); if(id<3.5) return fTen(p,V); return fRace(p,V); }`)
       .replace('#include <map_fragment>', `#include <map_fragment>
         { vec2 p=vSW.xz; vec3 V=normalize(cameraPosition-vSW); float r=length(p*vec2(1.0,1.3)); float Rr=uMix*uRmax; float w=smoothstep(Rr-16.0,Rr,r);
-          gR=0.9; vec4 s; if(uMix<0.001) s=SS(uA,p,V); else if(uMix>0.999) s=SS(uB,p,V); else { vec4 b=SS(uB,p,V); float rb=gR; vec4 a=SS(uA,p,V); s=mix(b,a,w); gR=mix(rb,gR,w); }
+          gR=0.9; gB=9.0; vec4 s; if(uMix<0.001) s=SS(uA,p,V); else if(uMix>0.999) s=SS(uB,p,V); else { vec4 b=SS(uB,p,V); float rb=gR; vec4 a=SS(uA,p,V); s=mix(b,a,w); gR=mix(rb,gR,w); }
           gBand=(1.0-smoothstep(0.0,4.0,abs(r-Rr+2.0)))*step(0.001,uMix)*step(uMix,0.999);
           diffuseColor.rgb=s.rgb; diffuseColor.a=max(s.a,gBand); }`)
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor=gR;')
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        ${BUMP('dot(diffuseColor.rgb,vec3(0.3333))', 'gB')}`)
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance+=uRed*gBand*2.2+diffuseColor.rgb*uAmb;');
   };
   const surf = new THREE.Mesh(new THREE.PlaneGeometry(900, 700), surfMat);
@@ -270,6 +278,13 @@ export async function createArena(canvas, o = {}) {
     const u = { uA: { value: ledTex[firstKey].tex }, uB: { value: ledTex[firstKey].tex }, uAspA: { value: ledTex[firstKey].asp }, uAspB: { value: ledTex[firstKey].asp }, uMix: { value: 1 }, uOff: { value: 0 }, uLen: { value: len }, uH: { value: h }, uBright: { value: bright }, uOp: { value: 0 }, uDir: { value: dir } };
     const m = new THREE.Mesh(new THREE.PlaneGeometry(len, h), new THREE.ShaderMaterial({ uniforms: u, vertexShader: boardVS, fragmentShader: boardFS, transparent: true }));
     m.position.set(x, y, z); m.rotation.y = ry; parent.add(m); const b = { m, u, ribbon: dir < 0 }; Vn.boards.push(b); allBoards.push(b); return m;
+  };
+
+  // curved LED strip on any geometry (uv.x in metres when len = 1)
+  const makeStrip = (Vn, geo, len, h, bright, dir, parent) => {
+    const u = { uA: { value: ledTex[firstKey].tex }, uB: { value: ledTex[firstKey].tex }, uAspA: { value: ledTex[firstKey].asp }, uAspB: { value: ledTex[firstKey].asp }, uMix: { value: 1 }, uOff: { value: 0 }, uLen: { value: len }, uH: { value: h }, uBright: { value: bright }, uOp: { value: 0 }, uDir: { value: dir } };
+    const m = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms: u, vertexShader: boardVS, fragmentShader: boardFS, transparent: true, side: THREE.DoubleSide }));
+    (parent || Vn.root).add(m); const b = { m, u, ribbon: true }; Vn.boards.push(b); allBoards.push(b); return m;
   };
 
   // ---------- point sprites (crowd lights, dust)
@@ -562,7 +577,7 @@ export async function createArena(canvas, o = {}) {
   const tanAt = s => cc.tan[cc.idx(s)];
   const orient = (g, s) => { const [tx, tz] = tanAt(s); g.rotation.y = Math.atan2(-tz, tx); };
   const trackU = { uRev: { value: 1 }, uLit: { value: 0 }, uRed: { value: C(RED) }, ...fogU };
-  const kerbs = [], signs = [], startM = [], kitLED = [];
+  const kerbs = [], signs = [], startM = [], kitLED = []; let raceX = null;
   {
     const tp = [], ta = [], te = [], ti = [];
     for (let i = 0; i <= cc.M; i++) { const k = i % cc.M, [x, z] = cc.c[k], [nx, nz] = cc.nrm[k]; tp.push(x + nx * 7.6, 0.015, z + nz * 7.6, x - nx * 7.6, 0.015, z - nz * 7.6); ta.push(i / cc.M, i / cc.M); te.push(0, 1); if (i < cc.M) { const v = i * 2; ti.push(v, v + 1, v + 2, v + 1, v + 3, v + 2); } }
@@ -573,16 +588,20 @@ export async function createArena(canvas, o = {}) {
       Object.assign(sh.uniforms, trackU);
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aT; attribute float aE; varying float vT; varying float vE; varying vec3 vTW;').replace('#include <project_vertex>', '#include <project_vertex>\nvT=aT; vE=aE; vTW=(modelMatrix*vec4(transformed,1.0)).xyz;');
       sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
-        uniform float uRev; uniform vec3 uRed; varying float vT; varying float vE; varying vec3 vTW; float tR; float tTip; ${NOISE}`)
+        uniform float uRev; uniform vec3 uRed; varying float vT; varying float vE; varying vec3 vTW; float tR; float tTip; float tBh; ${NOISE}`)
         .replace('#include <map_fragment>', `#include <map_fragment>
           if(vT>uRev) discard;
-          { vec2 p=vTW.xz; float ag=noise(p*9.0)*0.5+noise(p*23.0)*0.5; vec3 c=vec3(0.075,0.072,0.07)*(0.8+0.45*ag+0.15*noise(p*0.25));
+          { vec2 p=vTW.xz; float fwA=clamp(length(fwidth(p))*6.0,0.0,1.0); float ag=mix(noise(p*31.0)*0.5+noise(p*67.0)*0.5,0.5,fwA); vec3 c=vec3(0.07,0.068,0.066)*(0.9+0.13*ag+0.16*noise(p*0.25)+0.08*noise(p*2.1));
             float e=min(vE,1.0-vE); float rub=exp(-((vE-0.5)/0.16)*((vE-0.5)/0.16))*(0.6+0.4*noise(p*vec2(0.4,2.0)));
             c*=1.0-0.35*rub; c*=0.7+0.3*smoothstep(0.0,0.06,e);
-            diffuseColor.rgb=c; tR=0.62+0.25*ag-0.2*rub; tTip=smoothstep(uRev-0.006,uRev,vT)*(1.0-step(0.999,uRev)); }`)
+            float pud=smoothstep(0.58,0.7,noise(p*0.045)*0.65+noise(p*0.17)*0.35); c*=1.0-0.12*pud;
+            diffuseColor.rgb=c; tR=mix(0.62+0.25*ag-0.2*rub,0.06,pud); tBh=ag*(1.0-pud); tTip=smoothstep(uRev-0.006,uRev,vT)*(1.0-step(0.999,uRev)); }`)
+        .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+          ${BUMP('tBh', '0.25')}`)
         .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor=tR;')
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance+=uRed*1.8*tTip+diffuseColor.rgb*0.04;');
     };
+    trackMat.userData.env = 0.55;
     const track = new THREE.Mesh(tg, trackMat); track.receiveShadow = !LOWQ;
     track.renderOrder = 1; vR.root.add(track);
 
@@ -640,6 +659,9 @@ export async function createArena(canvas, o = {}) {
       const { head, rowsM } = lampHead(g, 2, 1); head.position.set(0, 15.4, 0); head.scale.setScalar(0.6); const [ax, az] = atf(s, 2);
       addLamp(vR, g, 22, head, rowsM, V3(ax, 0, az), s / cc.len * 0.9, 7, 0.6); }
     const E = SPORTS.race.ext; [[-0.5, -0.4], [0.5, -0.4], [0.5, 0.4], [-0.5, 0.4]].forEach(([a, b]) => vR.keys.push({ pos: V3(a * E, 150, b * E), aim: V3(a * E * 0.6, 0, b * E * 0.6), lamp: null }));
+    raceX = buildRaceDetail({ THREE, vR, cc, atf, mats, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, glowTex, fogU, triplanar, texConcrete, NOISE,
+      makeStrip: (geo, len, h, bright, dir, parent) => makeStrip(vR, geo, len, h, bright, dir, parent), addStand, redMat, voidMat: mats.void, warmStrip: warmMat, timeU: coneTime });
+    vR.fix.push({ o: raceX.root, kind: 'growY', t0: 0.56 });
     vR.spotK = 1.1; finishVenue(vR, 0.55);
   }
 
@@ -892,7 +914,16 @@ export async function createArena(canvas, o = {}) {
   let post = null;
   if (!LOWQ) try { const { createPost } = await import('./post.js'); post = createPost(THREE, renderer, scene, camera); }
   catch (e) { console.warn('post unavailable', e); post = null; }
-  try { const { RoomEnvironment } = await import('three/examples/jsm/environments/RoomEnvironment.js'); const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; } catch (e) {}
+  // night-stadium reflection environment: dark dome, ring of floodlight panels, warm horizon glow
+  try {
+    const pm = new THREE.PMREMGenerator(renderer), es = new THREE.Scene();
+    es.add(new THREE.Mesh(new THREE.SphereGeometry(60, 32, 16), new THREE.MeshBasicMaterial({ color: C('#070606'), side: THREE.BackSide })));
+    const lampM = new THREE.MeshBasicMaterial({ color: C('#fff1e0').multiplyScalar(14), side: THREE.DoubleSide });
+    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2 + 0.2, p = new THREE.Mesh(new THREE.PlaneGeometry(9, 4), lampM); p.position.set(Math.cos(a) * 45, 20 + (i % 2) * 6, Math.sin(a) * 45); p.lookAt(0, 0, 0); es.add(p); }
+    const glow = new THREE.Mesh(new THREE.CylinderGeometry(50, 50, 8, 48, 1, true), new THREE.MeshBasicMaterial({ color: C('#a0603c').multiplyScalar(0.8), side: THREE.BackSide })); glow.position.y = 3; es.add(glow);
+    const fl = new THREE.Mesh(new THREE.CircleGeometry(55, 32), new THREE.MeshBasicMaterial({ color: C('#1d2016') })); fl.rotation.x = -Math.PI / 2; fl.position.y = -6; es.add(fl);
+    scene.environment = pm.fromScene(es, 0.03).texture; pm.dispose();
+  } catch (e) {}
 
 
   // ---------- camera choreography
@@ -931,13 +962,15 @@ export async function createArena(canvas, o = {}) {
   CAM.nfl = t => lin(nflK, t);
   const tenK = [{ t: 0, pos: [0, 30, 78], tgt: [0, 8, 0], fov: 50 }, { t: CH.COL[0] + 0.08, pos: [0, 34, 72], tgt: [2, 10, 0], fov: 50 }, { t: CH.COL[1] - 0.02, pos: [8, 34, 66], tgt: [2, 10, 0], fov: 50 }, { t: CH.FANS[0] + 0.02, pos: [0, 82, 46], tgt: [0, 0, 0], fov: 44 }, { t: 1, pos: [0, 74, 40], tgt: [0, 0, 0], fov: 44 }];
   CAM.tennis = t => lin(tenK, t);
-  const chase = s => ({ pos: at3(s - 22, 0, 10), tgt: at3(s + 26, 0, 1.5), fov: 56 });
+  const rAt3 = (s, y) => { const [x, z] = raceX.racingAt(s); return [x, y, z]; };
+  const chase = s => ({ pos: rAt3(s + 4.5, 3.1), tgt: rAt3(s + 30, 0.9), fov: 58 });
+  const gridPose = { pos: at3(-68, 0, 6.8), tgt: at3(-4, 0, 0.6), fov: 52 };
   const LAPB = [-24, ...cc.apex.map(a => a.s), cc.len - 4];
   const lapS = t => { const [a, b] = CH.LAP, f = clamp((t - a) / (b - a)) * (LAPB.length - 1), k = Math.min(LAPB.length - 2, Math.floor(f)), u = f - k; return LAPB[k] + (LAPB[k + 1] - LAPB[k]) * ss(clamp(u / 0.8)); };
   const pitPose = k => { const s = 20 + (k - 1) * 21; return { pos: at3(s - 5, 12.5, 3.6), tgt: at3(s + 1, 26, 2.6), fov: 50 }; };
   const pitK = [{ ...chase(cc.len - 4), t: CH.LAP[1] }];
   { const w = (CH.PIT[1] - CH.PIT[0]) / 3; for (let k = 0; k < 3; k++) pitK.push({ t: CH.PIT[0] + k * w + 0.004, ...pitPose(k) }, { t: CH.PIT[0] + (k + 1) * w - 0.004, ...pitPose(k) }); pitK.push({ t: 1, ...pitPose(2) }); }
-  CAM.race = t => t <= CH.LAP[0] ? chase(-24) : t <= CH.LAP[1] ? chase(lapS(t)) : lin(pitK, t);
+  CAM.race = t => t <= CH.LAP[0] ? gridPose : t <= CH.LAP[1] ? chase(lapS(t)) : lin(pitK, t);
   const eR = SPORTS.race.ext;
   const ftK = [{ ...pitPose(2), t: 0 }, { t: 0.4, pos: [-eR * 0.3, eR * 1.0, eR * 0.85], tgt: [0, 0, 0], fov: 46 }, { t: 1, pos: [-eR * 0.42, eR * 1.3, eR * 1.05], tgt: [0, 0, 0], fov: 48 }];
   CAM.ft = t => lin(ftK, t);
@@ -1107,7 +1140,8 @@ export async function createArena(canvas, o = {}) {
       const s = rc && t > CH.LAP[0] && t < CH.LAP[1] ? lapS(t) : -999;
       kerbs.forEach((kb, k) => { const d = Math.abs(s - kb.s), a = rc ? Math.max(0, 1 - d / 40) : 0; kb.km.emissiveIntensity = a * (0.6 + 0.3 * Math.sin(time * 9)); signs[k].color.setScalar(0.5 + a * 0.7); });
       const pf = rc ? clamp((t - CH.PIT[0]) / (CH.PIT[1] - CH.PIT[0])) * 3 : -1, pk = Math.min(2, Math.floor(pf)), pon = rc ? R(t, CH.PIT[0] - 0.02, CH.PIT[0]) : 0;
-      kitLED.forEach((m, k) => { m.color.setScalar(0.18 + (k === pk ? pon * 0.5 : 0)); }); }
+      kitLED.forEach((m, k) => { m.color.setScalar(0.18 + (k === pk ? pon * 0.5 : 0)); });
+      if (raceX && vR.root.visible) raceX.update({ rc, t, LAP: CH.LAP, lapS, time }); }
     const bloomK = 0.42 + 0.25 * lit + 0.2 * spot + (xi ? 0.25 * Math.sin(xt * Math.PI) : 0);
     // fireworks: full time over the circuit, a salvo for the touchdown and for a goal
     fwU.uTime.value = time;
@@ -1163,7 +1197,7 @@ export async function createArena(canvas, o = {}) {
       const tilt = xi ? Math.pow(Math.sin(xt * Math.PI), 1.4) : hero ? 0.75 * R(h, 0.44, 0.52) * (1 - R(h, 0.68, 0.76)) : id === 'ft' ? 0.6 * R(t, 0.25, 0.6) : 0;
       const bars = xi ? R(xt, 0.02, 0.14) * (1 - R(xt, 0.86, 0.98)) : id === 'ft' ? 0 : 0;
       const flash = id === 'race' ? 0.3 * Math.max(0, 1 - Math.abs(t - 0.067) / 0.006) : 0;
-      post.set({ time, bloomK, lights: L.slice(0, 6), rays: 0.5 + 0.25 * lit, streak: 0.4 + 0.2 * lit, tilt, focus: 0.5, vel: [vx * mb, vy * mb], bars, flash });
+      post.set({ time, bloomK, lights: L.slice(0, 6), rays: 0.32 + 0.18 * lit, streak: 0.28 + 0.14 * lit, tilt, focus: 0.5, vel: [vx * mb, vy * mb], bars, flash });
     }
   }
 
@@ -1189,7 +1223,7 @@ export async function createArena(canvas, o = {}) {
     venues.forEach(Vn => Vn.root.traverse(m => { if (!m.isMesh || !m.material || !m.material.isMeshStandardMaterial) return; m.castShadow = !(m.isInstancedMesh && m.material === seatMat); m.receiveShadow = true; }));
     ground.receiveShadow = true; tunnel.traverse(m => { if (m.isMesh) m.receiveShadow = true; });
   }
-  scene.traverse(m => { if (!m.isMesh || !m.material || !m.material.isMeshStandardMaterial) return; const mm = m.material; mm.envMapIntensity = mm === mats.steel ? 0.35 : mm === mats.glass ? 0.6 : mm === seatMat ? 0.16 : mm === surfMat ? 0.05 : 0.07; });
+  scene.traverse(m => { if (!m.isMesh || !m.material || !m.material.isMeshStandardMaterial) return; const mm = m.material; mm.envMapIntensity = mm.userData.env != null ? mm.userData.env : mm === mats.steel ? 0.6 : mm === mats.glass ? 0.6 : mm === seatMat ? 0.16 : mm === surfMat ? 0.22 : 0.1; });
   try { venues.forEach(Vn => { Vn.root.visible = true; }); [plate, tac, fans, colA, colB, fdLine].forEach(m => { if (m) m.visible = true; }); if (renderer.compileAsync) await renderer.compileAsync(scene, camera); } catch (e) {}
   update(0, 0); raf = requestAnimationFrame(frame);
   setTimeout(loadFigure, 1500);

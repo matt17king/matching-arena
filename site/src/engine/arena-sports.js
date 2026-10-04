@@ -125,7 +125,7 @@ function race(cc) {
   S.push({ pts: cc.outer.concat([cc.outer[0]]), closed: true, t: [0, 0.6], hw: 0.32 });
   S.push({ pts: [cc.at(0, 7), cc.at(0, -7)], t: [0.6, 0.65], hw: 0.5 });
   S.push({ pts: cc.inner.concat([cc.inner[0]]), closed: true, t: [0, 0.6], hw: 0.32 });
-  S.push({ pts: cc.racing.concat([cc.racing[0]]), closed: true, t: [0.3, 0.9], hw: 0.34, red: true });
+  S.push({ pts: cc.racing.concat([cc.racing[0]]), closed: true, t: [0.3, 0.9], hw: 0.2, red: true });
   S.push({ pts: cc.pit, t: [0.6, 0.8], hw: 0.26 });
   cc.grid.forEach(g => S.push({ pts: g, t: [0.7, 0.8], hw: 0.2 }));
   return S;
