@@ -1,9 +1,10 @@
-// Arena engine v12 (photoreal pass) — one night, five venues. The lines redraw themselves from sport to sport, and each stadium rises around them.
+// Arena engine v12 (photoreal pass) — one night, six venues. The lines redraw themselves from sport to sport, and each stadium rises around them.
 import { drawScreen, drawTactics, placeholder, photo } from './broadcast-gfx.js';
 import { buildRaceDetail } from './race-detail.js';
 import { buildVenueDetail } from './venue-detail.js';
+import { buildRingDetail } from './ring-detail.js';
 import { netKit } from './nets.js';
-import { N, P, ORDER, SPORTS, circuit, strandSet, strandShared, BB, TN, tennis as tennisCourt, padel as padelCourt } from './arena-sports.js';
+import { N, P, ORDER, SPORTS, circuit, strandSet, strandShared, BB, TN, RG, tennis as tennisCourt, padel as padelCourt } from './arena-sports.js';
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const ss = x => { x = clamp(x); return x * x * (3 - 2 * x); };
 const R = (p, a, b) => ss((p - a) / (b - a));
@@ -15,8 +16,8 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const bounce = x => { x = clamp(x); const n1 = 7.5625, d1 = 2.75; if (x < 1 / d1) return n1 * x * x; if (x < 2 / d1) { x -= 1.5 / d1; return n1 * x * x + 0.75; } if (x < 2.5 / d1) { x -= 2.25 / d1; return n1 * x * x + 0.9375; } x -= 2.625 / d1; return n1 * x * x + 0.984375; };
 const cr = (a, b, c, d, t) => { const t2 = t * t, t3 = t2 * t; return 0.5 * ((2 * b) + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3); };
 const crv = (A, B, Cc, D, t) => [0, 1, 2].map(i => cr(A[i], B[i], Cc[i], D[i], t));
-const XIDX = { x1: 1, x2: 2, x3: 3, x4: 4 }, VI = { hero: 0, rights: 0, bball: 1, nfl: 2, tennis: 3, race: 4, ft: 4 };
-const PREV = { x1: 'rights', x2: 'bball', x3: 'nfl', x4: 'tennis' }, NEXT = { x1: 'bball', x2: 'nfl', x3: 'tennis', x4: 'race' };
+const XIDX = { x1: 1, x2: 2, x3: 3, x4: 4, x5: 5 }, VI = { hero: 0, rights: 0, bball: 1, nfl: 2, tennis: 3, ring: 4, race: 5, ft: 5 };
+const PREV = { x1: 'rights', x2: 'bball', x3: 'nfl', x4: 'tennis', x5: 'ring' }, NEXT = { x1: 'bball', x2: 'nfl', x3: 'tennis', x4: 'ring', x5: 'race' };
 
 export async function createArena(canvas, o = {}) {
   const THREE = await import('three');
@@ -26,7 +27,7 @@ export async function createArena(canvas, o = {}) {
   const FONT = (w, s) => `${w} ${s}px Archivo, system-ui, sans-serif`;
   const LS = (g, v) => { try { g.letterSpacing = v; } catch (e) {} };
   const LOWQ = o.quality === 'low';
-  const CH = Object.assign({ RR: [0.08, 0.9], BEATS: [0.06, 0.44], TAC: [0.5, 0.92], DRIVE: [0.03, 0.5], XI: [0.55, 0.96], SURF: [0.03, 0.27], SEXES: [0.27, 0.5], PADEL: [0.5, 0.74], FANS: [0.77, 0.92], LAP: [0.08, 0.62], PIT: [0.66, 0.92] }, o.ch || {});
+  const CH = Object.assign({ RR: [0.08, 0.9], BEATS: [0.06, 0.44], TAC: [0.5, 0.92], DRIVE: [0.03, 0.5], XI: [0.55, 0.96], SURF: [0.03, 0.27], SEXES: [0.27, 0.5], PADEL: [0.5, 0.74], FANS: [0.77, 0.92], PRESS: [0.04, 0.33], WALK: [0.36, 0.64], ROUND: [0.67, 0.96], LAP: [0.08, 0.62], PIT: [0.66, 0.92] }, o.ch || {});
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
   // phones get a little extra density on the low tier (their screens are 3x); the adaptive degrade drops it back to 1 if frames suffer
@@ -198,9 +199,15 @@ export async function createArena(canvas, o = {}) {
         c=mix(c,vec3(0.3,0.23,0.15)*(0.75+0.5*noise(p*5.0)),clamp(wear*(0.45+0.6*fbm(p*1.1)),0.0,0.9));
         c*=mix(1.0,0.82,step(0.0,bx(p,vec2(41.6,19.2))));
         return vec4(c,1.0-smoothstep(0.0,6.0,bx(p,vec2(66.0,34.0)))); }
+      vec4 fRing(vec2 p, vec3 V){ float n=fbm(p*0.45); vec3 c=vec3(0.03,0.028,0.027)*(0.75+0.5*n);
+        c+=vec3(0.06,0.052,0.045)*exp(-pow(length(p)/30.0,2.0));
+        float wk=step(-54.0,p.x)*step(p.x,-14.6)*step(abs(p.y),3.6);
+        c=mix(c,vec3(0.2,0.025,0.018)*(0.8+0.3*noise(p*vec2(2.0,30.0))),wk);
+        gR=mix(0.3+0.2*n,0.9,wk); gB=0.5;
+        return vec4(c,1.0-smoothstep(0.0,8.0,bx(p,vec2(56.0,44.0)))); }
       vec4 fRace(vec2 p, vec3 V){ vec3 c=vec3(0.05,0.07,0.04)*(0.8+0.35*fbm(p*0.6)+0.15*(noise(p*0.05)-0.5)); gR=0.95;
         return vec4(c,1.0-smoothstep(0.0,24.0,bx(p,vec2(${cc.ext[0].toFixed(1)},${cc.ext[1].toFixed(1)})))); }
-      vec4 SS(float id, vec2 p, vec3 V){ if(id<0.5) return fFoot(p,V); if(id<1.5) return fBask(p,V); if(id<2.5) return fNfl(p,V); if(id<3.5) return fTen(p,V); return fRace(p,V); }`)
+      vec4 SS(float id, vec2 p, vec3 V){ if(id<0.5) return fFoot(p,V); if(id<1.5) return fBask(p,V); if(id<2.5) return fNfl(p,V); if(id<3.5) return fTen(p,V); if(id<4.5) return fRing(p,V); return fRace(p,V); }`)
       .replace('#include <map_fragment>', `#include <map_fragment>
         { vec2 p=vSW.xz; vec3 V=normalize(cameraPosition-vSW); float r=length(p*vec2(1.0,1.3)); float Rr=uMix*uRmax; float w=smoothstep(Rr-16.0,Rr,r);
           gR=0.9; gB=9.0; vec4 s; if(uMix<0.001) s=SS(uA,p,V); else if(uMix>0.999) s=SS(uB,p,V); else { vec4 b=SS(uB,p,V); float rb=gR; vec4 a=SS(uA,p,V); s=mix(b,a,w); gR=mix(rb,gR,w); }
@@ -583,6 +590,25 @@ export async function createArena(canvas, o = {}) {
     [[-21, -13], [21, -13], [21, 13], [-21, 13]].forEach(([x, z], i) => mast(vT, x, z, 15, i / 4, 4, 3, 0.5, 30));
     addCones(vT, 0.14); finishVenue(vT, 0.5);
   }
+  // ===== 05 FIGHT NIGHT (indoor arena, real metres x4): the ring in the middle, the ring walk from the tunnel, the press-conference stage opposite
+  const vRg = venue('ring', RG);
+  {
+    [{ len: 26, tier: 8, pos: [0, -10], ry: Math.PI, sp: 0.6, col: 'red' }, { len: 26, tier: 8, pos: [0, 10], ry: 0, sp: 0.6, col: 'red' }, { len: 20, tier: 7, pos: [14, 0], ry: Math.PI / 2, sp: 0.6, col: 'red' }, { len: 20, tier: 7, pos: [-14, 0], ry: -Math.PI / 2, sp: 0.6, col: 'red', gap: true }].forEach(d => addStand(vRg, d));
+    // lighting rig squared over the ring, lowered from the roof
+    const rig = new THREE.Group(); rig.position.y = 9; vRg.root.add(rig);
+    const RX = 4.6, S = [], rc = [[-RX, -RX], [RX, -RX], [RX, RX], [-RX, RX]];
+    for (let i = 0; i < 4; i++) { const [ax, az] = rc[i], [bx, bz] = rc[(i + 1) % 4]; S.push([V3(ax, 0, az), V3(bx, 0, bz), 0.07], [V3(ax, -0.6, az), V3(bx, -0.6, bz), 0.06]);
+      const n = 4; for (let k = 0; k <= n; k++) { const t = k / n, x = ax + (bx - ax) * t, z = az + (bz - az) * t; S.push([V3(x, 0, z), V3(x, -0.6, z), 0.03]); if (k < n) S.push([V3(x, 0, z), V3(ax + (bx - ax) * (k + 1) / n, -0.6, az + (bz - az) * (k + 1) / n), 0.025]); } }
+    for (const [x, z] of rc) S.push([V3(x, 0, z), V3(x * 1.4, 12, z * 1.4), 0.03]);
+    struts(rig, S, mats.steel);
+    const heads = []; [-2.6, 0, 2.6].forEach(o => [[o, -RX], [RX, o], [-o, RX], [-RX, -o]].forEach(([x, z]) => heads.push([x, z])));
+    const hs = heads.map(([x, z], i) => { const { head, rowsM } = lampHead(rig, 3, 2); head.position.set(x, -1.0, z); head.scale.setScalar(0.3);
+      const aim = V3(x * RG * 0.18, 0, z * RG * 0.18); return { head, aim, L: addLamp(vRg, null, 0, head, rowsM, aim, (i % 6) / 6, 18, 0.3) }; });
+    [4, 5, 6, 7].forEach(i => keyOf(vRg, hs[i].head, hs[i].aim, hs[i].L));
+    vRg.fix.push({ o: rig, kind: 'drop', y0: 9, h: 14, t0: 0.5 }); vRg.rig = rig;
+    vRg.spotK = 1.25; addCones(vRg, 0.09); finishVenue(vRg, 0.45);
+  }
+  const ringX = buildRingDetail({ THREE, scene, vRg, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, mats, glowTex, redMat, makeBoard, seatGeoBase });
   const venueX = buildVenueDetail({ THREE, nets, vF, vB, vN, vT, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, mats, glowTex, redMat, makeBoard, seatGeoBase });
 
   // ===== 05 RACE (night circuit, real metres)
@@ -1158,6 +1184,14 @@ export async function createArena(canvas, o = {}) {
   const OVH = { pos: [0, 96, 20], tgt: [0, 0, 0], fov: 44 };
   const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.SURF[0] + 0.03, ...OVH }, { t: CH.PADEL[0] + 0.02, ...OVH }, { t: CH.PADEL[0] + 0.09, pos: [0, 44, 76], tgt: [0, 0, 6], fov: 46 }, { t: CH.PADEL[1] - 0.03, pos: [16, 42, 72], tgt: [0, 0, 6], fov: 46 }, { t: CH.FANS[0], ...OVH }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
   CAM.tennis = t => lin(tenK, t);
+  // fight night (world = local x4): the press conference, the ring walk (meet the fighter at the tunnel, then follow him in), round one from above
+  const ringK = [{ t: 0, pos: [-40, 46, 74], tgt: [0, 2, 0], fov: 50 },
+    { t: CH.PRESS[0] + 0.02, pos: [23, 9.4, 8], tgt: [44, 4.6, -0.5], fov: 46 }, { t: CH.PRESS[1], pos: [25, 9, -5], tgt: [44, 4.4, 0.5], fov: 44 },
+    { t: CH.WALK[0] + 0.02, pos: [-29, 7.5, 4], tgt: [-50, 5, 0], fov: 42 }, { t: CH.WALK[0] + 0.12, pos: [-32, 6.5, 9], tgt: [-40, 5, 0], fov: 44 },
+    { t: CH.WALK[1] - 0.08, pos: [-42, 12, 8], tgt: [0, 4, 0], fov: 46 }, { t: CH.WALK[1], pos: [-34, 13, 7], tgt: [4, 3, 0], fov: 46 },
+    { t: CH.ROUND[0] + 0.02, pos: [0, 112, 34], tgt: [0, 0, 3], fov: 32 }, { t: 1, pos: [10, 104, 36], tgt: [0, 0, 2], fov: 33 }];
+  // tall screens: round one comes in closer so the ring fills the width
+  CAM.ring = t => { const k = lin(ringK, t); if (W / H >= 0.9) return k; const f = 1 - 0.32 * ss(clamp((t - CH.WALK[1]) / (CH.ROUND[0] + 0.02 - CH.WALK[1]))); return { pos: k.pos.map(v => v * f), tgt: k.tgt, fov: k.fov }; };
   const rAt3 = (s, y) => { const [x, z] = raceX.racingAt(s); return [x, y, z]; };
   const chase = s => ({ pos: rAt3(s + 4.5, 3.1), tgt: rAt3(s + 30, 0.9), fov: 58 });
   const gridPose = { pos: at3(-68, 0, 6.8), tgt: at3(-4, 0, 0.6), fov: 52 };
@@ -1194,6 +1228,7 @@ export async function createArena(canvas, o = {}) {
     if (id === 'bball') return K(t, [[0, 0.72], [CH.BEATS[1], 0.72], [CH.TAC[0], 0.5], [0.96, 0.5], [1, 0.85]]);
     if (id === 'nfl') return K(t, [[0, 0.9], [CH.DRIVE[1], 0.9], [CH.XI[0], 0.6], [CH.XI[1], 0.6], [1, 0.9]]);
     if (id === 'tennis') return K(t, [[0, 0.8], [CH.SURF[0] + 0.03, 0.45], [0.95, 0.45], [1, 0.85]]);
+    if (id === 'ring') return K(t, [[0, 0.75], [CH.PRESS[1], 0.75], [CH.WALK[0], 0.42], [CH.WALK[1] - 0.02, 0.46], [CH.ROUND[0], 0.92], [1, 0.92]]);
     if (id === 'ft') return K(t, [[0, 0.95], [1, 0.7]]);
     return 0.95;
   };
@@ -1262,7 +1297,7 @@ export async function createArena(canvas, o = {}) {
     const fd = lerp(sa.fog, sb.fog, xi ? R(xt, 0.15, 0.85) : 0); scene.fog.density = fd; fogU.uFogDen.value = fd;
     const mainV = venues[xi && xt > 0.5 ? B : A]; placeSpots(mainV);
     spots.forEach((s, i) => { const k = mainV.keys[i]; s.intensity = k ? (k.lamp ? k.lamp.on : lit) * mainV.spotK : 0; });
-    skyU.uGlow.value = lit; skyU.uTime.value = time; skyU.uStars.value = mainV.id === 'basketball' ? 0 : 1; coneTime.value = time; hemi.intensity = 0.05 + 0.22 * lit;
+    skyU.uGlow.value = lit; skyU.uTime.value = time; skyU.uStars.value = mainV.id === 'basketball' || mainV.id === 'ring' ? 0 : 1; coneTime.value = time; hemi.intensity = 0.05 + 0.22 * lit;
     // lines
     // tennis: the lines glide into the Battle of the Sexes court and back out before the next venue
     // then on into a padel court, which is what the next transition starts from
@@ -1350,6 +1385,9 @@ export async function createArena(canvas, o = {}) {
       const pf = rc ? clamp((t - CH.PIT[0]) / (CH.PIT[1] - CH.PIT[0])) * 3 : -1, pk = Math.min(2, Math.floor(pf)), pon = rc ? R(t, CH.PIT[0] - 0.02, CH.PIT[0]) : 0;
       kitLED.forEach((m, k) => { m.color.setScalar(0.18 + (k === pk ? pon * 0.5 : 0)); });
       if (raceX && vR.root.visible) raceX.update({ rc, t, LAP: CH.LAP, lapS, time }); }
+    // the rig would sit between the overhead camera and the ring, so it steps out of shot when the camera rises above it
+    if (vRg.root.visible && camera.position.y > 32 && Math.abs(camera.position.x) < 70 && Math.abs(camera.position.z) < 70) vRg.rig.visible = false;
+    if (vRg.root.visible) { const wu = id === 'ring' ? clamp((t - CH.WALK[0]) / (CH.WALK[1] - CH.WALK[0])) : id === 'x5' ? 1 : 0; ringX.update({ time, u: wu, pressOn: id === 'ring' && t < CH.WALK[0] - 0.01, walkOn: id === 'ring' && t > CH.WALK[0] - 0.02 && t < CH.WALK[1] + 0.02 }); }
     venueX.update({ camera, fdX: fdLine.position.x, driveOn: fdLine.visible, time, goalT, ballX: ball.position.x, ballZ: ball.position.z });
     const bloomK = 0.42 + 0.25 * lit + 0.2 * spot + (xi ? 0.08 * Math.sin(xt * Math.PI) : 0);
     // fireworks: full time over the circuit, a salvo for the touchdown and for a goal

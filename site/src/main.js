@@ -8,8 +8,8 @@ import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI,
 const BASE = import.meta.env.BASE_URL;
 const KBG = '#0b0a0a', ZONE_ON = '#ec3013', ZONE_OFF = 'rgba(243,242,242,.3)';
 const params = new URLSearchParams(location.search);
-// Review helpers: ?start=walkout|basketball|nfl|tennis|motorsport and ?quality=auto|high|low
-const START_AT = { walkout: ['hero', 0.9], basketball: ['x1', 0.02], nfl: ['x2', 0.02], tennis: ['x3', 0.02], motorsport: ['x4', 0.02] }[params.get('start')];
+// Review helpers: ?start=walkout|basketball|nfl|tennis|boxing|motorsport and ?quality=auto|high|low
+const START_AT = { walkout: ['hero', 0.9], basketball: ['x1', 0.02], nfl: ['x2', 0.02], tennis: ['x3', 0.02], boxing: ['x4', 0.02], motorsport: ['x5', 0.02] }[params.get('start')];
 const QUALITY = params.get('quality') || 'auto';
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -32,7 +32,7 @@ const $$ = sel => [...root.querySelectorAll(sel)];
 const list = (name, html) => { const el = $(`[data-list="${name}"]`); el.insertAdjacentHTML('beforeend', html); return el; };
 
 // ---------- render lists
-list('ticks', ['x1', 'x2', 'x3', 'x4'].map(x => `<div style="position:absolute;top:-3px;width:2px;height:8px;background:rgba(243,242,242,.5);left:${(G(x, 0.5) * 100).toFixed(2)}%"></div>`).join(''));
+list('ticks', ['x1', 'x2', 'x3', 'x4', 'x5'].map(x => `<div style="position:absolute;top:-3px;width:2px;height:8px;background:rgba(243,242,242,.5);left:${(G(x, 0.5) * 100).toFixed(2)}%"></div>`).join(''));
 list('rights', RIGHTS.map((r, i) => `<div data-ri="${i}" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">${pad2(i + 1)}</span><span>${esc(r.name.toUpperCase())}</span></div>`).join(''));
 list('rightsDetail', RIGHTS.map((r, i) => `<div data-rd="${i}" style="grid-area:1/1;opacity:0">${esc(r.detail)}</div>`).join(''));
 list('drive', DRIVE.map((b, i) => `<div data-dc="${i}" style="grid-area:1/1;opacity:0;padding:14px 16px 16px">
@@ -101,11 +101,12 @@ list('press', PRESS.map(p => `<article data-rv style="display:grid;grid-template
     </div>
   </div>
 </article>`).join(''));
-list('seats', SEATS.map(([who, line, subj], i) => `<a href="mailto:${EMAIL}?subject=${encodeURIComponent(subj)}" class="seat" style="display:flex;flex-direction:column;justify-content:space-between;gap:36px;min-height:200px;padding:18px 18px 20px;border-right:2px solid rgba(243,242,242,.22);border-bottom:2px solid rgba(243,242,242,.22);color:var(--color-bg)">
-  <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:800;letter-spacing:.14em"><span>${pad2(i + 1)}</span><span>EMAIL →</span></div>
-  <div>
-    <div style="font-weight:800;text-transform:uppercase;font-size:clamp(24px,2.3vw,36px);line-height:.92;letter-spacing:-.025em">${esc(who)}</div>
-    <div style="margin-top:10px;font-size:15px;line-height:1.4;opacity:.85;text-wrap:pretty">${esc(line)}</div>
+list('seats', SEATS.map(([who, line, subj, q], i) => `<a href="mailto:${EMAIL}?subject=${encodeURIComponent(subj)}" class="seat" style="display:flex;flex-direction:column;justify-content:space-between;gap:28px;min-height:220px;padding:18px 18px 20px;border-right:2px solid rgba(243,242,242,.22);border-bottom:2px solid rgba(243,242,242,.22);color:var(--color-bg)">
+  <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:800;letter-spacing:.14em"><span><span style="color:var(--color-accent)">Q</span> · ${pad2(i + 1)}</span><span>ASK →</span></div>
+  <div style="font-weight:800;font-size:clamp(24px,2.3vw,36px);line-height:1.02;letter-spacing:-.02em;text-wrap:balance">“${esc(q)}”</div>
+  <div style="border-top:1px solid rgba(243,242,242,.2);padding-top:10px">
+    <div style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase">${esc(who)}</div>
+    <div style="margin-top:6px;font-size:14px;line-height:1.4;opacity:.8;text-wrap:pretty">${esc(line)}</div>
   </div>
 </a>`).join(''));
 
@@ -115,7 +116,8 @@ const groups = [
   ['02 — BASKETBALL', 'CULTURE IS THE SIDE DOOR', [['Q1', 'Culture plays', G('bball', 0.25)], ['TO', 'How I build a brief', G('bball', 0.8)]]],
   ['03 — NFL', 'FIT BEATS SIZE', [['1&10', 'How a fan is made', G('nfl', 0.25)], ['XI', '11 talent rules', G('nfl', 0.6)]]],
   ['04 — TENNIS', 'THE FORMAT IS THE PRODUCT', [['15–0', 'Battle of the Surfaces', G('tennis', 0.15)], ['30–0', 'Battle of the Sexes', G('tennis', 0.38)], ['40–0', 'Padel', G('tennis', 0.62)], ['GAME', 'New formats, new fans', G('tennis', 0.86)]]],
-  ['05 — MOTORSPORT', 'STORY BEFORE SPORT', [['GRID', 'Story before sport', G('race', 0.03)], ['LAP', 'One idea, seven markets', G('race', 0.12)], ['PIT', 'AI is the pit crew', G('race', 0.72)], ['FLAG', 'Full time', G('ft', 0.98)]]],
+  ['05 — FIGHT NIGHT', 'THE BUILD-UP IS THE PRODUCT', [['WEEK', 'The press conference', G('ring', 0.18)], ['WALK', 'The ring walk', G('ring', 0.5)], ['R1', 'Personality sells the fight', G('ring', 0.82)]]],
+  ['06 — MOTORSPORT', 'STORY BEFORE SPORT', [['GRID', 'Story before sport', G('race', 0.03)], ['LAP', 'One idea, seven markets', G('race', 0.12)], ['PIT', 'AI is the pit crew', G('race', 0.72)], ['FLAG', 'Full time', G('ft', 0.98)]]],
   ['POST-MATCH', '', [["90+1'", 'The film room', 'sec:0'], ["90+2'", 'The record', 'sec:1'], ["90+3'", 'In the stands', 'sec:2'], ["90+4'", 'The dressing room', 'sec:3'], ["90+5'", 'Book Matt', 'sec:4']]],
 ];
 const row = (m, n, tag, go) => `<button class="menu-row" data-go="${go}" style="display:grid;grid-template-columns:64px 1fr auto;align-items:baseline;gap:12px;width:100%;padding:10px 16px;background:none;border:0;border-bottom:1px solid rgba(243,242,242,.1);color:#f3f2f2;font-family:inherit;text-align:left;cursor:pointer">
@@ -199,8 +201,9 @@ const S = () => snd;
 const events = [
   ...[0.046, 0.085, 0.123, 0.162].map((t, i) => [G('hero', t), () => S().whoosh(1 + i * 0.15)]), [G('hero', 0.18), () => S().clunk()], [G('hero', 0.34), () => S().roar()],
   ...[0.58, 0.598, 0.616, 0.634].map(t => [G('hero', t), () => S().clunk()]),
-  ...['x1', 'x2', 'x3', 'x4'].flatMap(x => [[G(x, 0.04), () => S().whoosh(0.9)], [G(x, 0.2), () => S().whoosh(1.5)], [G(x, 0.52), () => S().clunk()], [G(x, 0.6), () => S().clunk()], [G(x, 0.7), () => S().clunk()], [G(x, 0.86), () => S().roar()]]),
+  ...['x1', 'x2', 'x3', 'x4', 'x5'].flatMap(x => [[G(x, 0.04), () => S().whoosh(0.9)], [G(x, 0.2), () => S().whoosh(1.5)], [G(x, 0.52), () => S().clunk()], [G(x, 0.6), () => S().clunk()], [G(x, 0.7), () => S().clunk()], [G(x, 0.86), () => S().roar()]]),
   [G('bball', CH.TAC[0]), () => S().whistle(2)], [G('nfl', CH.DRIVE[0] + (CH.DRIVE[1] - CH.DRIVE[0]) * (DRIVE.length - 1) / DRIVE.length), () => { S().roar(); S().whistle(1); }],
+  [G('ring', CH.WALK[0]), () => S().roar()], ...[0, 0.012, 0.024].map(d => [G('ring', CH.ROUND[0] + d), () => S().clunk()]),
   [G('race', 0.068), () => { S().whoosh(1.6); S().roar(); }], [G('ft', 0.04), () => S().whistle(3)],
 ];
 
@@ -258,7 +261,9 @@ function clock(id, t) {
   if (id === 'nfl') { if (t >= CH.XI[0] - 0.03) return ['DOWN & DISTANCE', 'HUDDLE']; const k = Math.min(DRIVE.length - 1, Math.max(0, Math.floor((t - CH.DRIVE[0]) / (CH.DRIVE[1] - CH.DRIVE[0]) * DRIVE.length))); return ['DOWN & DISTANCE', DRIVE[k].down]; }
   if (id === 'x3') return ['SCORE', '0–0'];
   if (id === 'tennis') return ['SCORE', t < CH.SEXES[0] ? '15–0' : t < CH.PADEL[0] ? '30–0' : t < CH.PADEL[1] ? '40–0' : 'GAME'];
-  if (id === 'x4') return ['LAP', 'GRID'];
+  if (id === 'x4') return ['FIGHT NIGHT', 'FIGHT WEEK'];
+  if (id === 'ring') { if (t < CH.WALK[0] - 0.02) return ['FIGHT WEEK', 'PRESSER']; if (t < CH.ROUND[0] - 0.02) return ['FIGHT NIGHT', 'RING WALK']; const s = Math.max(0, Math.round(180 * (1 - (t - CH.ROUND[0]) / (1 - CH.ROUND[0])))); return ['ROUND', `R1 ${Math.floor(s / 60)}:${pad2(s % 60)}`]; }
+  if (id === 'x5') return ['LAP', 'GRID'];
   if (id === 'race') { if (t < CH.LAP[0]) return ['LAP', 'LIGHTS']; if (t < CH.LAP[1]) { const k = Math.min(6, Math.floor((t - CH.LAP[0]) / (CH.LAP[1] - CH.LAP[0]) * 8)); return ['LAP', `1 · T${k + 1}`]; } return ['LAP', 'PIT']; }
   return ['RESULT', 'FLAG'];
 }

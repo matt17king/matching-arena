@@ -82,6 +82,7 @@
   [data-list="talent"] > div { grid-template-columns: 30px 1fr !important; }
   [data-list="talent"] > div > span:last-child { grid-column: 2; text-align: left !important; }
   [data-list="press"] article > div:first-child { min-height: 180px !important; }
+  #press-box .presser img { aspect-ratio: 1/1 !important; object-position: 24% 60% !important; }
   #press-box figure.life { width: 100% !important; }
   #press-box figure.life img { aspect-ratio: 4/3 !important; }
   #press-box img[alt="Matt King"] { float: none !important; width: 46vw !important; margin: 0 0 22px !important; }

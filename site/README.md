@@ -1,6 +1,6 @@
 # Matt King — Arena
 
-Production build of the **Arena v12** design (`../project/Arena v12.dc.html`): one night, five venues. Football, basketball, NFL, tennis and motorsport, with the pitch lines redrawing from sport to sport as you scroll. The trophy cabinet and press box follow it as stoppage time.
+Production build of the **Arena v12** design (`../project/Arena v12.dc.html`): one night, six venues. Football, basketball, NFL, tennis, fight night and motorsport, with the pitch lines redrawing from sport to sport as you scroll. The trophy cabinet and press box follow it as stoppage time.
 
 ## Run
 
@@ -31,6 +31,6 @@ npm run preview  # serve the build
 
 - three.js, topojson and the world map now come from npm and ship in the bundle, so nothing loads from esm.sh or jsDelivr at runtime. Only the Archivo font comes from Google Fonts.
 - Debug: `?debug` exposes `__mkSeg(id, t)` to jump to an exact moment; `?nodegrade` stops the post stack stepping down on slow GPUs (useful for screenshots).
-- Review shortcuts: `?start=walkout|basketball|nfl|tennis|motorsport` skips the intro and jumps to a venue. `?quality=high|low` overrides the automatic quality pick. (These replace the prototype's Tweaks panel.)
+- Review shortcuts: `?start=walkout|basketball|nfl|tennis|boxing|motorsport` skips the intro and jumps to a venue. `?quality=high|low` overrides the automatic quality pick. (These replace the prototype's Tweaks panel.)
 - Photos: put files in `public/photos/` and set the paths in `PHOTOS` in `src/content.js`. Until then the walk-out standee shows a labelled placeholder.
 - `public/models/matt.glb` is meshopt + WebP compressed (about 0.9 MB, from 19.8 MB) and loads after the scene is up. Re-run `gltf-transform optimize` with `--compress meshopt --texture-compress webp` if you replace it.

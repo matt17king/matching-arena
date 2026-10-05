@@ -1,6 +1,6 @@
 // Arena v11 — sport markings, morph strands and circuit geometry. Pure data in world metres (x = length of play, z = across).
 export const N = 40, P = 240;
-export const ORDER = ['football', 'basketball', 'nfl', 'tennis', 'race'];
+export const ORDER = ['football', 'basketball', 'nfl', 'tennis', 'ring', 'race'];
 const TAU = Math.PI * 2;
 const arc = (cx, cz, r, a0, a1, n = 48) => { const p = []; for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; p.push([cx + Math.cos(a) * r, cz + Math.sin(a) * r]); } return p; };
 const rect = (x0, z0, x1, z1) => [[x0, z1], [x1, z1], [x1, z0], [x0, z0], [x0, z1]];
@@ -83,6 +83,23 @@ export function padel() {
   return scl(S, TN).map(s => ({ ...s, hw: 0.2 }));
 }
 
+export const RG = 4; // fight-night display scale
+// fight night: a 7.3 m ring platform (6.1 m inside the ropes) in the middle of an arena floor,
+// the ring walk from the tunnel on the -x end and the press-conference stage on the +x end
+export const RING = { half: 3.65, ropes: 3.05, floor: [12, 9], walk: [-13.5, -3.65, 0.9], stage: [8.4, 11.6, 3.6] };
+function ring() {
+  const { half: H, ropes: R, floor: [FX, FZ], walk: [w0, w1, ww], stage: [s0, s1, sz] } = RING, S = [];
+  S.push({ pts: rect(-FX, -FZ, FX, FZ), t: [0, 0.3], closed: true });
+  S.push({ pts: rect(-H, -H, H, H), t: [0.22, 0.5], closed: true, hw: 0.08 });
+  S.push({ pts: rect(-R, -R, R, R), t: [0.4, 0.62], closed: true, hw: 0.05 });
+  S.push({ pts: arc(0, 0, 1.1, 0, TAU, 64), t: [0.58, 0.72], closed: true, hw: 0.05 });
+  S.push({ pts: arc(0, 0, 0.3, 0, TAU, 24), t: [0.7, 0.75], closed: true, hw: 0.04 });
+  for (const sz of [-1, 1]) S.push({ pts: [[w0, sz * ww], [w1, sz * ww]], t: [0.5, 0.78], red: true, hw: 0.07 });
+  S.push({ pts: rect(s0, -sz, s1, sz), t: [0.66, 0.9], closed: true, hw: 0.07 });
+  for (const [cx, cz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) S.push({ pts: rect(cx * H - 0.18, cz * H - 0.18, cx * H + 0.18, cz * H + 0.18), t: [0.84, 0.92], closed: true, hw: 0.05 });
+  return scl(S, RG).map(s => ({ ...s, hw: (s.hw || 0.06) * RG }));
+}
+
 // ---------- circuit (centripetal Catmull-Rom through control points, closed)
 const CP = [[-110, -70], [-30, -70], [50, -70], [110, -68], [145, -45], [148, -10], [125, 12], [95, 14], [70, 30], [78, 60], [110, 82], [95, 108], [50, 112], [0, 95], [-45, 105], [-95, 112], [-135, 90], [-150, 45], [-125, 10], [-150, -30], [-140, -62]];
 const crp = (p0, p1, p2, p3, t) => {
@@ -152,6 +169,7 @@ export const SPORTS = {
   basketball: { scale: BB, strands: basketball(), ext: 98, fog: 0.0042, lr: 60 },
   nfl: { scale: 1, strands: nfl(), ext: 90, fog: 0.0044, lr: 64 },
   tennis: { scale: TN, strands: tennis(), ext: 98, fog: 0.0044, lr: 56 },
+  ring: { scale: RG, strands: ring(), ext: 78, fog: 0.005, lr: 48 },
   race: { scale: 1, strands: race(circuit), ext: Math.max(circuit.ext[0], circuit.ext[1] * 1.4), fog: 0.0015, lr: 230 },
 };
 
