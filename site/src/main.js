@@ -5,13 +5,13 @@ import './styles/reads.css';
 import './styles/mobile.css';
 import { drawBrief } from './engine/broadcast-gfx.js';
 import Lenis from 'lenis';
-import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, FILM, TROPHIES, PROOF, STANDS, TALENT, BRANDS, PRESS, SEATS, TOPICS, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN, STAGE_VH, READ_AFTER, READS, PLAYS, FORMATS, FIGHT } from './content.js';
+import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, FILM, TROPHIES, PROOF, STANDS, TALENT, BRANDS, PRESS, SEATS, TOPICS, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN, STAGE_VH, READ_AFTER, READS, PLAYS, FORMATS } from './content.js';
 
 const BASE = import.meta.env.BASE_URL;
 const KBG = '#0b0a0a', ZONE_ON = '#ec3013', ZONE_OFF = 'rgba(243,242,242,.3)';
 const params = new URLSearchParams(location.search);
-// Review helpers: ?start=walkout|basketball|nfl|tennis|boxing|motorsport and ?quality=auto|high|low
-const START_AT = { walkout: ['hero', 0.9], basketball: ['x1', 0.02], nfl: ['x2', 0.02], tennis: ['x3', 0.02], boxing: ['x4', 0.02], motorsport: ['x5', 0.02] }[params.get('start')];
+// Review helpers: ?start=walkout|basketball|nfl|tennis|motorsport and ?quality=auto|high|low
+const START_AT = { walkout: ['hero', 0.9], basketball: ['x1', 0.02], nfl: ['x2', 0.02], tennis: ['x3', 0.02], motorsport: ['x4', 0.02] }[params.get('start')];
 const QUALITY = params.get('quality') || 'auto';
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -34,7 +34,7 @@ const list = (name, html) => { const el = $(`[data-list="${name}"]`); el.insertA
 
 // ---------- render lists
 // ---------- the flow: a stage of 3D per chapter, and a read after each venue that scrolls like a normal page
-const NEXT_LABEL = { basketball: ['02', 'Basketball', 'x1'], nfl: ['03', 'NFL', 'x2'], tennis: ['04', 'Tennis', 'x3'], fight: ['05', 'Fight night', 'x4'], motorsport: ['06', 'Motorsport', 'x5'], ft: ['FT', 'Full time', 'ft'] };
+const NEXT_LABEL = { basketball: ['02', 'Basketball', 'x1'], nfl: ['03', 'NFL', 'x2'], tennis: ['04', 'Tennis', 'x3'], motorsport: ['05', 'Motorsport', 'x4'], ft: ['FT', 'Full time', 'ft'] };
 const rItem = (a, b, h, p) => `<div data-rv class="rl-i"><div class="rl-top"><span>${a}</span><span>${b}</span></div><div class="rl-h">${h}</div>${p ? `<div class="rl-p">${p}</div>` : ''}</div>`;
 const LISTS = {
   rights: () => RIGHTS.map((r, i) => rItem(pad2(i + 1), esc(r.sub), esc(r.name), esc(r.detail))),
@@ -44,7 +44,6 @@ const LISTS = {
   drive: () => DRIVE.map(d => rItem(esc(d.years), esc(d.down), esc(d.name), `<b>${esc(d.role)}.</b> ${esc(d.detail)}`)),
   xi: () => XI.map(x => rItem(`NO. ${x[2]}`, esc(x[4]), esc(x[3]), esc(x[5]))),
   formats: () => FORMATS.map(f => rItem(esc(f.k), esc(f.stat.toUpperCase()), esc(f.h), esc(f.p))),
-  fight: () => FIGHT.map(f => rItem(esc(f.k), esc(f.stat.toUpperCase()), esc(f.h), esc(f.p))),
   markets: () => [`<div data-rv class="rl-markets">${MARKETS.map((m, i) => `<span><b>T${i + 1}</b>${esc(m)}</span>`).join('')}</div>`],
   kit: () => KIT.map(k => rItem(esc(k.tag), esc(k.tools.toUpperCase()), esc(k.title), esc(k.detail))),
 };
@@ -53,7 +52,7 @@ function readHTML(key) {
   const R = READS[key], [nn, nl, nx] = NEXT_LABEL[R.next];
   return `<section class="read" data-read="${key}" id="read-${key}">
   <div class="read-in">
-    <div data-rv class="read-head"><span><b>${R.n} / 06</b> ${esc(R.venue.toUpperCase())}</span><span>THE READ</span></div>
+    <div data-rv class="read-head"><span><b>${R.n} / 05</b> ${esc(R.venue.toUpperCase())}</span><span>THE READ</span></div>
     <h2 data-rv class="read-title">${esc(R.title)}</h2>
     <p data-rv class="read-intro">${esc(R.intro)}</p>
     ${R.blocks.map(b => { const lst = b.list ? LISTS[b.list]() : null, wide = b.list === 'markets';
@@ -168,8 +167,7 @@ const groups = [
   ['02 — BASKETBALL', 'CULTURE IS THE SIDE DOOR', [['Q1', 'Culture plays', G('bball', 0.25)], ['TO', 'How I build a brief', G('bball', 0.8)], ['READ', 'The read', 'read:basketball']]],
   ['03 — NFL', 'FIT BEATS SIZE', [['1&10', 'How a fan is made', G('nfl', 0.25)], ['XI', '11 talent rules', G('nfl', 0.6)], ['READ', 'The read', 'read:nfl']]],
   ['04 — TENNIS', 'THE FORMAT IS THE PRODUCT', [['15–0', 'Battle of the Surfaces', G('tennis', 0.15)], ['30–0', 'Battle of the Sexes', G('tennis', 0.38)], ['40–0', 'Padel', G('tennis', 0.62)], ['GAME', 'New formats, new fans', G('tennis', 0.86)], ['READ', 'The read', 'read:tennis']]],
-  ['05 — FIGHT NIGHT', 'THE BUILD-UP IS THE PRODUCT', [['WEEK', 'The press conference', G('ring', 0.18)], ['WALK', 'The ring walk', G('ring', 0.5)], ['R1', 'Personality sells the fight', G('ring', 0.82)], ['READ', 'The read', 'read:fight']]],
-  ['06 — MOTORSPORT', 'STORY BEFORE SPORT', [['GRID', 'Story before sport', G('race', 0.03)], ['LAP', 'One idea, seven markets', G('race', 0.12)], ['PIT', 'AI is the pit crew', G('race', 0.72)], ['READ', 'The read', 'read:motorsport'], ['FLAG', 'Full time', G('ft', 0.98)]]],
+  ['05 — MOTORSPORT', 'STORY BEFORE SPORT', [['GRID', 'Story before sport', G('race', 0.03)], ['LAP', 'One idea, seven markets', G('race', 0.12)], ['PIT', 'AI is the pit crew', G('race', 0.72)], ['READ', 'The read', 'read:motorsport'], ['FLAG', 'Full time', G('ft', 0.98)]]],
   ['POST-MATCH', '', [["90+1'", 'The film room', 'sec:0'], ["90+2'", 'The record', 'sec:1'], ["90+3'", 'In the stands', 'sec:2'], ["90+4'", 'The dressing room', 'sec:3'], ["90+5'", 'Book Matt', 'sec:4']]],
 ];
 const row = (m, n, tag, go) => `<button class="menu-row" data-go="${go}" style="display:grid;grid-template-columns:64px 1fr auto;align-items:baseline;gap:12px;width:100%;padding:10px 16px;background:none;border:0;border-bottom:1px solid rgba(243,242,242,.1);color:#f3f2f2;font-family:inherit;text-align:left;cursor:pointer">
@@ -253,9 +251,8 @@ const S = () => snd;
 const events = [
   ...[0.046, 0.085, 0.123, 0.162].map((t, i) => [G('hero', t), () => S().whoosh(1 + i * 0.15)]), [G('hero', 0.18), () => S().clunk()], [G('hero', 0.34), () => S().roar()],
   ...[0.58, 0.598, 0.616, 0.634].map(t => [G('hero', t), () => S().clunk()]),
-  ...['x1', 'x2', 'x3', 'x4', 'x5'].flatMap(x => [[G(x, 0.04), () => S().whoosh(0.9)], [G(x, 0.2), () => S().whoosh(1.5)], [G(x, 0.52), () => S().clunk()], [G(x, 0.6), () => S().clunk()], [G(x, 0.7), () => S().clunk()], [G(x, 0.86), () => S().roar()]]),
+  ...['x1', 'x2', 'x3', 'x4'].flatMap(x => [[G(x, 0.04), () => S().whoosh(0.9)], [G(x, 0.38), () => S().whoosh(1.5)], [G(x, 0.8), () => S().clunk()], [G(x, 0.86), () => S().clunk()], [G(x, 0.92), () => S().clunk()], [G(x, 0.97), () => S().roar()]]),
   [G('bball', CH.TAC[0]), () => S().whistle(2)], [G('nfl', CH.DRIVE[0] + (CH.DRIVE[1] - CH.DRIVE[0]) * (DRIVE.length - 1) / DRIVE.length), () => { S().roar(); S().whistle(1); }],
-  [G('ring', CH.WALK[0]), () => S().roar()], ...[0, 0.012, 0.024].map(d => [G('ring', CH.ROUND[0] + d), () => S().clunk()]),
   [G('race', 0.068), () => { S().whoosh(1.6); S().roar(); }], [G('ft', 0.04), () => S().whistle(3)],
 ];
 
@@ -325,7 +322,7 @@ function onScroll() {
   const nextRead = readEls.find(r => r.top + ih * 0.3 > scrollY + ih);
   const st = stages.filter(x => scrollY >= x.s0).pop(), showSkip = !!(nextRead && st && !curRead && !postN && st.id !== 'ft' && !(st.id === 'hero' && scrollY < st.s0 + ih * 0.2));
   skipEl.style.display = showSkip ? 'inline' : 'none'; skipEl.dataset.to = nextRead ? nextRead.key : '';
-  if (curRead && !postN) { const R = READS[curRead.key]; clabelEl.textContent = 'THE READ'; clockEl.textContent = `${R.n}/06`; venueEl.style.opacity = '0'; }
+  if (curRead && !postN) { const R = READS[curRead.key]; clabelEl.textContent = 'THE READ'; clockEl.textContent = `${R.n}/05`; venueEl.style.opacity = '0'; }
   if (!eng) return;
   eng.setPaused(scrollY - (postTop - ih) > ih * 1.1 || full);
   if (frozen) return;
@@ -344,9 +341,7 @@ function clock(id, t) {
   if (id === 'nfl') { if (t >= CH.XI[0] - 0.03) return ['DOWN & DISTANCE', 'HUDDLE']; const k = Math.min(DRIVE.length - 1, Math.max(0, Math.floor((t - CH.DRIVE[0]) / (CH.DRIVE[1] - CH.DRIVE[0]) * DRIVE.length))); return ['DOWN & DISTANCE', DRIVE[k].down]; }
   if (id === 'x3') return ['SCORE', '0–0'];
   if (id === 'tennis') return ['SCORE', t < CH.SEXES[0] ? '15–0' : t < CH.PADEL[0] ? '30–0' : t < CH.PADEL[1] ? '40–0' : 'GAME'];
-  if (id === 'x4') return ['FIGHT NIGHT', 'FIGHT WEEK'];
-  if (id === 'ring') { if (t < CH.WALK[0] - 0.02) return ['FIGHT WEEK', 'PRESSER']; if (t < CH.ROUND[0] - 0.02) return ['FIGHT NIGHT', 'RING WALK']; const s = Math.max(0, Math.round(180 * (1 - (t - CH.ROUND[0]) / (1 - CH.ROUND[0])))); return ['ROUND', `R1 ${Math.floor(s / 60)}:${pad2(s % 60)}`]; }
-  if (id === 'x5') return ['LAP', 'GRID'];
+  if (id === 'x4') return ['LAP', 'GRID'];
   if (id === 'race') { if (t < CH.LAP[0]) return ['LAP', 'LIGHTS']; if (t < CH.LAP[1]) { const k = Math.min(6, Math.floor((t - CH.LAP[0]) / (CH.LAP[1] - CH.LAP[0]) * 8)); return ['LAP', `1 · T${k + 1}`]; } return ['LAP', 'PIT']; }
   return ['RESULT', 'FLAG'];
 }
