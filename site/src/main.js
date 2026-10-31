@@ -1,9 +1,11 @@
 // Arena v12 — scroll controller. Maps scroll to match progress, drives the 3D engine, scrubs the DOM overlays.
 import './styles/modernist.css';
 import './styles/site.css';
+import './styles/reads.css';
 import './styles/mobile.css';
 import { drawBrief } from './engine/broadcast-gfx.js';
-import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, FILM, TROPHIES, PROOF, STANDS, TALENT, BRANDS, PRESS, SEATS, TOPICS, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN } from './content.js';
+import Lenis from 'lenis';
+import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, FILM, TROPHIES, PROOF, STANDS, TALENT, BRANDS, PRESS, SEATS, TOPICS, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN, STAGE_VH, READ_AFTER, READS, PLAYS, FORMATS, FIGHT } from './content.js';
 
 const BASE = import.meta.env.BASE_URL;
 const KBG = '#0b0a0a', ZONE_ON = '#ec3013', ZONE_OFF = 'rgba(243,242,242,.3)';
@@ -26,13 +28,63 @@ const GR = (id, r) => [G(id, r[0]), G(id, r[1])];
 const segAt = p => { for (const s of segList) if (p <= s.b) return s; return segList[segList.length - 1]; };
 
 const root = document.getElementById('root');
-root.querySelector('[data-spacer]').style.height = SEGS.reduce((a, [, w]) => a + w, 0) + 'vh';
 const $ = sel => root.querySelector(sel);
 const $$ = sel => [...root.querySelectorAll(sel)];
 const list = (name, html) => { const el = $(`[data-list="${name}"]`); el.insertAdjacentHTML('beforeend', html); return el; };
 
 // ---------- render lists
-list('ticks', ['x1', 'x2', 'x3', 'x4', 'x5'].map(x => `<div style="position:absolute;top:-3px;width:2px;height:8px;background:rgba(243,242,242,.5);left:${(G(x, 0.5) * 100).toFixed(2)}%"></div>`).join(''));
+// ---------- the flow: a stage of 3D per chapter, and a read after each venue that scrolls like a normal page
+const NEXT_LABEL = { basketball: ['02', 'Basketball', 'x1'], nfl: ['03', 'NFL', 'x2'], tennis: ['04', 'Tennis', 'x3'], fight: ['05', 'Fight night', 'x4'], motorsport: ['06', 'Motorsport', 'x5'], ft: ['FT', 'Full time', 'ft'] };
+const rItem = (a, b, h, p) => `<div data-rv class="rl-i"><div class="rl-top"><span>${a}</span><span>${b}</span></div><div class="rl-h">${h}</div>${p ? `<div class="rl-p">${p}</div>` : ''}</div>`;
+const LISTS = {
+  rights: () => RIGHTS.map((r, i) => rItem(pad2(i + 1), esc(r.sub), esc(r.name), esc(r.detail))),
+  plays: () => PLAYS.map(p => rItem(`PLAY ${p.n}`, esc(p.x), esc(p.h), `${esc(p.s)}<span class="rl-x">${p.rows.map(esc).join(' × ')}</span>`)),
+  brief: () => [['01', 'Who we want', ['Fans we have', "Fans we don't"], 1], ['02', 'What they already love', SCREEN_DATA.passions], ['03', 'What we have', ['Sport', 'Athletes', 'Stories']], ['04', 'What it becomes', SCREEN_DATA.outputs, 1]]
+    .map(([n, h, chips, red]) => rItem(n, 'THE BRIEF', esc(h), `<span class="rl-chips">${chips.map((c, i) => `<span class="${red && (n === '04' || i === 1) ? 'red' : ''}">${esc(c)}</span>`).join('')}</span>`)),
+  drive: () => DRIVE.map(d => rItem(esc(d.years), esc(d.down), esc(d.name), `<b>${esc(d.role)}.</b> ${esc(d.detail)}`)),
+  xi: () => XI.map(x => rItem(`NO. ${x[2]}`, esc(x[4]), esc(x[3]), esc(x[5]))),
+  formats: () => FORMATS.map(f => rItem(esc(f.k), esc(f.stat.toUpperCase()), esc(f.h), esc(f.p))),
+  fight: () => FIGHT.map(f => rItem(esc(f.k), esc(f.stat.toUpperCase()), esc(f.h), esc(f.p))),
+  markets: () => [`<div data-rv class="rl-markets">${MARKETS.map((m, i) => `<span><b>T${i + 1}</b>${esc(m)}</span>`).join('')}</div>`],
+  kit: () => KIT.map(k => rItem(esc(k.tag), esc(k.tools.toUpperCase()), esc(k.title), esc(k.detail))),
+};
+const rPhoto = ([f, title, line]) => `<figure data-rv class="life rb-photo"><img src="${BASE}photos/life/${f}" alt="${esc(title)}" loading="lazy"><figcaption><span>${esc(title)}</span>${esc(line)}</figcaption></figure>`;
+function readHTML(key) {
+  const R = READS[key], [nn, nl, nx] = NEXT_LABEL[R.next];
+  return `<section class="read" data-read="${key}" id="read-${key}">
+  <div class="read-in">
+    <div data-rv class="read-head"><span><b>${R.n} / 06</b> ${esc(R.venue.toUpperCase())}</span><span>THE READ</span></div>
+    <h2 data-rv class="read-title">${esc(R.title)}</h2>
+    <p data-rv class="read-intro">${esc(R.intro)}</p>
+    ${R.blocks.map(b => { const lst = b.list ? LISTS[b.list]() : null, wide = b.list === 'markets';
+      return `<div class="rb${lst && !wide ? '' : ' rb-solo'}">
+      <div class="rb-l"><div class="rb-k">${esc(b.k)}</div><h3 class="rb-h">${esc(b.h)}</h3>${b.p ? `<p class="rb-p">${esc(b.p)}</p>` : ''}${lst && b.photo && !wide ? rPhoto(b.photo) : ''}${wide ? lst.join('') : ''}</div>
+      <div class="rb-r">${lst && !wide ? `<div class="rl rl-${b.list}">${lst.join('')}</div>` : b.photo ? rPhoto(b.photo) : ''}</div>
+    </div>`; }).join('')}
+    <button class="read-next" data-go="seg:${nx}"><span class="rn-k">NEXT</span><span class="rn-t"><b>${nn}</b> ${esc(nl)}</span><span class="rn-a">↓</span></button>
+  </div>
+</section>`;
+}
+const flowEl = $('[data-flow]'), postEl = $('[data-post]');
+SEGS.forEach(([id]) => { flowEl.insertAdjacentHTML('beforeend', `<div data-stage="${id}" style="height:${STAGE_VH[id]}vh"></div>`); if (READ_AFTER[id]) flowEl.insertAdjacentHTML('beforeend', readHTML(READ_AFTER[id])); });
+// scroll ↔ match progress. A stage plays its segment of the story; a read holds the story where the venue ended.
+let stages = [], readEls = [], postTop = 1;
+function layout() {
+  const ih = innerHeight;
+  stages = $$('[data-stage]').map(el => {
+    const id = el.dataset.stage, top = el.getBoundingClientRect().top + scrollY, h = el.offsetHeight, pv = el.previousElementSibling, nx = el.nextElementSibling;
+    const s0 = top - (pv && pv.matches('[data-read]') ? ih * 0.5 : 0), s1 = top + h - (!nx ? ih : nx.matches('[data-read]') ? ih * 0.35 : 0);
+    return { id, a: SEG[id].a, b: SEG[id].b, s0, s1: Math.max(s0 + 1, s1), read: READ_AFTER[id] };
+  });
+  readEls = $$('[data-read]').map(el => ({ el, key: el.dataset.read, top: el.getBoundingClientRect().top + scrollY, h: el.offsetHeight }));
+  postTop = postEl.getBoundingClientRect().top + scrollY;
+  const end = Math.max(1, postTop - ih), tk = $('[data-list="ticks"]');
+  tk.querySelectorAll('[data-tick]').forEach(e => e.remove());
+  readEls.forEach(r => tk.insertAdjacentHTML('beforeend', `<div data-tick style="position:absolute;top:-3px;width:2px;height:8px;background:rgba(243,242,242,.5);left:${(Math.min(1, (r.top + ih * 0.4) / end) * 100).toFixed(2)}%"></div>`));
+}
+const pAt = sY => { let q = 0; for (const st of stages) if (sY >= st.s0) q = st.a + (st.b - st.a) * Math.min(1, Math.max(0, (sY - st.s0) / (st.s1 - st.s0))); return q; };
+const scrollForP = q => { const st = stages.find(x => q >= x.a - 1e-9 && q <= x.b + 1e-9) || stages[stages.length - 1]; return st.s0 + (st.s1 - st.s0) * (q - st.a) / Math.max(1e-9, st.b - st.a); };
+layout();
 list('rights', RIGHTS.map((r, i) => `<div data-ri="${i}" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">${pad2(i + 1)}</span><span>${esc(r.name.toUpperCase())}</span></div>`).join(''));
 list('rightsDetail', RIGHTS.map((r, i) => `<div data-rd="${i}" style="grid-area:1/1;opacity:0">${esc(r.detail)}</div>`).join(''));
 list('drive', DRIVE.map((b, i) => `<div data-dc="${i}" style="grid-area:1/1;opacity:0;padding:14px 16px 16px">
@@ -112,12 +164,12 @@ list('seats', SEATS.map(([who, line, subj, q], i) => `<a href="mailto:${EMAIL}?s
 
 // chapters menu
 const groups = [
-  ['01 — FOOTBALL', 'NIGHT STADIUM', [["05'", 'The tunnel is the new runway', G('hero', 0.25)], ["15'", 'Nobody falls for 90 minutes', G('hero', 0.5)], ["20'", 'Off the pitch, into culture', G('hero', 0.9)], ["35'", 'Who I tell stories for', G('rights', 0.45)]]],
-  ['02 — BASKETBALL', 'CULTURE IS THE SIDE DOOR', [['Q1', 'Culture plays', G('bball', 0.25)], ['TO', 'How I build a brief', G('bball', 0.8)]]],
-  ['03 — NFL', 'FIT BEATS SIZE', [['1&10', 'How a fan is made', G('nfl', 0.25)], ['XI', '11 talent rules', G('nfl', 0.6)]]],
-  ['04 — TENNIS', 'THE FORMAT IS THE PRODUCT', [['15–0', 'Battle of the Surfaces', G('tennis', 0.15)], ['30–0', 'Battle of the Sexes', G('tennis', 0.38)], ['40–0', 'Padel', G('tennis', 0.62)], ['GAME', 'New formats, new fans', G('tennis', 0.86)]]],
-  ['05 — FIGHT NIGHT', 'THE BUILD-UP IS THE PRODUCT', [['WEEK', 'The press conference', G('ring', 0.18)], ['WALK', 'The ring walk', G('ring', 0.5)], ['R1', 'Personality sells the fight', G('ring', 0.82)]]],
-  ['06 — MOTORSPORT', 'STORY BEFORE SPORT', [['GRID', 'Story before sport', G('race', 0.03)], ['LAP', 'One idea, seven markets', G('race', 0.12)], ['PIT', 'AI is the pit crew', G('race', 0.72)], ['FLAG', 'Full time', G('ft', 0.98)]]],
+  ['01 — FOOTBALL', 'NIGHT STADIUM', [["05'", 'The tunnel is the new runway', G('hero', 0.25)], ["15'", 'Nobody falls for 90 minutes', G('hero', 0.5)], ["20'", 'Off the pitch, into culture', G('hero', 0.9)], ["35'", 'Who I tell stories for', G('rights', 0.45)], ['READ', 'The read', 'read:football']]],
+  ['02 — BASKETBALL', 'CULTURE IS THE SIDE DOOR', [['Q1', 'Culture plays', G('bball', 0.25)], ['TO', 'How I build a brief', G('bball', 0.8)], ['READ', 'The read', 'read:basketball']]],
+  ['03 — NFL', 'FIT BEATS SIZE', [['1&10', 'How a fan is made', G('nfl', 0.25)], ['XI', '11 talent rules', G('nfl', 0.6)], ['READ', 'The read', 'read:nfl']]],
+  ['04 — TENNIS', 'THE FORMAT IS THE PRODUCT', [['15–0', 'Battle of the Surfaces', G('tennis', 0.15)], ['30–0', 'Battle of the Sexes', G('tennis', 0.38)], ['40–0', 'Padel', G('tennis', 0.62)], ['GAME', 'New formats, new fans', G('tennis', 0.86)], ['READ', 'The read', 'read:tennis']]],
+  ['05 — FIGHT NIGHT', 'THE BUILD-UP IS THE PRODUCT', [['WEEK', 'The press conference', G('ring', 0.18)], ['WALK', 'The ring walk', G('ring', 0.5)], ['R1', 'Personality sells the fight', G('ring', 0.82)], ['READ', 'The read', 'read:fight']]],
+  ['06 — MOTORSPORT', 'STORY BEFORE SPORT', [['GRID', 'Story before sport', G('race', 0.03)], ['LAP', 'One idea, seven markets', G('race', 0.12)], ['PIT', 'AI is the pit crew', G('race', 0.72)], ['READ', 'The read', 'read:motorsport'], ['FLAG', 'Full time', G('ft', 0.98)]]],
   ['POST-MATCH', '', [["90+1'", 'The film room', 'sec:0'], ["90+2'", 'The record', 'sec:1'], ["90+3'", 'In the stands', 'sec:2'], ["90+4'", 'The dressing room', 'sec:3'], ["90+5'", 'Book Matt', 'sec:4']]],
 ];
 const row = (m, n, tag, go) => `<button class="menu-row" data-go="${go}" style="display:grid;grid-template-columns:64px 1fr auto;align-items:baseline;gap:12px;width:100%;padding:10px 16px;background:none;border:0;border-bottom:1px solid rgba(243,242,242,.1);color:#f3f2f2;font-family:inherit;text-align:left;cursor:pointer">
@@ -152,7 +204,7 @@ addEventListener('resize', sizeBrief); sizeBrief();
 let eng = null, snd = null, kick = null, frozen = false, postN = 0, prevP = 0, hoverT = 0, goalTO = 0;
 const idx = {};
 const menuEl = $('[data-menu]'), menuBtn = $('[data-menu-toggle]');
-const spacerEl = $('[data-spacer]'), ftEl = $('[data-ft]'), capEl = $('[data-cap]');
+const ftEl = $('[data-ft]'), capEl = $('[data-cap]');
 const postSecs = $$('[data-post-sec]');
 const clockEl = $('[data-clock]'), clabelEl = $('[data-clabel]'), barEl = $('[data-bar]'), venueEl = $('[data-venue]');
 const ri = $$('[data-ri]'), rd = $$('[data-rd]'), zi = $$('[data-zi]'), kc = $$('[data-kc]'), dc = $$('[data-dc]'), dn = $('[data-dn]');
@@ -172,7 +224,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(fals
 menuEl.addEventListener('click', e => {
   const b = e.target.closest('[data-go]'); if (!b) return;
   const go = b.dataset.go;
-  if (go === 'replay') replay(); else goTo(go.startsWith('sec:') ? go : Number(go));
+  if (go === 'replay') replay(); else goTo(/^(sec|read|seg):/.test(go) ? go : Number(go));
 });
 $('[data-replay]').addEventListener('click', () => replay());
 $('[data-skip]').addEventListener('click', () => { kick && kick.skip(); });
@@ -234,22 +286,53 @@ if (innerWidth < 760) {
 }
 
 // ---------- scroll + clock
-const matchMax = () => Math.max(1, (spacerEl ? spacerEl.offsetHeight : document.documentElement.scrollHeight) - innerHeight);
+// inertial wheel scrolling on desktop; touch keeps the platform's own scrolling
+const lenis = !matchMedia('(prefers-reduced-motion: reduce)').matches && !matchMedia('(pointer: coarse)').matches ? new Lenis({ lerp: 0.085, wheelMultiplier: 0.95, smoothWheel: true }) : null;
+if (lenis) { const tick = t => { lenis.raf(t); requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+const smoothTo = y => { if (lenis) lenis.scrollTo(y, { duration: 1.6, easing: t => 1 - Math.pow(1 - t, 4) }); else scrollTo({ top: y, behavior: 'smooth' }); };
+const skipEl = $('[data-skip-read]'), hbgEl = $('[data-hbg]');
+const canvasEl = $('[data-canvas]'), dimEl = $('[data-dim]');
+let curRead = null, readCover = 0;
 function postUI(d) {
   const f = Math.min(1, Math.max(0, d / (innerHeight * 0.45)));
   ftEl.style.opacity = String(1 - f); ftEl.style.visibility = f > 0.99 ? 'hidden' : 'visible';
-  capEl.style.opacity = String(1 - f);
   let n = 0;
   if (d > 0) { n = 1; postSecs.forEach((s, i) => { if (s.getBoundingClientRect().top < innerHeight * 0.5) n = i + 1; }); }
   postN = n;
-  if (eng) eng.setPaused(d > innerHeight * 1.1);
-  if (n) { clockEl.textContent = `90+${n}'`; clabelEl.textContent = 'STOPPAGE TIME'; barEl.style.width = '100%'; }
+  if (n) { clockEl.textContent = `90+${n}'`; clabelEl.textContent = 'STOPPAGE TIME'; }
+  return f;
+}
+// which read (if any) is on screen, and how much of the screen it covers
+function readUI() {
+  const ih = innerHeight; let cur = null, cover = 0, full = false;
+  for (const r of readEls) { const t = r.top - scrollY, b = t + r.h; if (b < 0 || t > ih) continue;
+    const solidT = t + ih * 0.44, solidB = b - ih * 0.44, c = Math.max(0, Math.min(ih, solidB) - Math.max(0, solidT)) / ih;
+    if (c > cover) { cover = c; cur = r; } if (solidT <= 0 && solidB >= ih) full = true; }
+  readUI.near = readEls.some(r => { const t = r.top - scrollY; return t + ih * 0.4 < 90 && t + r.h - ih * 0.4 > 0; }) ? 1 : 0;
+  const k = Math.min(1, cover * 2.2);
+  readCover = k; curRead = k > 0.5 ? cur : null;
+  return full;
 }
 function onScroll() {
-  const mm = matchMax(); postUI(scrollY - mm);
-  if (!eng || frozen) return;
-  eng.setTarget(Math.min(1, scrollY / mm));
+  const ih = innerHeight, f = postUI(scrollY - (postTop - ih)), full = readUI();
+  capEl.style.opacity = String((1 - f) * (1 - readCover));
+  // as a read slides up, the scene behind eases back and dims, so the page reads as a layer over the venue
+  canvasEl.style.transform = readCover > 0.001 ? `scale(${(1 + 0.035 * readCover).toFixed(4)})` : ''; dimEl.style.opacity = (readCover * 0.5).toFixed(3);
+  // the header gets a dark backing whenever page content (a read or the post-match) scrolls under it
+  hbgEl.style.opacity = String(Math.max(readUI.near || 0, Math.min(1, (scrollY - (postTop - ih * 0.1)) / (ih * 0.3))));
+  barEl.style.width = (Math.min(1, scrollY / Math.max(1, postTop - ih)) * 100).toFixed(2) + '%';
+  // skip: during a chapter's 3D stage, jump straight to its read
+  const nextRead = readEls.find(r => r.top + ih * 0.3 > scrollY + ih);
+  const st = stages.filter(x => scrollY >= x.s0).pop(), showSkip = !!(nextRead && st && !curRead && !postN && st.id !== 'ft' && !(st.id === 'hero' && scrollY < st.s0 + ih * 0.2));
+  skipEl.style.display = showSkip ? 'inline' : 'none'; skipEl.dataset.to = nextRead ? nextRead.key : '';
+  if (curRead && !postN) { const R = READS[curRead.key]; clabelEl.textContent = 'THE READ'; clockEl.textContent = `${R.n}/06`; venueEl.style.opacity = '0'; }
+  if (!eng) return;
+  eng.setPaused(scrollY - (postTop - ih) > ih * 1.1 || full);
+  if (frozen) return;
+  eng.setTarget(pAt(scrollY));
 }
+skipEl.addEventListener('click', () => goTo('read:' + skipEl.dataset.to));
+document.addEventListener('click', e => { const b = e.target.closest('.read-next'); if (b) goTo(b.dataset.go); });
 function clock(id, t) {
   const mm = m => pad2(Math.floor(m)) + "'";
   const K = (q, keys) => { for (let i = 0; i < keys.length - 1; i++) { const [a, va] = keys[i], [b, vb] = keys[i + 1]; if (q <= b) return va + (vb - va) * (q - a) / (b - a); } return keys[keys.length - 1][1]; };
@@ -295,28 +378,32 @@ function frame({ p, ball }) {
     const [l, o] = crowdLevel(p); snd.setCrowd(l, o);
   }
   prevP = p;
-  if (postN) return;
+  if (postN || curRead) return;
   const sg = segAt(p), t = (p - sg.a) / (sg.b - sg.a), [lab, val] = clock(sg.id, t);
   if (clockEl.textContent !== val) clockEl.textContent = val;
   if (clabelEl.textContent !== lab) clabelEl.textContent = lab;
-  barEl.style.width = (p * 100).toFixed(2) + '%';
   const v = VENUE[sg.id] || ''; const show = v && !(sg.id === 'hero' && (t < 0.03 || t > 0.77)) && !(sg.id === 'nfl' && t > 0.57);
   if (venueEl.textContent !== v) venueEl.textContent = v; venueEl.style.opacity = show ? '1' : '0';
 }
 
 function goTo(p) {
   setMenu(false); frozen = false;
-  if (typeof p === 'string') { const el = postSecs[Number(p.slice(4))]; if (el) scrollTo({ top: el.getBoundingClientRect().top + scrollY - 70, behavior: 'smooth' }); return; }
-  scrollTo({ top: p * matchMax(), behavior: 'smooth' });
+  if (typeof p === 'string') {
+    const [kind, v] = p.split(':');
+    if (kind === 'sec') { const el = postSecs[Number(v)]; if (el) smoothTo(el.getBoundingClientRect().top + scrollY - 70); return; }
+    if (kind === 'read') { const r = readEls.find(x => x.key === v); if (r) smoothTo(r.top + innerHeight * 0.38); return; }
+    if (kind === 'seg') { const st = stages.find(x => x.id === v); if (st) smoothTo(v === 'ft' ? scrollForP(G('ft', 0.6)) : scrollForP(G(v, 0.3))); return; }
+  }
+  smoothTo(scrollForP(p));
 }
 function replay() {
-  setMenu(false); scrollTo(0, 0); if (eng) eng.jump(0);
+  setMenu(false); if (lenis) lenis.scrollTo(0, { immediate: true }); scrollTo(0, 0); if (eng) eng.jump(0);
   kick && kick.cancel(); startIntro(Promise.resolve());
 }
 
 // ---------- intro
 async function startIntro(waitFor) {
-  document.documentElement.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden'; lenis && lenis.stop();
   kickWrap.style.display = 'block'; kickWrap.style.background = KBG;
   const ui = kickWrap.querySelector('[data-kick-ui]'); ui.style.opacity = '1';
   const kcEl = kickWrap.querySelector('[data-kclock]'), zones = [...kickWrap.querySelectorAll('[data-zone]')];
@@ -332,7 +419,7 @@ async function startIntro(waitFor) {
     onDone: () => endIntro(),
   });
 }
-function endIntro() { kickWrap.style.display = 'none'; document.documentElement.style.overflow = ''; }
+function endIntro() { kickWrap.style.display = 'none'; document.documentElement.style.overflow = ''; lenis && lenis.start(); }
 
 // ---------- post-match: cards rise in as they reach the viewport, results count up
 function countUp(el, delay) {
@@ -374,11 +461,13 @@ const enginePromise = import('./engine/arena-engine.js')
   });
 enginePromise.catch(e => console.error('arena engine failed', e));
 addEventListener('scroll', onScroll, { passive: true });
-addEventListener('resize', onScroll);
+addEventListener('resize', () => { layout(); onScroll(); });
+if ('ResizeObserver' in window) new ResizeObserver(() => { layout(); onScroll(); }).observe(flowEl);
+addEventListener('load', () => { layout(); onScroll(); });
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (START_AT) {
   endIntro();
-  enginePromise.then(() => { const p = G(START_AT[0], START_AT[1]); scrollTo(0, p * matchMax()); eng && eng.jump(p); });
+  enginePromise.then(() => { const p = G(START_AT[0], START_AT[1]); scrollTo(0, scrollForP(p)); eng && eng.jump(p); });
 } else if (reduce) enginePromise.then(endIntro, endIntro);
 else startIntro(enginePromise);

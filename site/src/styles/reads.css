@@ -1,0 +1,81 @@
+/* The reads: after each venue's 3D stage, the same thinking laid out to read at your own pace.
+   The section's top and bottom fade into the scene, so the 3D never cuts; it holds behind while you read. */
+.read {
+  position: relative; z-index: 5; color: #f3f2f2;
+  padding: 44vh clamp(20px, 3vw, 44px) 46vh;
+  background: linear-gradient(to bottom,
+    rgba(11,10,10,0) 0, rgba(11,10,10,.82) 22vh, #0b0a0a 40vh,
+    #0b0a0a calc(100% - 42vh), rgba(11,10,10,.82) calc(100% - 24vh), rgba(11,10,10,0) 100%);
+}
+.read-in { max-width: 1240px; margin: 0 auto; }
+.read-head {
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  border-top: 2px solid var(--color-accent); padding-top: 14px;
+  font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+}
+.read-head b { color: var(--color-accent); margin-right: 12px; font-weight: 800; }
+.read-head > span:last-child { color: rgba(243,242,242,.55); }
+.read-title {
+  margin: clamp(36px, 7vh, 80px) 0 clamp(18px, 3vh, 30px); max-width: 14ch;
+  font-weight: 800; text-transform: uppercase; font-size: clamp(48px, 7.6vw, 136px); line-height: .84; letter-spacing: -.05em; text-wrap: balance;
+}
+.read-intro { margin: 0 0 clamp(40px, 7vh, 80px); max-width: 640px; font-size: clamp(17px, 1.4vw, 21px); line-height: 1.45; font-weight: 600; color: rgba(243,242,242,.85); text-wrap: pretty; }
+
+/* a block: the point on the left (it stays in view while its list scrolls past), the evidence on the right */
+.rb { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(24px, 4vw, 64px); padding: clamp(28px, 5vh, 48px) 0 clamp(36px, 6vh, 64px); border-top: 1px solid rgba(243,242,242,.18); }
+.rb-l { position: sticky; top: 100px; align-self: start; }
+.rb-solo .rb-l { position: static; }
+.rb-k { font-size: 11px; font-weight: 800; letter-spacing: .16em; color: var(--color-accent); margin-bottom: 12px; }
+.rb-h { margin: 0; font-weight: 800; text-transform: uppercase; font-size: clamp(28px, 3vw, 48px); line-height: .92; letter-spacing: -.03em; text-wrap: balance; }
+.rb-p { margin: 16px 0 0; max-width: 46ch; font-size: 16px; line-height: 1.5; color: rgba(243,242,242,.85); text-wrap: pretty; }
+.rb-photo { margin: 24px 0 0; max-width: 360px; }
+.rb-r .rb-photo { margin: 0; max-width: 460px; }
+.rb-photo img { display: block; width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+.rb-photo figcaption { margin-top: 10px; padding-top: 8px; border-top: 2px solid var(--color-accent); font-size: 14px; font-weight: 600; line-height: 1.35; color: #f3f2f2; }
+.rb-photo figcaption span { display: block; margin-bottom: 4px; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--color-accent); }
+
+/* lists: cards in a hairline grid, the same language as the post-match */
+.rl { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); border-top: 2px solid #f3f2f2; border-left: 1px solid rgba(243,242,242,.18); }
+.rl-xi, .rl-rights { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+.rl-formats, .rl-fight, .rl-kit, .rl-plays, .rl-brief { grid-template-columns: 1fr; }
+.rl-i { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px 18px; border-right: 1px solid rgba(243,242,242,.18); border-bottom: 1px solid rgba(243,242,242,.18); transition: background-color .2s; }
+.rl-i:hover { background: rgba(236,48,19,.1); }
+.rl-top { display: flex; justify-content: space-between; gap: 12px; font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.rl-top span:first-child { color: var(--color-accent); }
+.rl-top span:last-child { color: rgba(243,242,242,.55); text-align: right; }
+.rl-h { font-weight: 800; text-transform: uppercase; font-size: clamp(18px, 1.6vw, 24px); line-height: 1; letter-spacing: -.015em; }
+.rl-formats .rl-h, .rl-fight .rl-h, .rl-kit .rl-h, .rl-plays .rl-h, .rl-brief .rl-h { font-size: clamp(22px, 2.1vw, 32px); }
+.rl-p { font-size: 14.5px; line-height: 1.5; color: rgba(243,242,242,.82); text-wrap: pretty; }
+.rl-p b { color: #f3f2f2; font-weight: 700; }
+.rl-x { display: block; margin-top: 10px; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #f3f2f2; }
+.rl-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rl-chips span { padding: 4px 8px; border: 2px solid rgba(243,242,242,.3); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #f3f2f2; }
+.rl-chips span.red { border-color: var(--color-accent); color: #ff7a5e; }
+.rl-markets { display: flex; flex-wrap: wrap; gap: 8px 10px; margin-top: 22px; }
+.rl-markets span { display: inline-flex; gap: 8px; padding: 8px 10px; border: 2px solid rgba(243,242,242,.3); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.rl-markets b { color: var(--color-accent); }
+
+/* the hand-off: the next venue, then the read fades back into the 3D */
+.read-next {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 18px; width: 100%;
+  margin-top: clamp(24px, 4vh, 48px); padding: 22px 0 0; border: 0; border-top: 2px solid #f3f2f2; background: none;
+  color: #f3f2f2; font: inherit; text-align: left; cursor: pointer;
+}
+.read-next .rn-k { font-size: 12px; font-weight: 800; letter-spacing: .16em; color: rgba(243,242,242,.55); }
+.read-next .rn-t { font-weight: 800; text-transform: uppercase; font-size: clamp(36px, 5.4vw, 96px); line-height: .9; letter-spacing: -.045em; }
+.read-next .rn-t b { color: var(--color-accent); margin-right: .2em; }
+.read-next .rn-a { font-size: clamp(28px, 3vw, 48px); font-weight: 800; transition: transform .3s cubic-bezier(.2,.7,.2,1); }
+.read-next:hover { color: var(--color-accent-400); }
+.read-next:hover .rn-a { transform: translateY(8px); }
+
+@media (max-width: 760px) {
+  .read { padding: 40vh 16px 42vh; }
+  .read-title { font-size: 13vw; }
+  .rb { grid-template-columns: 1fr; gap: 22px; }
+  .rb-l { position: static; }
+  .rb-photo, .rb-r .rb-photo { max-width: none; }
+  .rb-photo img { aspect-ratio: 4/3; }
+  .read-next { grid-template-columns: 1fr auto; }
+  .read-next .rn-k { grid-column: 1 / -1; }
+  .read-next .rn-t { font-size: 11vw; }
+}

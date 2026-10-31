@@ -31,6 +31,7 @@
 <canvas data-canvas style="position:fixed;top:0;left:0;width:100vw;height:100vh;display:block;z-index:0"></canvas>
 <div style="position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 95% at 50% 50%, rgba(11,10,10,0) 58%, rgba(11,10,10,.55) 100%)"></div>
 <div data-scrim aria-hidden="true"></div>
+<div data-dim aria-hidden="true" style="position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;background:#0b0a0a"></div>
 <div data-grid style="position:fixed;inset:0;z-index:1;pointer-events:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0 clamp(20px,3vw,44px)">
   <div style="border-left:1px solid rgba(243,242,242,.05)"></div>
   <div style="border-left:1px solid rgba(243,242,242,.05)"></div>
@@ -39,6 +40,7 @@
 </div>
 
 <div style="position:fixed;top:0;left:0;right:0;z-index:6;pointer-events:none">
+  <div data-hbg aria-hidden="true" style="position:absolute;left:0;right:0;top:0;height:130%;z-index:-1;opacity:0;background:linear-gradient(to bottom,rgba(11,10,10,.97) 62%,rgba(11,10,10,0));transition:opacity .25s linear"></div>
   <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px clamp(20px,3vw,44px) 16px">
     <div style="display:flex;align-items:center;gap:12px">
       <div style="width:12px;height:12px;background:var(--color-accent)"></div>
@@ -58,7 +60,7 @@
   </div>
 </div>
 
-<nav id="chapters" data-menu hidden aria-label="Chapters" style="position:fixed;top:76px;right:clamp(20px,3vw,44px);z-index:7;width:min(380px,calc(100vw - 40px));max-height:calc(100vh - 100px);overflow:auto;background:#0b0a0a;border:2px solid rgba(243,242,242,.35)">
+<nav id="chapters" data-menu data-lenis-prevent hidden aria-label="Chapters" style="position:fixed;top:76px;right:clamp(20px,3vw,44px);z-index:7;width:min(380px,calc(100vw - 40px));max-height:calc(100vh - 100px);overflow:auto;background:#0b0a0a;border:2px solid rgba(243,242,242,.35)">
   <div style="padding:14px 16px;border-bottom:2px solid rgba(243,242,242,.2);font-size:11px;font-weight:800;letter-spacing:.16em;color:rgba(243,242,242,.62)">CHAPTERS — SIX VENUES, ONE WAY OF THINKING</div>
   <div data-list="chapters"></div>
 </nav>
@@ -354,11 +356,14 @@
       <div data-sk="race:.64,.67,.95,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">PIT</span><span>AI IS THE PIT CREW</span></div>
       <div data-sk="ft:0,.06" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">FLAG</span><span>FULL TIME</span></div>
     </div>
+    <div style="display:flex;align-items:baseline;gap:18px">
+    <button data-skip-read class="hv-text" style="pointer-events:auto;display:none;background:none;border:0;padding:0;color:#f3f2f2;font:inherit;letter-spacing:inherit;cursor:pointer;white-space:nowrap"><span style="color:var(--color-accent)">SKIP</span> TO THE READ ↓</button>
     <div style="display:grid;text-align:right;color:rgba(243,242,242,.62)">
       <div data-sk="hero:-1,-.5,.01,.03" data-fx="fade" data-scroll-hint style="grid-area:1/1">SCROLL TO WALK OUT ↓</div>
       <div data-hide-m data-sk="hero:.77,.8,.95,.98" data-fx="fade" style="grid-area:1/1;opacity:0">DRAG TO LOOK AROUND</div>
       <div data-hide-m data-sk="nfl:.57,.6,.94,.97" data-fx="fade" style="grid-area:1/1;opacity:0">CLICK A PLAYER FOR THE RULE</div>
       <div data-hide-m data-venue style="grid-area:1/1;opacity:0"></div>
+    </div>
     </div>
   </div>
 </div>
@@ -392,9 +397,10 @@
   </div>
 </div>
 
-<div data-spacer style="height:8100vh"></div>
+<!-- the flow: a 3D stage per chapter, a read after each venue (built by main.js from STAGE_VH, READ_AFTER and READS) -->
+<div data-flow></div>
 
-<div style="position:relative;z-index:4;background:linear-gradient(to bottom, rgba(11,10,10,0) 0, rgba(11,10,10,.96) 45vh, #0b0a0a 70vh);padding:55vh clamp(20px,3vw,44px) 0">
+<div data-post style="position:relative;z-index:4;background:linear-gradient(to bottom, rgba(11,10,10,0) 0, rgba(11,10,10,.96) 45vh, #0b0a0a 70vh);padding:55vh clamp(20px,3vw,44px) 0">
 
   <section id="film-room" data-post-sec="0" style="padding:96px 0 120px;border-top:2px solid var(--color-accent)">
     <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12px;font-weight:800;letter-spacing:.16em;padding-top:14px"><div style="display:flex;gap:14px"><span style="color:var(--color-accent)">90+1'</span><span>POST-MATCH — THE FILM ROOM</span></div><span style="color:rgba(243,242,242,.55)">PLAYS WORTH STEALING</span></div>

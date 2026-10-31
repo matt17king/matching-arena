@@ -41,3 +41,9 @@ a.btn-out-red:hover { background: var(--color-accent-600); color: var(--color-bg
 .moment.left { right: auto; left: clamp(20px, 3vw, 44px); }
 /* phone-only scrim behind bottom-anchored copy (shown in mobile.css) */
 [data-scrim] { display: none; }
+
+/* Lenis (inertial wheel scrolling on desktop) */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }

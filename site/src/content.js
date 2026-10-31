@@ -4,10 +4,61 @@ export const EMAIL = 'Matt17King@gmail.com';
 export const LINKEDIN = 'https://linkedin.com/in/mattking17';
 export const INSTAGRAM = 'https://instagram.com/mattking.17';
 
-// Scroll length per chapter (vh). The scroll spacer is sized to their sum.
+// Each chapter's share of the 3D story. These set the timing of the story, not how far you scroll (see STAGE_VH).
 export const SEGS = [['hero', 1300], ['rights', 650], ['x1', 420], ['bball', 1050], ['x2', 420], ['nfl', 1300], ['x3', 420], ['tennis', 1100], ['x4', 440], ['ring', 1000], ['x5', 440], ['race', 1150], ['ft', 380]];
 // Beat ranges inside each venue, as fractions of that venue's segment.
 export const CH = { RR: [0.08, 0.9], BEATS: [0.06, 0.44], TAC: [0.5, 0.92], DRIVE: [0.03, 0.5], XI: [0.55, 0.96], SURF: [0.03, 0.27], SEXES: [0.27, 0.5], PADEL: [0.5, 0.74], FANS: [0.77, 0.92], PRESS: [0.04, 0.33], WALK: [0.36, 0.64], ROUND: [0.67, 0.96], LAP: [0.08, 0.62], PIT: [0.66, 0.92] };
+// How far you scroll through each chapter's 3D stage (vh). The reads below sit between the venues and scroll like a normal page.
+export const STAGE_VH = { hero: 780, rights: 200, x1: 200, bball: 450, x2: 200, nfl: 540, x3: 200, tennis: 480, x4: 200, ring: 420, x5: 200, race: 520, ft: 220 };
+export const READ_AFTER = { rights: 'football', bball: 'basketball', nfl: 'nfl', tennis: 'tennis', ring: 'fight', race: 'motorsport' };
+// The reads: after each venue's cinematic, the same thinking laid out to read at your own pace.
+// A block can carry a list (rendered from the data above), a photo, or both.
+export const READS = {
+  football: { n: '01', venue: 'Football', title: 'The tunnel is the new runway.', intro: 'Fashion is everywhere in sport. Nobody falls for 90 minutes. They fall for the story.', next: 'basketball',
+    blocks: [
+      { k: "05'", h: 'Every arrival is a fit check.', p: "At The Couture Club, influencers sold the womenswear. The menswear didn't move until footballers posted it. Then it sold out. NBA tunnel fits, the F1 paddock, the walk into training: every arrival is a runway.", photo: ['foden-couture.jpg', 'Phil Foden × The Couture Club', 'The menswear moved when footballers wore it.'] },
+      { k: "35'", h: 'Who I tell stories for', p: 'The properties I tell stories for at DAZN. Same football, told differently for every market.', list: 'rights', photo: ['barcelona.jpg', 'In the stands — FC Barcelona', 'Fan first. Every story I tell starts from a seat like this one.'] },
+    ] },
+  basketball: { n: '02', venue: 'Basketball', title: 'Culture is the side door.', intro: 'Reach people through what they already love. Then put the sport in that world.', next: 'nfl',
+    blocks: [
+      { k: 'Q1', h: 'Three plays I keep coming back to', list: 'plays', photo: ['super-bowl.jpg', 'Super Bowl LV', 'I was in the building. The halftime show is part of the product.'] },
+      { k: 'TIMEOUT', h: 'How I build a brief', p: "Who are we trying to reach: fans we have, or fans we don't? What have we reached them with before? What do they already love? Bring that into sport, then ask what we have to offer.", list: 'brief' },
+    ] },
+  nfl: { n: '03', venue: 'NFL', title: 'Fit beats size.', intro: 'How a fan is made, one down at a time. Then the eleven rules I cast talent by.', next: 'tennis',
+    blocks: [
+      { k: 'THE DRIVE', h: 'How a fan is made', list: 'drive' },
+      { k: 'THE HUDDLE', h: '11 talent rules', list: 'xi' },
+    ] },
+  tennis: { n: '04', venue: 'Tennis', title: 'The format is the product.', intro: 'Change the format and you change who turns up. Split surfaces, handicapped courts, smaller courts with walls, one-point shoot-outs: the sport stays, the door gets wider.', next: 'fight',
+    blocks: [
+      { k: '15–0 · 30–0 · 40–0', h: 'Three formats, three new audiences', list: 'formats', photo: ['padel.jpg', 'On court — padel', "I play it too. Four players, one small court, walls in play: it's built to be social."] },
+    ] },
+  fight: { n: '05', venue: 'Fight night', title: 'The build-up is the product.', intro: "Plenty of fans never watch a full round. They watch the face-off, the press conference, the walk-out clip. Fight week is where the audience gets built.", next: 'motorsport',
+    blocks: [
+      { k: 'FIGHT WEEK', h: 'Week, walk, round one', list: 'fight', photo: ['boxing.jpg', 'Fight night — in the crowd', 'I was in the arena for this one. The walk-out is when the whole place gets to its feet.'] },
+    ] },
+  motorsport: { n: '06', venue: 'Motorsport', title: 'Story before sport.', intro: 'Drive to Survive turned box-set watchers into F1 fans. They came for the people and stayed for the racing.', next: 'ft',
+    blocks: [
+      { k: 'LAP 1', h: 'One idea, seven markets', p: "Sneakers are a global language. Culture travels, execution has to be local. Lead with who each market already loves, like Ohtani in Japan, and don't hide from what the rights already are.", list: 'markets', photo: ['f1-miami.jpg', 'F1 Miami', 'Represent tee, race weekend in a new market. Fashion is everywhere in sport.'] },
+      { k: 'PIT', h: 'AI is the pit crew', list: 'kit' },
+    ] },
+};
+// Lists used by the reads
+export const PLAYS = [
+  { n: '01', h: 'Culture is the side door.', s: 'Reach people through what they already love.', rows: ['Taylor Swift', 'Kansas City Chiefs'], x: 'New eyes on the NFL' },
+  { n: '02', h: 'The It Boy wears the drop.', s: 'Athletes are culture figures. Treat them that way.', rows: ['Alcaraz', 'Travis Scott', 'Nike'], x: 'Tennis in sneaker culture' },
+  { n: '03', h: 'Music is the kick-off.', s: 'The halftime show is part of the product.', rows: ['Bad Bunny', 'adidas', 'Super Bowl'], x: 'One artist, three worlds' },
+];
+export const FORMATS = [
+  { k: '15–0', h: 'Battle of the surfaces', stat: '2007 · Palma de Mallorca', p: 'Federer v Nadal. The best on grass against the best on clay, on one court split down the middle. Same sport, a match nobody had seen before.' },
+  { k: '30–0', h: 'Battle of the sexes', stat: '9% smaller on her side', p: 'Kyrgios v Sabalenka, Dubai, December 2025. Her half of the court was made about 9% smaller to even it up. Bend one rule and you hand a whole new audience a reason to tune in.' },
+  { k: '40–0', h: 'Padel', stat: '20×10 m · walls in play · always doubles', p: 'Padel took tennis, shrank the court, put the walls in play and made it doubles only. Easier to pick up, better with friends, and it brings people to a racket who never joined a tennis club.' },
+];
+export const FIGHT = [
+  { k: 'WEEK', h: 'The build-up is the product', stat: '7 days of story before the first bell', p: "The face-off, the press conference, the weigh-in clip. Fight week is where the audience gets built, so that's where the story starts." },
+  { k: 'WALK', h: 'Every entrance is a music video', stat: 'The song · the robe · the crew · the clip', p: "A ring walk is a few minutes of pure character before a punch is thrown, and it's the part that gets clipped, shared and copied." },
+  { k: 'R1', h: 'Build the character. The audience follows.', stat: "McGregor · Aspinall · talent I've worked with", p: 'Conor McGregor sold fights long before the first bell. Creators like KSI brought a YouTube generation into boxing. People buy into people first, which is why I cast talent on who they are, not just how many follow them.' },
+];
 export const VENUE = { hero: '01 / 06 — FOOTBALL', rights: '01 / 06 — FOOTBALL', bball: '02 / 06 — BASKETBALL', nfl: '03 / 06 — NFL', tennis: '04 / 06 — TENNIS', ring: '05 / 06 — FIGHT NIGHT', race: '06 / 06 — MOTORSPORT', ft: '06 / 06 — MOTORSPORT' };
 
 // The pit wall: where AI fits the work
