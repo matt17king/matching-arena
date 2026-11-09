@@ -950,9 +950,9 @@ export async function createArena(canvas, o = {}) {
     g.putImageData(o, 0, 0); const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(14, 14); t.anisotropy = 8; return t; };
   const clay = new THREE.Mesh(new THREE.PlaneGeometry(CW_, CD_), new THREE.MeshStandardMaterial({ color: C('#c9683c'), normalScale: new THREE.Vector2(0.55, 0.55), roughness: 0.97, metalness: 0,
     emissive: C('#c9683c'), emissiveIntensity: 0.2, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }));
-  { const build = () => { const m = clay.material, t = makeClayTex(); m.map = t; m.emissiveMap = t; m.normalMap = makeClayNrm(); m.color.set('#ffffff'); m.emissive.set('#ffffff'); m.needsUpdate = true; };
-    (window.requestIdleCallback || (f => setTimeout(f, 1)))(() => setTimeout(build, 2500), { timeout: 6000 }); }
-  clay.rotation.x = -Math.PI / 2; clay.position.set(CW_ / 2, 0.02, 0); clay.renderOrder = 1; clay.visible = false; clay.userData.noCast = true; scene.add(clay);
+  let clayBuilt = false; const buildClay = () => { if (clayBuilt) return; clayBuilt = true; const m = clay.material, t = makeClayTex(); m.map = t; m.emissiveMap = t; m.normalMap = makeClayNrm(); m.color.set('#ffffff'); m.emissive.set('#ffffff'); m.needsUpdate = true; };
+  (window.requestIdleCallback || (f => setTimeout(f, 1)))(() => setTimeout(buildClay, 2500), { timeout: 6000 });
+  clay.rotation.x = -Math.PI / 2; clay.position.set(CW_ / 2, 0.02, 0); clay.renderOrder = 1.5; clay.visible = false; clay.userData.noCast = true; scene.add(clay);   // renderOrder: always after the ground, never sorted behind it
   const cut = (() => { const k = 0.91, [c, g] = cnv(512, 512), X = x => (x + CTL) / CTL * 512, Y = z => (z + CTW) / (2 * CTW) * 512;
     g.fillStyle = 'rgba(236,48,19,0.28)'; g.fillRect(0, 0, 512, 512); g.strokeStyle = 'rgba(236,48,19,0.95)'; g.lineWidth = 6; for (let d = -512; d < 1024; d += 28) { g.beginPath(); g.moveTo(d, 0); g.lineTo(d + 512, 512); g.stroke(); }
     g.clearRect(X(-CTL * k), Y(-CTW * k), X(0) - X(-CTL * k), Y(CTW * k) - Y(-CTW * k));
@@ -978,7 +978,7 @@ export async function createArena(canvas, o = {}) {
     g.putImageData(id, 0, 0);
     const t = texOf(c); t.anisotropy = 8;
     const m = new THREE.Mesh(new THREE.PlaneGeometry(PDL * 2 + 0.5, PDW * 2 + 0.5), new THREE.MeshStandardMaterial({ map: t, roughness: 0.9, emissive: C('#ffffff'), emissiveMap: t, emissiveIntensity: 0.12, transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }));
-    m.rotation.x = -Math.PI / 2; m.position.y = 0.026; m.renderOrder = 1; m.visible = false; m.userData.noCast = true; scene.add(m); return m; })();
+    m.rotation.x = -Math.PI / 2; m.position.y = 0.026; m.renderOrder = 1.5; m.visible = false; m.userData.noCast = true; scene.add(m); return m; })();
   const padelMats = [], padelWalls = new THREE.Group(); padelWalls.visible = false; scene.add(padelWalls);
   {
     const glassM = new THREE.MeshPhysicalMaterial({ color: C('#d8eef0'), roughness: 0.02, metalness: 0, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }); glassM.userData.env = 1.6; padelMats.push([glassM, 0.13]);
@@ -1181,14 +1181,15 @@ export async function createArena(canvas, o = {}) {
   const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.SURF[0] + 0.03, ...OVH }, { t: CH.PADEL[0] + 0.02, ...OVH }, { t: CH.PADEL[0] + 0.09, pos: [0, 44, 76], tgt: [0, 0, 6], fov: 46 }, { t: CH.PADEL[1] - 0.03, pos: [16, 42, 72], tgt: [0, 0, 6], fov: 46 }, { t: CH.FANS[0], ...OVH }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
   CAM.tennis = t => lin(tenK, t);
   const rAt3 = (s, y) => { const [x, z] = raceX.racingAt(s); return [x, y, z]; };
-  const chase = s => ({ pos: rAt3(s + 4.5, 3.1), tgt: rAt3(s + 30, 0.9), fov: 58 });
+  // the lap: a TV-helicopter follow. High above and behind the car on the centreline, so it never meets a barrier, a marshal post or a bridge
+  const chase = s => ({ pos: at3(s - 30, 0, 26), tgt: rAt3(s + 14, 0.8), fov: 50 });
   const gridPose = { pos: at3(-68, 0, 6.8), tgt: at3(-4, 0, 0.6), fov: 52 };
   const LAPB = [-24, ...cc.apex.map(a => a.s), cc.len - 4];
   const lapS = t => { const [a, b] = CH.LAP, f = clamp((t - a) / (b - a)) * (LAPB.length - 1), k = Math.min(LAPB.length - 2, Math.floor(f)), u = f - k; return LAPB[k] + (LAPB[k + 1] - LAPB[k]) * ss(clamp(u / 0.8)); };
   const pitPose = k => { const s = 20 + (k - 1) * 21; return { pos: at3(s - 5, 12.5, 3.6), tgt: at3(s + 1, 26, 2.6), fov: 50 }; };
   const pitK = [{ ...chase(cc.len - 4), t: CH.LAP[1] }];
   { const w = (CH.PIT[1] - CH.PIT[0]) / 3; for (let k = 0; k < 3; k++) pitK.push({ t: CH.PIT[0] + k * w + 0.004, ...pitPose(k) }, { t: CH.PIT[0] + (k + 1) * w - 0.004, ...pitPose(k) }); pitK.push({ t: 1, ...pitPose(2) }); }
-  CAM.race = t => t <= CH.LAP[0] ? gridPose : t <= CH.LAP[1] ? chase(lapS(t)) : lin(pitK, t);
+  CAM.race = t => t <= CH.LAP[0] ? gridPose : t <= CH.LAP[1] ? (t < CH.LAP[0] + 0.03 ? mixPose(gridPose, chase(lapS(t)), ss((t - CH.LAP[0]) / 0.03)) : chase(lapS(t))) : lin(pitK, t);
   const eR = SPORTS.race.ext;
   const ftK = [{ ...pitPose(2), t: 0 }, { t: 0.4, pos: [-eR * 0.3, eR * 1.0, eR * 0.85], tgt: [0, 0, 0], fov: 46 }, { t: 1, pos: [-eR * 0.42, eR * 1.3, eR * 1.05], tgt: [0, 0, 0], fov: 48 }];
   CAM.ft = t => lin(ftK, t);
@@ -1363,6 +1364,7 @@ export async function createArena(canvas, o = {}) {
       const pv = id === 'tennis' ? R(t, CH.PADEL[0] + 0.03, CH.PADEL[0] + 0.1) : id === 'x4' ? 1 - R(xt, 0.04, 0.28) : 0;
       if (venueX.tennis && pv > 0.35) { venueX.tennis.net.visible = false; venueX.tennis.kit.forEach(k => { k.visible = false; }); }
       turf.visible = pv > 0.001; turf.material.opacity = pv; padelWalls.visible = pv > 0.001; padelWalls.scale.y = Math.max(0.0001, ss(pv)); padelMats.forEach(([m, o]) => { m.opacity = o * pv; });
+      if (!clayBuilt && (id === 'x3' || id === 'tennis')) buildClay();   // never meet the clay before its texture exists
       const cl = id === 'tennis' ? R(t, CH.SURF[0] + 0.01, CH.SURF[0] + 0.06) * (1 - R(t, CH.SURF[1] - 0.03, CH.SURF[1])) : 0;
       clay.visible = cl > 0.001; clay.material.opacity = cl; surfLab.forEach(m => { m.visible = cl > 0.001; m.material.opacity = R(cl, 0.5, 1); });
       const sx = id === 'tennis' ? R(t, CH.SEXES[0] + 0.06, CH.SEXES[0] + 0.1) * (1 - R(t, CH.SEXES[1] - 0.03, CH.SEXES[1] + 0.01)) : 0;

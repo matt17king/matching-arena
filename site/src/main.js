@@ -4,7 +4,6 @@ import './styles/site.css';
 import './styles/reads.css';
 import './styles/mobile.css';
 import { drawBrief } from './engine/broadcast-gfx.js';
-import Lenis from 'lenis';
 import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, WORKED_WITH, XI, DRIVE, FILM, TROPHIES, PROOF, STANDS, TALENT, BRANDS, PRESS, SEATS, TOPICS, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN, STAGE_VH, READ_AFTER, READS, PLAYS, FORMATS } from './content.js';
 
 const BASE = import.meta.env.BASE_URL;
@@ -208,6 +207,7 @@ const postSecs = $$('[data-post-sec]');
 const clockEl = $('[data-clock]'), clabelEl = $('[data-clabel]'), barEl = $('[data-bar]'), venueEl = $('[data-venue]');
 const ri = $$('[data-ri]'), rd = $$('[data-rd]'), zi = $$('[data-zi]'), kc = $$('[data-kc]'), dc = $$('[data-dc]'), dn = $('[data-dn]');
 const xiEls = $$('[data-xi]'), xt = $('[data-xt]'), xp = $('[data-xp]'), xd = $('[data-xd]');
+const cornerEl = $('[data-corner]'), cornerK = $('[data-corner-k]'), cornerN = $('[data-corner-n]');
 const tipEl = $('[data-tip]'), ballEl = $('[data-ballhint]'), goalEl = $('[data-goal]');
 const kickWrap = $('[data-kick-wrap]');
 const scrub = $$('[data-sk]').map(el => {
@@ -286,9 +286,7 @@ if (innerWidth < 760) {
 // ---------- scroll + clock
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // inertial wheel scrolling on desktop; touch keeps the platform's own scrolling
-const lenis = !matchMedia('(prefers-reduced-motion: reduce)').matches && !matchMedia('(pointer: coarse)').matches ? new Lenis({ lerp: 0.09, wheelMultiplier: 0.75, smoothWheel: true }) : null;
-if (lenis) { const tick = t => { lenis.raf(t); requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
-const smoothTo = y => snapTo(y, 1600);
+const smoothTo = y => { targetIdx = -1; glideTo(y, glideMs(y - scrollY)); };
 const skipEl = $('[data-skip-read]'), hbgEl = $('[data-hbg]');
 const canvasEl = $('[data-canvas]'), dimEl = $('[data-dim]');
 let curRead = null, readCover = 0;
@@ -366,7 +364,12 @@ function frame({ p, ball }) {
   }
   if (p > G('bball', 0.5) && p < G('bball', 1)) updateBrief(p);
   stepIndex('r', p, RNG.rr, ri.length, i => { ri.forEach((el, j) => { el.style.opacity = j === i ? '1' : '.35'; }); rd.forEach((el, j) => { el.style.opacity = j === i ? '1' : '0'; }); });
-  stepIndex('z', p, RNG.lap, 8, i => { const k = i > 6 ? -1 : i; zi.forEach((el, j) => { el.style.opacity = j === k ? '1' : j < k || k < 0 && i === 7 ? '.75' : '.4'; el.style.color = j === k ? '#ec3013' : ''; }); });
+  // the lap: the car reaches corner k's apex at 80% of lap segment k; each corner's market is named from just before its apex to just before the next
+  { const [a, b] = RNG.lap, f = (p - a) / (b - a) * 8, k = p < a || p > b ? -1 : Math.min(6, Math.floor(f - 0.3)), ci = k < 0 && f > 7 ? 7 : k;
+    if (idx.corner !== ci) { idx.corner = ci;
+      zi.forEach((el, j) => { el.style.opacity = j === k ? '1' : j < k || ci === 7 ? '.75' : '.4'; el.style.color = j === k ? '#ec3013' : ''; });
+      if (k >= 0) { cornerK.textContent = `TURN ${pad2(k + 1)} / 07`; cornerN.textContent = MARKETS[k]; }
+      cornerEl.style.opacity = k >= 0 ? '1' : '0'; cornerEl.style.transform = k >= 0 ? 'none' : 'translateY(10px)'; } }
   stepIndex('k', p, RNG.pit, kc.length, i => { const k = Math.max(0, i); kc.forEach((el, j) => { el.style.opacity = j === k ? '1' : '0'; }); });
   stepIndex('d', p, RNG.drive, dc.length, i => { const k = Math.max(0, i); dc.forEach((el, j) => { el.style.opacity = j === k ? '1' : '0'; }); dn.textContent = `${pad2(k + 1)} / ${pad2(dc.length)}`; });
   stepIndex('x', p, RNG.xi, XI.length, i => { if (i < 0 || performance.now() < hoverT) return; showXI(i); hoverT = 0; });
@@ -394,13 +397,13 @@ function goTo(p) {
   smoothTo(scrollForP(p));
 }
 function replay() {
-  setMenu(false); if (lenis) lenis.scrollTo(0, { immediate: true }); scrollTo(0, 0); if (eng) eng.jump(0);
+  setMenu(false); cancelAnimationFrame(glideAnim); gliding = false; scrollTo(0, 0); if (eng) eng.jump(0);
   kick && kick.cancel(); startIntro(Promise.resolve());
 }
 
 // ---------- intro
 async function startIntro(waitFor) {
-  document.documentElement.style.overflow = 'hidden'; lenis && lenis.stop();
+  document.documentElement.style.overflow = 'hidden';
   kickWrap.style.display = 'block'; kickWrap.style.background = KBG;
   const ui = kickWrap.querySelector('[data-kick-ui]'); ui.style.opacity = '1';
   const kcEl = kickWrap.querySelector('[data-kclock]'), zones = [...kickWrap.querySelectorAll('[data-zone]')];
@@ -416,7 +419,7 @@ async function startIntro(waitFor) {
     onDone: () => endIntro(),
   });
 }
-function endIntro() { kickWrap.style.display = 'none'; document.documentElement.style.overflow = ''; lenis && lenis.start(); }
+function endIntro() { kickWrap.style.display = 'none'; document.documentElement.style.overflow = ''; }
 
 // ---------- post-match: cards rise in as they reach the viewport, results count up
 function countUp(el, delay) {
@@ -457,64 +460,86 @@ $$('[data-deck]').forEach(dk => {
   if ('IntersectionObserver' in window) new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) run(); else { clearInterval(timer); timer = 0; dk.classList.remove('auto'); } }), { threshold: 0.55 }).observe(dk);
 });
 
-// ---------- smart snapping: scrolling comes to rest on a story beat, a read page, or the far side of a transition
+// ---------- stepping: inside the story every wheel flick, swipe or arrow key is one step to the next stop
+// (a story beat, a read page, the far side of a change of sport). The post-match scrolls freely.
 const BEATS = (() => { const sp = ([a, b], n) => Array.from({ length: n }, (_, i) => a + (b - a) * (i + 0.5) / n);
-  return { hero: [0, 0.27, 0.52, 0.92], rights: [0.5], bball: [...sp(CH.BEATS, 7), 0.66, 0.88], nfl: [...sp(CH.DRIVE, DRIVE.length), 0.78], tennis: [0.16, 0.39, 0.63, 0.87], race: [0.035, ...sp(CH.LAP, 7), ...sp(CH.PIT, 3)], ft: [0.92] }; })();
-let snapPts = [], lastSnap = null, snapping = false, lastY = scrollY, scrollDir = 1, idleT = 0, touching = false, snapAnim = 0;
-function buildSnaps() {
-  const ih = innerHeight, pts = [];
-  stages.forEach(st => { (BEATS[st.id] || []).forEach(t => pts.push(st.s0 + (st.s1 - st.s0) * t)); });
-  $$('[data-page]').forEach(el => { const top = el.getBoundingClientRect().top + scrollY; pts.push(el.classList.contains('read-next') ? top - ih * 0.42 : top - (innerWidth < 760 ? 72 : 92)); });
-  postSecs.forEach(el => pts.push(el.getBoundingClientRect().top + scrollY - 70));
-  snapPts = pts.filter(y => y >= 0).sort((a, b) => a - b);
+  return { hero: [0, 0.27, 0.52, 0.92], rights: [0.5], bball: [...sp(CH.BEATS, 7), 0.66, 0.88], nfl: [...sp(CH.DRIVE, DRIVE.length), 0.78], tennis: [0.16, 0.39, 0.63, 0.87],
+    race: [0.035, ...Array.from({ length: 7 }, (_, k) => CH.LAP[0] + (CH.LAP[1] - CH.LAP[0]) * (k + 0.8) / 8), ...sp(CH.PIT, 3)], ft: [0.92] }; })();
+let stops = [], lastStop = 0, gliding = false, glideAnim = 0, glideTarget = null, targetIdx = -1;
+let lastWheel = 0, lastWheelAbs = 0, wheelAcc = 0, gestureUsed = false, touchY0 = null, touchX0 = 0, touchScroll = false, lastInput = 0, settleT = 0;
+function buildStops() {
+  const ih = innerHeight, hdr = innerWidth < 760 ? 72 : 92, pts = [];
+  stages.forEach(st => (BEATS[st.id] || []).forEach(t => pts.push(st.s0 + (st.s1 - st.s0) * t)));
+  $$('[data-page]').forEach(el => { const r = el.getBoundingClientRect(), top = r.top + scrollY;
+    if (el.classList.contains('read-next')) { pts.push(top - ih * 0.42); return; }
+    if (el.closest('[data-post]')) return;
+    pts.push(top - hdr);
+    for (let y = top - hdr + (ih - hdr) * 0.85; y < top + r.height - ih * 0.9; y += (ih - hdr) * 0.85) pts.push(y);   // a page taller than the screen gets extra stops
+  });
+  if (postSecs[0]) pts.push(postSecs[0].getBoundingClientRect().top + scrollY - 70);   // the last stop: the start of the post-match
+  stops = pts.filter(y => y >= 0).sort((a, b) => a - b).filter((y, i, arr) => !i || y - arr[i - 1] > 24);
+  lastStop = stops[stops.length - 1] || 0;
 }
 const easeIO = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-let snapSafety = 0;
-function snapTo(y, ms) {
-  lastSnap = y; cancelAnimationFrame(snapAnim); clearTimeout(snapSafety);
-  if (Math.abs(y - scrollY) < 2) { snapping = false; return; }
-  snapping = true; snapSafety = setTimeout(() => { snapping = false; }, ms + 400);   // never let a snap that didn't report back block the next one
-  if (lenis) { lenis.scrollTo(y, { duration: ms / 1000, easing: easeIO }); clearTimeout(snapSafety); snapSafety = setTimeout(() => { snapping = false; coolUntil = performance.now() + 380; }, ms + 60); return; }
-  const y0 = scrollY, t0 = performance.now();
-  const step = now => { if (touching) { snapping = false; return; } const k = Math.min(1, (now - t0) / ms); scrollTo(0, y0 + (y - y0) * easeIO(k)); if (k < 1) snapAnim = requestAnimationFrame(step); else { coolUntil = performance.now() + 380; setTimeout(() => { snapping = false; }, 80); } };
-  snapAnim = requestAnimationFrame(step);
+function glideTo(y, ms) {
+  cancelAnimationFrame(glideAnim); glideTarget = y;
+  const y0 = scrollY, d = y - y0; if (Math.abs(d) < 1) { gliding = false; return; }
+  if (reduceMotion) ms = Math.min(ms, 240);
+  gliding = true; const t0 = performance.now();
+  const tick = now => { const k = Math.min(1, (now - t0) / ms); scrollTo(0, y0 + d * easeIO(k)); if (k < 1) glideAnim = requestAnimationFrame(tick); else { gliding = false; glideTarget = null; } };
+  glideAnim = requestAnimationFrame(tick);
 }
-let coolUntil = 0;
-function settle() {
-  if (performance.now() < coolUntil) return;
-  if (snapping || touching || frozen || reduceMotion || kickWrap.style.display === 'block' || !menuEl.hidden) return;
-  const y = scrollY, ih = innerHeight;
-  // inside a change of sport: carry on through it (or back out of it), so one flick plays the whole transition
-  const x = stages.find(st => st.id[0] === 'x' && y > st.s0 + 4 && y < st.s1 - 4);
-  if (x) {
-    const edge = scrollDir > 0 ? x.s1 : x.s0;
-    const nb = scrollDir > 0 ? snapPts.find(q => q >= x.s1 - 1) : [...snapPts].reverse().find(q => q <= x.s0 + 1);
-    const tgt = nb !== undefined && Math.abs(nb - edge) < ih * 1.2 ? nb : edge;
-    snapTo(tgt, Math.min(2600, 900 + Math.abs(tgt - y) / ih * 520)); return;
-  }
-  if (!snapPts.length) return;
-  let near = snapPts[0]; for (const q of snapPts) if (Math.abs(q - y) < Math.abs(near - y)) near = q;
-  // one step from the stop we were resting on, so momentum never carries a flick two stops; a long scroll lands on the stop nearest where it ended
-  const base = lastSnap === null || Math.abs(y - lastSnap) > ih * 2.5 ? near : lastSnap, step = scrollDir > 0 ? snapPts.find(q => q > base + 2) : [...snapPts].reverse().find(q => q < base - 2);
-  const overshot = step !== undefined && (scrollDir > 0 ? y > step + ih * 0.35 : y < step - ih * 0.35);
-  const ahead = overshot ? (scrollDir > 0 ? snapPts.find(q => q > y - ih * 0.35) : [...snapPts].reverse().find(q => q < y + ih * 0.35)) : step;
-  const from = base, moved = Math.abs(y - from), inFlow = y < postTop - ih * 0.6;
-  let tgt = null;
-  if (moved < ih * 0.08 && Math.abs(near - y) < ih * 0.2) tgt = near;                 // a nudge: settle back
-  else if (inFlow) tgt = ahead !== undefined ? ahead : near;                           // in the story every flick goes to the next stop, however far
-  else if (ahead !== undefined && Math.abs(ahead - y) < ih * 1.2) tgt = ahead;         // post-match: on to the next section if it's close
-  else if (Math.abs(near - y) < ih * 0.25) tgt = near;                                 // otherwise only settle if already close
-  if (tgt !== null && Math.abs(tgt - y) > 2) snapTo(tgt, Math.min(2600, 560 + Math.abs(tgt - y) / ih * 520));
-  else if (tgt !== null) lastSnap = tgt;
+const glideMs = dy => { const d = Math.abs(dy) / innerHeight; return Math.round(Math.min(2000, Math.max(560, 480 + d * 300))); };
+const nearestIdx = y => { let bi = 0; stops.forEach((q, i) => { if (Math.abs(q - y) < Math.abs(stops[bi] - y)) bi = i; }); return bi; };
+function step(dir) {
+  if (!stops.length) return;
+  const y = gliding && glideTarget !== null ? glideTarget : scrollY;
+  let i;
+  if (gliding && targetIdx >= 0) i = targetIdx + dir;   // a new flick during a glide carries on from where that glide was going
+  else { const n = nearestIdx(y); i = Math.abs(stops[n] - y) < 6 ? n + dir : dir > 0 ? stops.findIndex(q => q > y + 6) : stops.length - 1 - [...stops].reverse().findIndex(q => q < y - 6); }
+  if (i < 0 || i >= stops.length || Number.isNaN(i)) return;
+  targetIdx = i; glideTo(stops[i], glideMs(stops[i] - scrollY));
 }
-addEventListener('scroll', () => { const y = scrollY; if (Math.abs(y - lastY) > 0.5) scrollDir = y > lastY ? 1 : -1; lastY = y; if (snapping) return; clearTimeout(idleT); idleT = setTimeout(settle, lenis ? 140 : 170); }, { passive: true });
-addEventListener('touchstart', () => { touching = true; if (snapping && !lenis) { cancelAnimationFrame(snapAnim); snapping = false; } }, { passive: true });
-addEventListener('touchend', () => { touching = false; clearTimeout(idleT); idleT = setTimeout(settle, 220); }, { passive: true });
-addEventListener('resize', () => { buildSnaps(); });
-addEventListener('load', () => { buildSnaps(); });
-if ('ResizeObserver' in window) new ResizeObserver(() => buildSnaps()).observe(document.body);
-buildSnaps();
-if (params.has('debug')) window.__snap = () => ({ snapping, lastSnap, y: scrollY, pts: snapPts.filter(q => Math.abs(q - scrollY) < innerHeight * 2).map(Math.round), lenis: lenis && { stopped: lenis.isStopped, scrolling: lenis.isScrolling, locked: lenis.isLocked, target: lenis.targetScroll, animated: lenis.animatedScroll } });
+const inStory = (y, dir) => y < lastStop - 2 || (y <= lastStop + 2 && dir < 0);
+const storyLive = () => kickWrap.style.display !== 'block' && menuEl.hidden && !frozen;
+addEventListener('wheel', e => {
+  if (!storyLive() || e.ctrlKey) return;
+  const dir = Math.sign(e.deltaY); if (!dir || !inStory(scrollY, dir)) return;
+  e.preventDefault(); lastInput = performance.now();
+  const now = e.timeStamp || lastInput, dt = now - lastWheel, a = Math.abs(e.deltaY);   // event time, not handling time: a busy frame must not split one flick in two
+  // a new gesture: a pause in the wheel stream, or a fresh push stronger than the fading momentum of the last one
+  if (dt > 200 || (a > lastWheelAbs * 1.5 && a > 30 && dt > 40)) { wheelAcc = 0; gestureUsed = false; }
+  lastWheel = now; lastWheelAbs = a;
+  if (gestureUsed) return;
+  wheelAcc += e.deltaY;
+  if (Math.abs(wheelAcc) >= 12) { gestureUsed = true; step(Math.sign(wheelAcc)); }
+}, { passive: false });
+addEventListener('touchstart', e => { if (!storyLive() || e.touches.length !== 1) { touchY0 = null; return; } touchY0 = e.touches[0].clientY; touchX0 = e.touches[0].clientX; touchScroll = false; lastInput = performance.now(); }, { passive: true });
+addEventListener('touchmove', e => {
+  if (touchY0 === null) return;
+  const dy = touchY0 - e.touches[0].clientY, dx = touchX0 - e.touches[0].clientX;
+  if (Math.abs(dx) > Math.abs(dy) && e.target.closest('.deck-idx')) return;   // sideways on the deck tabs: let them scroll
+  if (inStory(scrollY, Math.sign(dy) || 1)) { e.preventDefault(); touchScroll = true; }
+}, { passive: false });
+addEventListener('touchend', e => {
+  if (touchY0 === null) return; const dy = touchY0 - e.changedTouches[0].clientY; touchY0 = null; lastInput = performance.now();
+  if (touchScroll && Math.abs(dy) > 26) step(Math.sign(dy));
+}, { passive: true });
+addEventListener('keydown', e => {
+  if (!storyLive() || e.target.closest('input, textarea, [contenteditable], [role="tab"]')) return;
+  const k = e.key, dir = k === 'ArrowDown' || k === 'PageDown' || (k === ' ' && !e.shiftKey) ? 1 : k === 'ArrowUp' || k === 'PageUp' || (k === ' ' && e.shiftKey) ? -1 : 0;
+  if (!dir || !inStory(scrollY, dir)) return;
+  e.preventDefault(); lastInput = performance.now(); step(dir);
+});
+// anything else that moves the page inside the story (the scrollbar, find-in-page) settles on the nearest stop once it stops
+addEventListener('scroll', () => { if (gliding) return; clearTimeout(settleT); settleT = setTimeout(() => {
+  if (gliding || !storyLive() || performance.now() - lastInput < 400 || !inStory(scrollY, -1) || !stops.length) return;
+  const n = nearestIdx(scrollY); if (Math.abs(stops[n] - scrollY) > 6) { targetIdx = n; glideTo(stops[n], 520); } }, 220); }, { passive: true });
+addEventListener('resize', () => { buildStops(); });
+addEventListener('load', () => { buildStops(); });
+if ('ResizeObserver' in window) new ResizeObserver(() => buildStops()).observe(document.body);
+buildStops();
+if (params.has('debug')) window.__snap = () => ({ gliding, targetIdx, y: Math.round(scrollY), near: stops.filter(q => Math.abs(q - scrollY) < innerHeight * 2).map(Math.round), lastStop: Math.round(lastStop) });
 
 // ---------- boot
 function engineOpts() {

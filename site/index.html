@@ -246,6 +246,12 @@
     <div data-list="markets" style="max-width:440px;flex:1;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:11px;font-weight:800;letter-spacing:.12em;padding-bottom:4px"></div>
 </div>
 
+<!-- MOTORSPORT · the corner you're in: one market per corner -->
+<div data-corner aria-live="polite" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);top:112px;z-index:3;pointer-events:none;transition:opacity .35s ease, transform .5s cubic-bezier(.2,.7,.2,1)">
+  <div data-corner-k style="font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--color-accent)">TURN 01 / 07</div>
+  <div data-corner-n style="margin-top:8px;font-weight:800;text-transform:uppercase;font-size:clamp(48px,7vw,124px);line-height:.85;letter-spacing:-.045em;text-shadow:0 2px 28px rgba(0,0,0,.65)">UK</div>
+</div>
+
 <!-- MOTORSPORT · the pit wall, the kit -->
 <div data-m="card" data-list="kit" data-sk="race:.65,.68,.92,.95" data-fx="fade" style="opacity:0;position:fixed;left:clamp(20px,3vw,44px);right:clamp(20px,3vw,44px);bottom:62px;z-index:3;pointer-events:none;display:grid;background:rgba(11,10,10,.86);border-top:2px solid var(--color-accent)"></div>
 
@@ -285,25 +291,25 @@
   <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;border-top:2px solid rgba(243,242,242,.16);padding-top:12px;font-size:12px;font-weight:800;letter-spacing:.16em">
     <div style="display:grid">
       <div data-sk="hero:-1,-.5,.33,.36" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px"><span style="color:var(--color-accent)">05'</span><span>THE TUNNEL IS THE NEW RUNWAY</span></div>
-      <div data-sk="hero:.36,.39,.72,.75" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">15'</span><span>THE STORY, NOT THE 90</span></div>
-      <div data-sk="hero:.74,.77,.97,1" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">20'</span><span>THE WALK-OUT</span></div>
-      <div data-sk="rights:0,.04,.95,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">35'</span><span>WORKED WITH</span></div>
-      <div data-sk="x1:.04,.1,.92,.98" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">→</span><span>THE LINES REDRAW</span></div>
-      <div data-sk="bball:0,.04,.46,.5" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">Q1</span><span>CULTURE IS THE SIDE DOOR</span></div>
-      <div data-sk="bball:.5,.54,.96,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">TIMEOUT</span><span>HOW I BUILD A BRIEF</span></div>
-      <div data-sk="x2:.04,.1,.92,.98" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">→</span><span>THE LINES REDRAW</span></div>
-      <div data-sk="nfl:0,.03,.5,.53" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">DRIVE</span><span>HOW A FAN IS MADE</span></div>
-      <div data-sk="nfl:.53,.56,.97,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">HUDDLE</span><span>FIT BEATS SIZE</span></div>
-      <div data-sk="x3:.04,.1,.92,.98" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">→</span><span>THE LINES REDRAW</span></div>
-      <div data-sk="tennis:0,.03,.25,.27" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">15–0</span><span>BATTLE OF THE SURFACES</span></div>
-      <div data-sk="tennis:.27,.29,.48,.5" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">30–0</span><span>BATTLE OF THE SEXES</span></div>
-      <div data-sk="tennis:.5,.52,.72,.74" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">40–0</span><span>PADEL</span></div>
-      <div data-sk="tennis:.74,.76,.97,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">GAME</span><span>THE FORMAT IS THE PRODUCT</span></div>
-      <div data-sk="x4:.04,.1,.92,.98" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">→</span><span>THE LINES REDRAW</span></div>
-      <div data-sk="race:0,.02,.07,.09" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">GRID</span><span>STORY BEFORE SPORT</span></div>
-      <div data-sk="race:.08,.11,.62,.65" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">LAP 1</span><span>ONE IDEA, SEVEN MARKETS</span></div>
-      <div data-sk="race:.64,.67,.95,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">PIT</span><span>AI IS THE PIT CREW</span></div>
-      <div data-sk="ft:0,.06" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent)">FLAG</span><span>FULL TIME</span></div>
+      <div data-sk="hero:.36,.39,.72,.75" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">15'</span><span>THE STORY, NOT THE 90</span></div>
+      <div data-sk="hero:.74,.77,.97,1" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">20'</span><span>THE WALK-OUT</span></div>
+      <div data-sk="rights:0,.04,.95,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">35'</span><span>WORKED WITH</span></div>
+      <div data-sk="x1:.04,.1,.92,.98" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">→</span><span>THE LINES REDRAW</span></div>
+      <div data-sk="bball:0,.04,.46,.5" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">Q1</span><span>CULTURE IS THE SIDE DOOR</span></div>
+      <div data-sk="bball:.5,.54,.96,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">TIMEOUT</span><span>HOW I BUILD A BRIEF</span></div>
+      <div data-sk="x2:.04,.1,.92,.98" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">→</span><span>THE LINES REDRAW</span></div>
+      <div data-sk="nfl:0,.03,.5,.53" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">DRIVE</span><span>HOW A FAN IS MADE</span></div>
+      <div data-sk="nfl:.53,.56,.97,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">HUDDLE</span><span>FIT BEATS SIZE</span></div>
+      <div data-sk="x3:.04,.1,.92,.98" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">→</span><span>THE LINES REDRAW</span></div>
+      <div data-sk="tennis:0,.03,.25,.27" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">15–0</span><span>BATTLE OF THE SURFACES</span></div>
+      <div data-sk="tennis:.27,.29,.48,.5" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">30–0</span><span>BATTLE OF THE SEXES</span></div>
+      <div data-sk="tennis:.5,.52,.72,.74" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">40–0</span><span>PADEL</span></div>
+      <div data-sk="tennis:.74,.76,.97,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">GAME</span><span>THE FORMAT IS THE PRODUCT</span></div>
+      <div data-sk="x4:.04,.1,.92,.98" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">→</span><span>THE LINES REDRAW</span></div>
+      <div data-sk="race:0,.02,.07,.09" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">GRID</span><span>STORY BEFORE SPORT</span></div>
+      <div data-sk="race:.08,.11,.62,.65" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">LAP 1</span><span>ONE IDEA, SEVEN MARKETS</span></div>
+      <div data-sk="race:.64,.67,.95,.99" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">PIT</span><span>AI IS THE PIT CREW</span></div>
+      <div data-sk="ft:0,.06" data-fx="fade" style="grid-area:1/1;display:flex;gap:14px;opacity:0"><span style="color:var(--color-accent);white-space:nowrap;flex:none">FLAG</span><span>FULL TIME</span></div>
     </div>
     <div style="display:flex;align-items:baseline;gap:18px">
     <button data-skip-read class="hv-text" style="pointer-events:auto;display:none;background:none;border:0;padding:0;color:#f3f2f2;font:inherit;letter-spacing:inherit;cursor:pointer;white-space:nowrap"><span style="color:var(--color-accent)">SKIP</span> TO THE READ ↓</button>
