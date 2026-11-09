@@ -35,32 +35,42 @@ const list = (name, html) => { const el = $(`[data-list="${name}"]`); el.insertA
 // ---------- render lists
 // ---------- the flow: a stage of 3D per chapter, and a read after each venue that scrolls like a normal page
 const NEXT_LABEL = { basketball: ['02', 'Basketball', 'x1'], nfl: ['03', 'NFL', 'x2'], tennis: ['04', 'Tennis', 'x3'], motorsport: ['05', 'Motorsport', 'x4'], ft: ['FT', 'Full time', 'ft'] };
-const rItem = (a, b, h, p) => `<div data-rv class="rl-i"><div class="rl-top"><span>${a}</span><span>${b}</span></div><div class="rl-h">${h}</div>${p ? `<div class="rl-p">${p}</div>` : ''}</div>`;
-const LISTS = {
-  logos: () => WORKED_WITH.map(([n, k]) => `<div data-rv class="rl-logo" title="${esc(n)}"><img src="${BASE}logos/${LOGOS[k]}" alt="${esc(n)}" loading="lazy"><span>${esc(n)}</span></div>`),
-  plays: () => PLAYS.map(p => rItem(`PLAY ${p.n}`, esc(p.x), esc(p.h), `${esc(p.s)}<span class="rl-x">${p.rows.map(esc).join(' × ')}</span>`)),
+// decks: a scannable index of short titles, one big panel for the selected item. Fits one screen; advances on its own until touched.
+const DECKS = {
+  plays: () => PLAYS.map(p => ({ n: `PLAY ${p.n}`, tag: p.x, h: p.h, p: p.s, extra: `<div class="dk-x">${p.rows.map(esc).join(' × ')}</div>` })),
   brief: () => [['01', 'Who we want', ['Fans we have', "Fans we don't"], 1], ['02', 'What they already love', SCREEN_DATA.passions], ['03', 'What we have', ['Sport', 'Athletes', 'Stories']], ['04', 'What it becomes', SCREEN_DATA.outputs, 1]]
-    .map(([n, h, chips, red]) => rItem(n, 'THE BRIEF', esc(h), `<span class="rl-chips">${chips.map((c, i) => `<span class="${red && (n === '04' || i === 1) ? 'red' : ''}">${esc(c)}</span>`).join('')}</span>`)),
-  drive: () => DRIVE.map(d => rItem(esc(d.years), esc(d.down), esc(d.name), `<b>${esc(d.role)}.</b> ${esc(d.detail)}`)),
-  xi: () => XI.map(x => rItem(`NO. ${x[2]}`, esc(x[4]), esc(x[3]), esc(x[5]))),
-  formats: () => FORMATS.map(f => rItem(esc(f.k), esc(f.stat.toUpperCase()), esc(f.h), esc(f.p))),
-  markets: () => [`<div data-rv class="rl-markets">${MARKETS.map((m, i) => `<span><b>T${i + 1}</b>${esc(m)}</span>`).join('')}</div>`],
-  kit: () => KIT.map(k => rItem(esc(k.tag), esc(k.tools.toUpperCase()), esc(k.title), esc(k.detail))),
+    .map(([n, h, chips, red]) => ({ n, tag: 'The brief', h, extra: `<div class="rl-chips">${chips.map((c, i) => `<span class="${red && (n === '04' || i === 1) ? 'red' : ''}">${esc(c)}</span>`).join('')}</div>` })),
+  drive: () => DRIVE.map(d => ({ n: d.years, tag: d.down, h: d.name, p: `${d.role}. ${d.detail}` })),
+  xi: () => XI.map(x => ({ n: `NO. ${x[2]}`, tag: x[4], h: x[3], p: x[5] })),
+  formats: () => FORMATS.map(f => ({ n: f.k, tag: f.stat, h: f.h, p: f.p })),
+  kit: () => KIT.map(k => ({ n: k.tag, tag: k.tools, h: k.title, p: k.detail })),
+  film: () => FILM.map((f, i) => ({ n: `TAPE ${pad2(i + 1)}`, tag: f.tag, h: f.title, extra: `<div class="dk-rows">${[['The play', f.play], ['Why it worked', f.why], ['The steal', f.steal]].map(([l, t], k) => `<div class="${k === 2 ? 'steal' : ''}"><span>${l}</span><p>${esc(t)}</p></div>`).join('')}</div>` })),
+};
+const deckHTML = (key, photo) => { const items = DECKS[key]();
+  return `<div class="deck deck-${key}${photo ? ' has-photo' : ''}" data-deck>
+  <div class="deck-idx" role="tablist">${items.map((it, i) => `<button class="dk-i${i ? '' : ' on'}" data-i="${i}" role="tab" aria-selected="${!i}"><span class="dk-n">${esc(it.n)}</span><span class="dk-t">${esc(it.h)}</span><i class="dk-bar"></i></button>`).join('')}</div>
+  <div class="deck-panels">${items.map((it, i) => `<div class="dk-p${i ? '' : ' on'}" data-i="${i}" role="tabpanel"><div class="dk-meta"><span>${esc(it.n)}</span><span>${esc(it.tag)}</span></div><div class="dk-h">${esc(it.h)}</div>${it.p ? `<p class="dk-body">${esc(it.p)}</p>` : ''}${it.extra || ''}</div>`).join('')}</div>
+  ${photo ? rPhoto(photo) : ''}
+</div>`; };
+const LISTS = {
+  logos: () => `<div class="rl rl-logos">${WORKED_WITH.map(([n, k]) => `<div data-rv class="rl-logo" title="${esc(n)}"><img src="${BASE}logos/${LOGOS[k]}" alt="${esc(n)}" loading="lazy"><span>${esc(n)}</span></div>`).join('')}</div>`,
+  markets: () => `<div data-rv class="rl-markets">${MARKETS.map((m, i) => `<span><b>T${i + 1}</b>${esc(m)}</span>`).join('')}</div>`,
 };
 const rPhoto = ([f, title, line]) => `<figure data-rv class="life rb-photo"><img src="${BASE}photos/life/${f}" alt="${esc(title)}" loading="lazy"><figcaption><span>${esc(title)}</span>${esc(line)}</figcaption></figure>`;
+// each part of a read is one screen ("page"): the title, then each block, then the hand-off
 function readHTML(key) {
   const R = READS[key], [nn, nl, nx] = NEXT_LABEL[R.next];
+  const head = b => `<div class="rb-head"><div class="rb-k">${esc(b.k)}</div><h3 class="rb-h">${esc(b.h)}</h3>${b.p ? `<p class="rb-p">${esc(b.p)}</p>` : ''}</div>`;
   return `<section class="read" data-read="${key}" id="read-${key}">
   <div class="read-in">
-    <div data-rv class="read-head"><span><b>${R.n} / 05</b> ${esc(R.venue.toUpperCase())}</span><span>THE READ</span></div>
-    <h2 data-rv class="read-title">${esc(R.title)}</h2>
-    <p data-rv class="read-intro">${esc(R.intro)}</p>
-    ${R.blocks.map(b => { const lst = b.list ? LISTS[b.list]() : null, wide = b.list === 'markets';
-      return `<div class="rb${lst && !wide ? '' : ' rb-solo'}">
-      <div class="rb-l"><div class="rb-k">${esc(b.k)}</div><h3 class="rb-h">${esc(b.h)}</h3>${b.p ? `<p class="rb-p">${esc(b.p)}</p>` : ''}${lst && b.photo && !wide ? rPhoto(b.photo) : ''}${wide ? lst.join('') : ''}</div>
-      <div class="rb-r">${lst && !wide ? `<div class="rl rl-${b.list}">${lst.join('')}</div>` : b.photo ? rPhoto(b.photo) : ''}</div>
-    </div>`; }).join('')}
-    <button class="read-next" data-go="seg:${nx}"><span class="rn-k">NEXT</span><span class="rn-t"><b>${nn}</b> ${esc(nl)}</span><span class="rn-a">↓</span></button>
+    <div class="rp rp-title" data-page>
+      <div data-rv class="read-head"><span><b>${R.n} / 05</b> ${esc(R.venue.toUpperCase())}</span><span>THE READ</span></div>
+      <h2 data-rv class="read-title">${esc(R.title)}</h2>
+      <p data-rv class="read-intro">${esc(R.intro)}</p>
+    </div>
+    ${R.blocks.map(b => DECKS[b.list] ? `<div class="rp rb rb-deck" data-page>${head(b)}${deckHTML(b.list, b.photo)}</div>`
+      : `<div class="rp rb" data-page><div class="rb-l">${head(b)}${b.list === 'markets' ? LISTS.markets() : ''}${b.list === 'logos' && b.photo ? rPhoto(b.photo) : ''}</div><div class="rb-r">${b.list === 'logos' ? LISTS.logos() : b.photo ? rPhoto(b.photo) : ''}</div></div>`).join('')}
+    <button class="read-next" data-page data-go="seg:${nx}"><span class="rn-k">NEXT</span><span class="rn-t"><b>${nn}</b> ${esc(nl)}</span><span class="rn-a">↓</span></button>
   </div>
 </section>`;
 }
@@ -109,14 +119,7 @@ list('kit', KIT.map((k, i) => `<div data-kc="${i}" style="grid-area:1/1;opacity:
   </div>
   <div style="font-size:14px;line-height:1.45;color:rgba(243,242,242,.85);text-wrap:pretty">${esc(k.detail)}</div>
 </div>`).join(''));
-list('film', FILM.map((f, i) => `<article data-rv style="display:flex;flex-direction:column;gap:22px;padding:20px 20px 24px;border-right:2px solid rgba(243,242,242,.22);border-bottom:2px solid rgba(243,242,242,.22)">
-  <div style="display:flex;justify-content:space-between;gap:12px;font-size:11px;font-weight:800;letter-spacing:.14em"><span style="color:var(--color-accent)">TAPE ${pad2(i + 1)}</span><span style="color:rgba(243,242,242,.55)">${esc(f.tag)}</span></div>
-  <div style="font-weight:800;text-transform:uppercase;font-size:clamp(28px,3vw,48px);line-height:.9;letter-spacing:-.03em">${esc(f.title)}</div>
-  ${[['THE PLAY', f.play], ['WHY IT WORKED', f.why], ['THE STEAL', f.steal]].map(([h, t], k) => `<div class="film-row" style="display:grid;gap:6px 16px;border-top:1px solid rgba(243,242,242,.16);padding-top:12px">
-    <span style="font-size:10px;font-weight:800;letter-spacing:.14em;color:${k === 2 ? 'var(--color-accent)' : 'rgba(243,242,242,.55)'};padding-top:3px">${h}</span>
-    <span style="font-size:15px;line-height:1.45;${k === 2 ? 'font-weight:600;color:#f3f2f2' : 'color:rgba(243,242,242,.85)'};text-wrap:pretty">${esc(t)}</span>
-  </div>`).join('')}
-</article>`).join(''));
+$('[data-list="film"]').innerHTML = deckHTML('film');
 list('proof', PROOF.map(([n, f]) => `<div data-rv title="${esc(n)}" style="display:flex;align-items:center;justify-content:center;aspect-ratio:3/2;padding:14px;background:#f3f2f2;border-right:2px solid #0b0a0a;border-bottom:2px solid #0b0a0a"><img src="${BASE}logos/${f}" alt="${esc(n)}" loading="lazy" style="max-width:72%;max-height:52px;object-fit:contain;filter:grayscale(1) contrast(1.1);mix-blend-mode:multiply"></div>`).join(''));
 list('stands', STANDS.map(([f, title, label]) => { const src = `${BASE}photos/life/${f}`, vid = f.endsWith('.mp4');
   return `<figure data-rv class="life" style="margin:0">
@@ -281,10 +284,11 @@ if (innerWidth < 760) {
 }
 
 // ---------- scroll + clock
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // inertial wheel scrolling on desktop; touch keeps the platform's own scrolling
-const lenis = !matchMedia('(prefers-reduced-motion: reduce)').matches && !matchMedia('(pointer: coarse)').matches ? new Lenis({ lerp: 0.085, wheelMultiplier: 0.95, smoothWheel: true }) : null;
+const lenis = !matchMedia('(prefers-reduced-motion: reduce)').matches && !matchMedia('(pointer: coarse)').matches ? new Lenis({ lerp: 0.09, wheelMultiplier: 0.75, smoothWheel: true }) : null;
 if (lenis) { const tick = t => { lenis.raf(t); requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
-const smoothTo = y => { if (lenis) lenis.scrollTo(y, { duration: 1.6, easing: t => 1 - Math.pow(1 - t, 4) }); else scrollTo({ top: y, behavior: 'smooth' }); };
+const smoothTo = y => snapTo(y, 1600);
 const skipEl = $('[data-skip-read]'), hbgEl = $('[data-hbg]');
 const canvasEl = $('[data-canvas]'), dimEl = $('[data-dim]');
 let curRead = null, readCover = 0;
@@ -431,6 +435,86 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObse
   }), { threshold: 0.2 });
   $$('[data-rv]').forEach(el => { Object.assign(el.style, { opacity: '0', transform: 'translateY(24px)', transition: 'opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1), background-color .2s' }); io.observe(el); });
 }
+
+// ---------- decks: hover or tap an index item to show it; while untouched and on screen, they advance on their own
+const DECK_MS = 6500;
+$$('[data-deck]').forEach(dk => {
+  const btns = [...dk.querySelectorAll('.dk-i')], panels = [...dk.querySelectorAll('.dk-p')]; let cur = 0, timer = 0, manual = false;
+  dk.style.setProperty('--dk', DECK_MS + 'ms');
+  const set = i => { cur = (i + btns.length) % btns.length; btns.forEach((b, j) => { b.classList.toggle('on', j === cur); b.setAttribute('aria-selected', String(j === cur)); }); panels.forEach((q, j) => q.classList.toggle('on', j === cur)); };
+  const restartBar = () => { const b = btns[cur].querySelector('.dk-bar'); b.style.animation = 'none'; void b.offsetWidth; b.style.animation = ''; };
+  const stop = () => { manual = true; dk.classList.remove('auto'); clearInterval(timer); timer = 0; };
+  const run = () => { if (manual || timer || reduceMotion) return; dk.classList.add('auto'); restartBar(); timer = setInterval(() => { set(cur + 1); restartBar(); }, DECK_MS); };
+  btns.forEach((b, i) => {
+    b.addEventListener('click', () => { stop(); set(i); });
+    b.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { stop(); set(i); } });
+    b.addEventListener('focus', () => { stop(); set(i); });
+  });
+  dk.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { stop(); set(cur + 1); btns[cur].focus(); e.preventDefault(); }
+    if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { stop(); set(cur - 1); btns[cur].focus(); e.preventDefault(); }
+  });
+  if ('IntersectionObserver' in window) new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) run(); else { clearInterval(timer); timer = 0; dk.classList.remove('auto'); } }), { threshold: 0.55 }).observe(dk);
+});
+
+// ---------- smart snapping: scrolling comes to rest on a story beat, a read page, or the far side of a transition
+const BEATS = (() => { const sp = ([a, b], n) => Array.from({ length: n }, (_, i) => a + (b - a) * (i + 0.5) / n);
+  return { hero: [0, 0.27, 0.52, 0.92], rights: [0.5], bball: [...sp(CH.BEATS, 7), 0.66, 0.88], nfl: [...sp(CH.DRIVE, DRIVE.length), 0.78], tennis: [0.16, 0.39, 0.63, 0.87], race: [0.035, ...sp(CH.LAP, 7), ...sp(CH.PIT, 3)], ft: [0.92] }; })();
+let snapPts = [], lastSnap = null, snapping = false, lastY = scrollY, scrollDir = 1, idleT = 0, touching = false, snapAnim = 0;
+function buildSnaps() {
+  const ih = innerHeight, pts = [];
+  stages.forEach(st => { (BEATS[st.id] || []).forEach(t => pts.push(st.s0 + (st.s1 - st.s0) * t)); });
+  $$('[data-page]').forEach(el => { const top = el.getBoundingClientRect().top + scrollY; pts.push(el.classList.contains('read-next') ? top - ih * 0.42 : top - (innerWidth < 760 ? 72 : 92)); });
+  postSecs.forEach(el => pts.push(el.getBoundingClientRect().top + scrollY - 70));
+  snapPts = pts.filter(y => y >= 0).sort((a, b) => a - b);
+}
+const easeIO = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+let snapSafety = 0;
+function snapTo(y, ms) {
+  lastSnap = y; cancelAnimationFrame(snapAnim); clearTimeout(snapSafety);
+  if (Math.abs(y - scrollY) < 2) { snapping = false; return; }
+  snapping = true; snapSafety = setTimeout(() => { snapping = false; }, ms + 400);   // never let a snap that didn't report back block the next one
+  if (lenis) { lenis.scrollTo(y, { duration: ms / 1000, easing: easeIO }); clearTimeout(snapSafety); snapSafety = setTimeout(() => { snapping = false; coolUntil = performance.now() + 380; }, ms + 60); return; }
+  const y0 = scrollY, t0 = performance.now();
+  const step = now => { if (touching) { snapping = false; return; } const k = Math.min(1, (now - t0) / ms); scrollTo(0, y0 + (y - y0) * easeIO(k)); if (k < 1) snapAnim = requestAnimationFrame(step); else { coolUntil = performance.now() + 380; setTimeout(() => { snapping = false; }, 80); } };
+  snapAnim = requestAnimationFrame(step);
+}
+let coolUntil = 0;
+function settle() {
+  if (performance.now() < coolUntil) return;
+  if (snapping || touching || frozen || reduceMotion || kickWrap.style.display === 'block' || !menuEl.hidden) return;
+  const y = scrollY, ih = innerHeight;
+  // inside a change of sport: carry on through it (or back out of it), so one flick plays the whole transition
+  const x = stages.find(st => st.id[0] === 'x' && y > st.s0 + 4 && y < st.s1 - 4);
+  if (x) {
+    const edge = scrollDir > 0 ? x.s1 : x.s0;
+    const nb = scrollDir > 0 ? snapPts.find(q => q >= x.s1 - 1) : [...snapPts].reverse().find(q => q <= x.s0 + 1);
+    const tgt = nb !== undefined && Math.abs(nb - edge) < ih * 1.2 ? nb : edge;
+    snapTo(tgt, Math.min(2600, 900 + Math.abs(tgt - y) / ih * 520)); return;
+  }
+  if (!snapPts.length) return;
+  let near = snapPts[0]; for (const q of snapPts) if (Math.abs(q - y) < Math.abs(near - y)) near = q;
+  // one step from the stop we were resting on, so momentum never carries a flick two stops; a long scroll lands on the stop nearest where it ended
+  const base = lastSnap === null || Math.abs(y - lastSnap) > ih * 2.5 ? near : lastSnap, step = scrollDir > 0 ? snapPts.find(q => q > base + 2) : [...snapPts].reverse().find(q => q < base - 2);
+  const overshot = step !== undefined && (scrollDir > 0 ? y > step + ih * 0.35 : y < step - ih * 0.35);
+  const ahead = overshot ? (scrollDir > 0 ? snapPts.find(q => q > y - ih * 0.35) : [...snapPts].reverse().find(q => q < y + ih * 0.35)) : step;
+  const from = base, moved = Math.abs(y - from), inFlow = y < postTop - ih * 0.6;
+  let tgt = null;
+  if (moved < ih * 0.08 && Math.abs(near - y) < ih * 0.2) tgt = near;                 // a nudge: settle back
+  else if (inFlow) tgt = ahead !== undefined ? ahead : near;                           // in the story every flick goes to the next stop, however far
+  else if (ahead !== undefined && Math.abs(ahead - y) < ih * 1.2) tgt = ahead;         // post-match: on to the next section if it's close
+  else if (Math.abs(near - y) < ih * 0.25) tgt = near;                                 // otherwise only settle if already close
+  if (tgt !== null && Math.abs(tgt - y) > 2) snapTo(tgt, Math.min(2600, 560 + Math.abs(tgt - y) / ih * 520));
+  else if (tgt !== null) lastSnap = tgt;
+}
+addEventListener('scroll', () => { const y = scrollY; if (Math.abs(y - lastY) > 0.5) scrollDir = y > lastY ? 1 : -1; lastY = y; if (snapping) return; clearTimeout(idleT); idleT = setTimeout(settle, lenis ? 140 : 170); }, { passive: true });
+addEventListener('touchstart', () => { touching = true; if (snapping && !lenis) { cancelAnimationFrame(snapAnim); snapping = false; } }, { passive: true });
+addEventListener('touchend', () => { touching = false; clearTimeout(idleT); idleT = setTimeout(settle, 220); }, { passive: true });
+addEventListener('resize', () => { buildSnaps(); });
+addEventListener('load', () => { buildSnaps(); });
+if ('ResizeObserver' in window) new ResizeObserver(() => buildSnaps()).observe(document.body);
+buildSnaps();
+if (params.has('debug')) window.__snap = () => ({ snapping, lastSnap, y: scrollY, pts: snapPts.filter(q => Math.abs(q - scrollY) < innerHeight * 2).map(Math.round), lenis: lenis && { stopped: lenis.isStopped, scrolling: lenis.isScrolling, locked: lenis.isLocked, target: lenis.targetScroll, animated: lenis.animatedScroll } });
 
 // ---------- boot
 function engineOpts() {

@@ -1408,7 +1408,7 @@ export async function createArena(canvas, o = {}) {
     camera.position.set(ps.pos[0], ps.pos[1], ps.pos[2]); _v.set(ps.tgt[0], ps.tgt[1], ps.tgt[2]);
     const dist = camera.position.distanceTo(_v);
     _r.subVectors(_v, camera.position).normalize().cross(_u.set(0, 1, 0)).normalize();
-    const kk = hero && h < 0.34 ? 0.25 : clamp(dist * 0.02, 0.5, 3);
+    const kk = hero && h < 0.34 ? 0.18 : clamp(dist * 0.012, 0.3, 1.6);
     camera.position.addScaledVector(_r, ptr.sx * kk); camera.position.y += -ptr.sy * kk * 0.5;
     if (hero && h < 0.34) camera.position.y += Math.sin(h * 300) * 0.03;
     if (Math.abs(look.yaw) + Math.abs(look.pitch) > 0.0005) { const dir = _v.clone().sub(camera.position); dir.applyAxisAngle(_u.set(0, 1, 0), -look.yaw); const rt = dir.clone().cross(_u).normalize(); dir.applyAxisAngle(rt, -look.pitch); _v.copy(camera.position).add(dir); }
