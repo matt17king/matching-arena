@@ -738,10 +738,17 @@ export async function createArena(canvas, o = {}) {
   const WW = (o.workedWith || []).filter(([, k]) => logoImgs[k]);
   let wwRing = null, wwCentre = null; const wwMeds = [];
   if (WW.length) {
-    const medTex = ([name, k]) => { const S = 512, [c, g] = cnv(S, S), cx = S / 2, img = logoImgs[k];
-      g.fillStyle = '#f3f2f2'; g.beginPath(); g.arc(cx, cx, cx - 6, 0, 7); g.fill();
-      g.strokeStyle = RED; g.lineWidth = 10; g.beginPath(); g.arc(cx, cx, cx - 11, 0, 7); g.stroke();
-      const sc = Math.min(330 / img.width, 290 / img.height); g.drawImage(img, cx - img.width * sc / 2, cx - img.height * sc / 2, img.width * sc, img.height * sc);
+    // each logo knocked out to chalk on a dark disc (the same treatment as the clubs & brands wall): crisp under the floodlights, no bloom
+    const chalkLogo = img => { const sc = Math.min(300 / img.width, 260 / img.height), w = Math.max(1, Math.round(img.width * sc)), h = Math.max(1, Math.round(img.height * sc));
+      const [c, g] = cnv(w, h); g.drawImage(img, 0, 0, w, h); const d = g.getImageData(0, 0, w, h), px = d.data;
+      for (let i = 0; i < px.length; i += 4) { const l = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2], v = Math.max(0, Math.min(255, (255 - l - 128) * 1.25 + 128));
+        px[i] = 243 * v / 255; px[i + 1] = 242 * v / 255; px[i + 2] = 240 * v / 255; px[i + 3] = px[i + 3] * Math.min(1, v / 90); }
+      g.putImageData(d, 0, 0); return c; };
+    const medTex = ([, k]) => { const S = 512, [c, g] = cnv(S, S), cx = S / 2, lg = chalkLogo(logoImgs[k]);
+      g.fillStyle = '#131212'; g.beginPath(); g.arc(cx, cx, cx - 6, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(243,242,242,0.55)'; g.lineWidth = 5; g.beginPath(); g.arc(cx, cx, cx - 12, 0, 7); g.stroke();
+      g.strokeStyle = RED; g.lineWidth = 8; g.beginPath(); g.arc(cx, cx, cx - 12, -Math.PI / 2 - 0.22, -Math.PI / 2 + 0.22); g.stroke();
+      g.drawImage(lg, cx - lg.width / 2, cx - lg.height / 2);
       return texOf(c); };
     const centreTex = (() => { const S = 1024, [c, g] = cnv(S, S), cx = S / 2;
       g.fillStyle = 'rgba(11,10,10,0.92)'; g.beginPath(); g.arc(cx, cx, cx - 8, 0, 7); g.fill();
