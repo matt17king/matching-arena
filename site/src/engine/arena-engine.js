@@ -739,12 +739,32 @@ export async function createArena(canvas, o = {}) {
   let wwRing = null, wwCentre = null; const wwMeds = [];
   if (WW.length) {
     // each logo knocked out to chalk on a dark disc (the same treatment as the clubs & brands wall): crisp under the floodlights, no bloom
-    const chalkLogo = img => { const sc = Math.min(300 / img.width, 260 / img.height), w = Math.max(1, Math.round(img.width * sc)), h = Math.max(1, Math.round(img.height * sc));
+    // colour logos (crests, badges) are drawn exactly as they are; plain dark logos are recoloured to chalk, keeping their shape (never inverted)
+    const chalkLogo = img => { const sc = Math.min(600 / img.width, 520 / img.height), w = Math.max(1, Math.round(img.width * sc)), h = Math.max(1, Math.round(img.height * sc));
       const [c, g] = cnv(w, h); g.drawImage(img, 0, 0, w, h); const d = g.getImageData(0, 0, w, h), px = d.data;
-      for (let i = 0; i < px.length; i += 4) { const l = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2], v = Math.max(0, Math.min(255, (255 - l - 128) * 1.25 + 128));
-        px[i] = 243 * v / 255; px[i + 1] = 242 * v / 255; px[i + 2] = 240 * v / 255; px[i + 3] = px[i + 3] * Math.min(1, v / 90); }
+      // strip a solid white backdrop: flood from the edges through near-white pixels (white inside a crest is enclosed, so it stays)
+      { const seen = new Uint8Array(w * h), st = [], wht = j => px[j * 4 + 3] > 0 && px[j * 4] > 228 && px[j * 4 + 1] > 228 && px[j * 4 + 2] > 228;
+        for (let x = 0; x < w; x++) st.push(x, (h - 1) * w + x); for (let y = 0; y < h; y++) st.push(y * w, y * w + w - 1);
+        while (st.length) { const j = st.pop(); if (seen[j] || !wht(j)) continue; seen[j] = 1; px[j * 4 + 3] = 0; const x = j % w, y = (j / w) | 0;
+          if (x > 0) st.push(j - 1); if (x < w - 1) st.push(j + 1); if (y > 0) st.push(j - w); if (y < h - 1) st.push(j + w); }
+        g.putImageData(d, 0, 0); }
+      let n = 0, sat = 0, lum = 0;
+      for (let i = 0; i < px.length; i += 4) { if (px[i + 3] < 128) continue; const r = px[i], gg = px[i + 1], bb = px[i + 2], mx = Math.max(r, gg, bb), mn = Math.min(r, gg, bb);
+        if (mx > 235 && mn > 235) continue; n++; sat += mx ? (mx - mn) / mx : 0; lum += 0.299 * r + 0.587 * gg + 0.114 * bb; }
+      const mono = n > 0 && sat / n < 0.18 && lum / n < 120;
+      if (!mono) { // colour logos keep their colours; only near-black neutral parts (wordmarks, outlines) turn chalk so they read on the dark disc
+        for (let i = 0; i < px.length; i += 4) { const r = px[i], gg = px[i + 1], bb = px[i + 2], mx = Math.max(r, gg, bb), mn = Math.min(r, gg, bb);
+          if (px[i + 3] > 0 && mx < 70 && (mx - mn) < 22) { px[i] = 243; px[i + 1] = 242; px[i + 2] = 240; } }
+        g.putImageData(d, 0, 0); return c; }
+      for (let i = 0; i < px.length; i += 4) { const l = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+        px[i + 3] = px[i + 3] * Math.max(0, Math.min(1, (235 - l) / 150)); px[i] = 243; px[i + 1] = 242; px[i + 2] = 240; }
       g.putImageData(d, 0, 0); return c; };
-    const medTex = ([, k]) => { const S = 512, [c, g] = cnv(S, S), cx = S / 2, lg = chalkLogo(logoImgs[k]);
+    // trim to the logo's own edges and fit it to the disc, so every mark sits at the same visual size
+    const fitLogo = src => { const w = src.width, h = src.height, px = src.getContext('2d').getImageData(0, 0, w, h).data; let x0 = w, y0 = h, x1 = -1, y1 = -1;
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (px[(y * w + x) * 4 + 3] > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      if (x1 < 0) return src; const bw = x1 - x0 + 1, bh = y1 - y0 + 1, sc = Math.min(300 / bw, 250 / bh), [c, g] = cnv(Math.round(bw * sc), Math.round(bh * sc));
+      g.imageSmoothingQuality = 'high'; g.drawImage(src, x0, y0, bw, bh, 0, 0, c.width, c.height); return c; };
+    const medTex = ([, k]) => { const S = 512, [c, g] = cnv(S, S), cx = S / 2, lg = fitLogo(chalkLogo(logoImgs[k]));
       g.fillStyle = '#131212'; g.beginPath(); g.arc(cx, cx, cx - 6, 0, 7); g.fill();
       g.strokeStyle = 'rgba(243,242,242,0.55)'; g.lineWidth = 5; g.beginPath(); g.arc(cx, cx, cx - 12, 0, 7); g.stroke();
       g.strokeStyle = RED; g.lineWidth = 8; g.beginPath(); g.arc(cx, cx, cx - 12, -Math.PI / 2 - 0.22, -Math.PI / 2 + 0.22); g.stroke();
