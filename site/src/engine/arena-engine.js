@@ -743,7 +743,11 @@ export async function createArena(canvas, o = {}) {
     const chalkLogo = img => { const sc = Math.min(600 / img.width, 520 / img.height), w = Math.max(1, Math.round(img.width * sc)), h = Math.max(1, Math.round(img.height * sc));
       const [c, g] = cnv(w, h); g.drawImage(img, 0, 0, w, h); const d = g.getImageData(0, 0, w, h), px = d.data;
       // strip a solid white backdrop: flood from the edges through near-white pixels (white inside a crest is enclosed, so it stays)
-      { const seen = new Uint8Array(w * h), st = [], wht = j => px[j * 4 + 3] > 0 && px[j * 4] > 228 && px[j * 4 + 1] > 228 && px[j * 4 + 2] > 228;
+      // ...or a solid coloured square (LaLiga): if all four corners share one opaque colour, that colour is the backdrop
+      const at = j => [px[j * 4], px[j * 4 + 1], px[j * 4 + 2], px[j * 4 + 3]], cs = [0, w - 1, (h - 1) * w, h * w - 1].map(at);
+      const bg = cs.every(q => q[3] > 200 && Math.abs(q[0] - cs[0][0]) + Math.abs(q[1] - cs[0][1]) + Math.abs(q[2] - cs[0][2]) < 30) ? cs[0] : null;
+      { const seen = new Uint8Array(w * h), st = [], wht = j => { const a = px[j * 4 + 3]; if (a < 40) return true; const r = px[j * 4], gg = px[j * 4 + 1], b = px[j * 4 + 2];
+          return (r > 228 && gg > 228 && b > 228) || (!!bg && Math.abs(r - bg[0]) + Math.abs(gg - bg[1]) + Math.abs(b - bg[2]) < 60); };
         for (let x = 0; x < w; x++) st.push(x, (h - 1) * w + x); for (let y = 0; y < h; y++) st.push(y * w, y * w + w - 1);
         while (st.length) { const j = st.pop(); if (seen[j] || !wht(j)) continue; seen[j] = 1; px[j * 4 + 3] = 0; const x = j % w, y = (j / w) | 0;
           if (x > 0) st.push(j - 1); if (x < w - 1) st.push(j + 1); if (y > 0) st.push(j - w); if (y < h - 1) st.push(j + w); }
@@ -783,7 +787,7 @@ export async function createArena(canvas, o = {}) {
     wwRing = new THREE.Group(); wwRing.position.y = 0.32; wwRing.visible = false; scene.add(wwRing);
     const RAD = 13.6, medGeo = new THREE.CircleGeometry(2.25, 56); medGeo.rotateX(-Math.PI / 2);
     WW.forEach((it, i) => { const a = i / WW.length * Math.PI * 2, holder = new THREE.Group(); holder.position.set(Math.sin(a) * RAD, 0, -Math.cos(a) * RAD); wwRing.add(holder);
-      const m = new THREE.Mesh(medGeo, new THREE.MeshBasicMaterial({ map: medTex(it), transparent: true, depthWrite: false })); m.renderOrder = 3; holder.add(m); wwMeds.push(holder); });
+      const m = new THREE.Mesh(medGeo, new THREE.MeshBasicMaterial({ map: medTex(it), color: new THREE.Color(0.8, 0.8, 0.8), transparent: true, depthWrite: false })); m.renderOrder = 3; holder.add(m); wwMeds.push(holder); });
   }
 
   // ---------- chapter: the playbook (basketball floor)
