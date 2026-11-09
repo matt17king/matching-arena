@@ -17,7 +17,7 @@ export const READS = {
   football: { n: '01', venue: 'Football', title: 'The tunnel is the new runway.', intro: 'Fashion is everywhere in sport. Nobody falls for 90 minutes. They fall for the story.', next: 'basketball',
     blocks: [
       { k: "05'", h: 'Every arrival is a fit check.', p: "At The Couture Club, influencers sold the womenswear. The menswear didn't move until footballers posted it. Then it sold out. NBA tunnel fits, the F1 paddock, the walk into training: every arrival is a runway.", photo: ['foden-couture.jpg', 'Phil Foden × The Couture Club', 'The menswear moved when footballers wore it.'] },
-      { k: "35'", h: 'Who I tell stories for', p: 'The properties I tell stories for at DAZN. Same football, told differently for every market.', list: 'rights', photo: ['barcelona.jpg', 'In the stands — FC Barcelona', 'Fan first. Every story I tell starts from a seat like this one.'] },
+      { k: "35'", h: 'Worked with', p: 'Leagues, clubs and brands across football, sport and fashion.', list: 'logos', photo: ['barcelona.jpg', 'In the stands — FC Barcelona', 'Fan first. Every story I tell starts from a seat like this one.'] },
     ] },
   basketball: { n: '02', venue: 'Basketball', title: 'Culture is the side door.', intro: 'Reach people through what they already love. Then put the sport in that world.', next: 'nfl',
     blocks: [
@@ -66,8 +66,14 @@ export const GATES = [
 ];
 // Photos: drop files into public/photos and set the path here (null = labelled placeholder in the 3D world).
 export const PHOTOS = { walkout: null, portrait: 'photos/portrait.jpg' };
-export const LOGOS = { 'copa-sudamericana': 'copa-sudamericana.png', 'career-webber': 'career/webber.png', 'career-gym-king': 'career/gym-king.png', 'career-american-golf': 'career/american-golf.png', 'career-couture-club': 'career/couture-club.png', 'career-swift': 'career/swift.png', 'career-80-four': 'career/80-four.png', 'career-dazn': 'career/dazn.png', 'puma': 'puma.png', 'adidas': 'adidas.png', 'la-galaxy': 'la-galaxy.png', 'fifa-world-cup': 'fifa-world-cup.png', 'national-league': 'national-league.png', 'fifa-plus': 'fifa-plus.png', 'laliga': 'laliga.png', 'arsenal': 'arsenal.png', 'man-city': 'man-city.png', 'uefa-europa-league': 'uefa-europa-league.png', 'serie-a': 'serie-a.png', 'bundesliga': 'bundesliga.png', 'uefa-champions-league': 'uefa-champions-league.png', 'fc-barcelona': 'fc-barcelona.png' };
-// The centre spot: the properties I tell stories for at DAZN
+export const LOGOS = { 'copa-sudamericana': 'copa-sudamericana.png', 'career-webber': 'career/webber.png', 'career-gym-king': 'career/gym-king.png', 'career-american-golf': 'career/american-golf.png', 'career-couture-club': 'career/couture-club.png', 'career-swift': 'career/swift.png', 'career-80-four': 'career/80-four.png', 'career-dazn': 'career/dazn.png', 'puma': 'puma.png', 'adidas': 'adidas.png', 'la-galaxy': 'la-galaxy.png', 'fifa-world-cup': 'fifa-world-cup.png', 'national-league': 'national-league.png', 'fifa-plus': 'fifa-plus.png', 'laliga': 'laliga.png', 'arsenal': 'arsenal.png', 'man-city': 'man-city.png', 'uefa-europa-league': 'uefa-europa-league.png', 'serie-a': 'serie-a.png', 'bundesliga': 'bundesliga.png', 'uefa-champions-league': 'uefa-champions-league.png', 'fc-barcelona': 'fc-barcelona.png', 'crewe-alexandra': 'crewe-alexandra.png', 'dp-world-tour': 'dp-world-tour.png', 'under-armour': 'under-armour.png' };
+// The centre circle: who I've worked with, as a ring of logos. [name, key in LOGOS]
+export const WORKED_WITH = [
+  ['DAZN', 'career-dazn'], ['FIFA+', 'fifa-plus'], ['UEFA Champions League', 'uefa-champions-league'], ['Serie A', 'serie-a'], ['LaLiga', 'laliga'], ['Bundesliga', 'bundesliga'],
+  ['Manchester City', 'man-city'], ['FC Barcelona', 'fc-barcelona'], ['Arsenal', 'arsenal'], ['LA Galaxy', 'la-galaxy'], ['Crewe Alexandra', 'crewe-alexandra'], ['DP World Tour', 'dp-world-tour'],
+  ['adidas', 'adidas'], ['Puma', 'puma'], ['Under Armour', 'under-armour'], ['The Couture Club', 'career-couture-club'], ['Gym King', 'career-gym-king'], ['American Golf', 'career-american-golf'],
+];
+// The properties I tell stories for at DAZN
 export const RIGHTS = [
   { slug: 'fifa-plus', name: 'FIFA+', sub: '3M+ users migrated', detail: "I led FIFA's move onto DAZN. Over 3M FIFA+ fans came across, and they're still signing up." },
   { slug: 'fifa-world-cup', name: 'FIFA World Cup', sub: 'Senior · U-20 · U-17', detail: "World Cups at every level: senior, U-20, U-20 Women's and U-17." },

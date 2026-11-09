@@ -734,38 +734,29 @@ export async function createArena(canvas, o = {}) {
     const dg = new THREE.BufferGeometry(); dg.setAttribute('position', new THREE.Float32BufferAttribute(dp, 3)); dg.setAttribute('aPh', new THREE.Float32BufferAttribute(dph, 1));
     dust = new THREE.Points(dg, ptsMat('#fff6ec', 0.14, true)); scene.add(dust); }
 
-  // ---------- chapter: centre-spot rights badge (football)
-  const RIGHTS = o.rights || [];
-  const badgeTex = (it, i, n) => {
-    const S = 1024, [c, g] = cnv(S, S), cx = S / 2;
-    g.fillStyle = 'rgba(14,13,13,0.95)'; g.beginPath(); g.arc(cx, cx, S / 2 - 8, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = 'rgba(243,242,242,0.92)'; g.lineWidth = 12; g.beginPath(); g.arc(cx, cx, S / 2 - 14, 0, Math.PI * 2); g.stroke();
-    g.strokeStyle = RED; g.lineWidth = 5; g.beginPath(); g.arc(cx, cx, S / 2 - 44, 0, Math.PI * 2); g.stroke();
-    g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = 'rgba(243,242,242,0.85)';
-    LS(g, '8px'); g.font = FONT(800, 30); g.fillText(`DAZN FOOTBALL RIGHTS — ${String(i + 1).padStart(2, '0')}/${String(n).padStart(2, '0')}`, cx, 210);
-    const img = logoImgs[it.slug];
-    if (img) { g.save(); g.beginPath(); g.arc(cx, cx + 10, 255, 0, 7); g.fillStyle = '#ffffff'; g.fill(); g.clip(); const sc = Math.min(350 / img.width, 350 / img.height); g.drawImage(img, cx - img.width * sc / 2, cx + 10 - img.height * sc / 2, img.width * sc, img.height * sc); g.globalCompositeOperation = 'multiply'; g.fillStyle = '#c4c1be'; g.fillRect(0, 0, S, S); g.restore(); }
-    else { LS(g, '-2px'); const { L, fs } = fitText(g, it.name.toUpperCase(), 700, 3, 150, 60); g.fillStyle = CHALK; const lh = fs * 0.92, y0 = cx + 10 - (L.length - 1) * lh / 2; L.forEach((l, k) => g.fillText(l, cx, y0 + k * lh)); }
-    g.fillStyle = RED; g.fillRect(cx - 60, 772, 120, 10);
-    LS(g, '6px'); g.fillStyle = 'rgba(243,242,242,0.85)'; g.font = FONT(800, 32); g.fillText((it.sub || '').toUpperCase(), cx, 832);
-    return texOf(c);
-  };
-  const plateTex = RIGHTS.map((it, i) => badgeTex(it, i, RIGHTS.length));
-  let plate = null;
-  if (RIGHTS.length) {
-    const pu = { uA: { value: plateTex[0] }, uB: { value: plateTex[0] }, uMix: { value: 1 }, uOp: { value: 0 }, uRed: { value: C(RED) } };
-    plate = new THREE.Mesh(new THREE.CircleGeometry(8.7, 96), new THREE.ShaderMaterial({
-      uniforms: pu, transparent: true, depthWrite: false,
-      vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-      fragmentShader: `uniform sampler2D uA; uniform sampler2D uB; uniform float uMix; uniform float uOp; uniform vec3 uRed; varying vec2 vUv;
-        void main(){ float r=length(vUv-0.5)*2.0; float m=uMix*1.3; float w=smoothstep(m-0.1,m,r);
-          vec4 a=texture2D(uA,vUv); vec4 b=texture2D(uB,vUv); vec4 c=mix(b,a,w);
-          float ring=(1.0-smoothstep(0.0,0.025,abs(r-m+0.05)))*step(0.001,uMix)*(1.0-step(0.999,uMix))*step(r,1.0);
-          c.rgb=mix(c.rgb,uRed*1.4,ring); c.a=max(c.a,ring); gl_FragColor=vec4(c.rgb,c.a*uOp);
-          #include <colorspace_fragment>
-        }`,
-    }));
-    plate.rotation.x = -Math.PI / 2; plate.position.y = 0.3; plate.renderOrder = 3; plate.visible = false; scene.add(plate);
+  // ---------- chapter: worked with (football). A ring of logo medallions around the centre circle, the name on the spot
+  const WW = (o.workedWith || []).filter(([, k]) => logoImgs[k]);
+  let wwRing = null, wwCentre = null; const wwMeds = [];
+  if (WW.length) {
+    const medTex = ([name, k]) => { const S = 512, [c, g] = cnv(S, S), cx = S / 2, img = logoImgs[k];
+      g.fillStyle = '#f3f2f2'; g.beginPath(); g.arc(cx, cx, cx - 6, 0, 7); g.fill();
+      g.strokeStyle = RED; g.lineWidth = 10; g.beginPath(); g.arc(cx, cx, cx - 11, 0, 7); g.stroke();
+      const sc = Math.min(330 / img.width, 290 / img.height); g.drawImage(img, cx - img.width * sc / 2, cx - img.height * sc / 2, img.width * sc, img.height * sc);
+      return texOf(c); };
+    const centreTex = (() => { const S = 1024, [c, g] = cnv(S, S), cx = S / 2;
+      g.fillStyle = 'rgba(11,10,10,0.92)'; g.beginPath(); g.arc(cx, cx, cx - 8, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(243,242,242,0.9)'; g.lineWidth = 10; g.beginPath(); g.arc(cx, cx, cx - 14, 0, 7); g.stroke();
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = RED; g.font = FONT(800, 38); LS(g, '12px'); g.fillText("35' — MATT KING", cx, 330);
+      g.fillStyle = CHALK; g.font = FONT(800, 170); LS(g, '-6px'); g.fillText('WORKED', cx, 470); g.fillText('WITH', cx, 630);
+      g.fillStyle = RED; g.fillRect(cx - 70, 728, 140, 10);
+      g.fillStyle = 'rgba(243,242,242,0.75)'; g.font = FONT(800, 34); LS(g, '8px'); g.fillText('LEAGUES · CLUBS · BRANDS', cx, 790);
+      return texOf(c); })();
+    wwCentre = new THREE.Mesh(new THREE.CircleGeometry(8.4, 96), new THREE.MeshBasicMaterial({ map: centreTex, transparent: true, depthWrite: false }));
+    wwCentre.rotation.x = -Math.PI / 2; wwCentre.position.y = 0.3; wwCentre.renderOrder = 3; wwCentre.visible = false; scene.add(wwCentre);
+    wwRing = new THREE.Group(); wwRing.position.y = 0.32; wwRing.visible = false; scene.add(wwRing);
+    const RAD = 13.6, medGeo = new THREE.CircleGeometry(2.25, 56); medGeo.rotateX(-Math.PI / 2);
+    WW.forEach((it, i) => { const a = i / WW.length * Math.PI * 2, holder = new THREE.Group(); holder.position.set(Math.sin(a) * RAD, 0, -Math.cos(a) * RAD); wwRing.add(holder);
+      const m = new THREE.Mesh(medGeo, new THREE.MeshBasicMaterial({ map: medTex(it), transparent: true, depthWrite: false })); m.renderOrder = 3; holder.add(m); wwMeds.push(holder); });
   }
 
   // ---------- chapter: the playbook (basketball floor)
@@ -1141,8 +1132,8 @@ export async function createArena(canvas, o = {}) {
   }
   const CAM = {};
   CAM.hero = t => spline(heroKeys, t);
-  const rightsK = [{ ...heroKeys[heroKeys.length - 1], t: 0 }, { t: 0.07, pos: [0, 30, 0.6], tgt: [0, 0, 0], fov: 40 }, { t: 0.94, pos: [0, 33, 0.6], tgt: [0, 0, 0], fov: 40 }, { t: 1, pos: [0, 36, 0.6], tgt: [0, 0, 0], fov: 40 }];
-  CAM.rights = t => lin(rightsK, t);
+  const rightsK = [{ ...heroKeys[heroKeys.length - 1], t: 0 }, { t: 0.07, pos: [0, 54, 2.4], tgt: [0, 0, 1.8], fov: 40 }, { t: 0.94, pos: [0, 56, 2.4], tgt: [0, 0, 1.8], fov: 40 }, { t: 1, pos: [0, 58, 2.4], tgt: [0, 0, 1.8], fov: 40 }];
+  CAM.rights = t => { const k = lin(rightsK, t); if (W / H >= 0.9) return k; const u = clamp(t / 0.07), f = 1 - 0.2 * u; return { pos: [k.pos[0], k.pos[1] * f, k.pos[2] - 3 * u], tgt: [k.tgt[0], k.tgt[1], k.tgt[2] - 3 * u], fov: k.fov }; };
   const bballK = [{ t: 0, pos: [0, 34, 57], tgt: [0, 40, 0], fov: 46 }, { t: CH.BEATS[1], pos: [0, 33, 50], tgt: [0, 40.5, 0], fov: 46 }, { t: CH.TAC[0] + 0.02, pos: [0, 96, 2], tgt: [0, 0, 0], fov: 42 }, { t: 1, pos: [0, 92, 2], tgt: [0, 0, 0], fov: 42 }];
   CAM.bball = t => lin(bballK, t);
   const nflK = [{ t: 0, pos: [DX[0] - 34, 18, 26], tgt: [DX[0] + 8, 0, 0], fov: 50 }];
@@ -1298,11 +1289,12 @@ export async function createArena(canvas, o = {}) {
     // LED plan
     let key = firstKey; for (const [q, k] of ledP) if (p >= q) key = k; if (time - goalT < 4.5 && ledTex.goal) key = 'goal'; setLed(key);
     ledOff = (ledOff + dt * (1.2 + vel * 90)) % 100000; ledWipe = ss((time - ledWipeStart) / 0.9);
-    // rights badge
-    if (plate) {
-      const op = id === 'rights' ? R(t, 0, 0.06) * (1 - R(t, 0.94, 1)) : 0, u = plate.material.uniforms; u.uOp.value = op; plate.visible = op > 0.001;
-      if (op > 0.001) { const n = plateTex.length, [r0, r1] = CH.RR, f = clamp((t - r0) / (r1 - r0)) * n, idx = Math.min(n - 1, Math.floor(f)), loc = f - idx;
-        if (idx === 0) { u.uA.value = plateTex[0]; u.uB.value = plateTex[0]; u.uMix.value = 1; } else { u.uA.value = plateTex[idx - 1]; u.uB.value = plateTex[idx]; u.uMix.value = ss(loc / 0.3); } }
+    // worked with: the centre plate fades up, the medallions land one after another, then the ring turns slowly with the scroll
+    if (wwRing) {
+      const op = id === 'rights' ? R(t, 0, 0.06) * (1 - R(t, 0.94, 1)) : 0, on = op > 0.001;
+      wwCentre.visible = wwRing.visible = on; wwCentre.material.opacity = op;
+      if (on) { const rot = -t * 1.1 - time * 0.015; wwRing.rotation.y = rot;
+        wwMeds.forEach((h, i) => { const k = ss(clamp((t - 0.03 - i * 0.012) / 0.07)) * (1 - R(t, 0.92, 0.99)); h.scale.setScalar(Math.max(0.0001, k)); h.rotation.y = -rot; h.children[0].material.opacity = k; }); }
     }
     // jumbotron (flies up into the rafters for the overhead playbook)
     if (jumbo && id === 'bball') jumbo.position.y = 13 + 21 * R(t, CH.BEATS[1], CH.TAC[0]);
@@ -1435,7 +1427,7 @@ export async function createArena(canvas, o = {}) {
     ground.receiveShadow = true; tunnel.traverse(m => { if (m.isMesh) m.receiveShadow = true; });
   }
   scene.traverse(m => { if (!m.isMesh || !m.material || !m.material.isMeshStandardMaterial) return; const mm = m.material; mm.envMapIntensity = mm.userData.env != null ? mm.userData.env : mm === mats.steel ? 0.6 : mm === mats.glass ? 0.6 : mm === seatMat ? 0.16 : mm === surfMat ? 0.22 : 0.1; });
-  try { venues.forEach(Vn => { Vn.root.visible = true; }); [plate, tac, fans, fdLine].forEach(m => { if (m) m.visible = true; }); if (renderer.compileAsync) await renderer.compileAsync(scene, camera); } catch (e) {}
+  try { venues.forEach(Vn => { Vn.root.visible = true; }); [wwCentre, wwRing, tac, fans, fdLine].forEach(m => { if (m) m.visible = true; }); if (renderer.compileAsync) await renderer.compileAsync(scene, camera); } catch (e) {}
   update(0, 0); raf = requestAnimationFrame(frame);
   setTimeout(loadFigure, 1500);
 

@@ -5,7 +5,7 @@ import './styles/reads.css';
 import './styles/mobile.css';
 import { drawBrief } from './engine/broadcast-gfx.js';
 import Lenis from 'lenis';
-import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, XI, DRIVE, FILM, TROPHIES, PROOF, STANDS, TALENT, BRANDS, PRESS, SEATS, TOPICS, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN, STAGE_VH, READ_AFTER, READS, PLAYS, FORMATS } from './content.js';
+import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, WORKED_WITH, XI, DRIVE, FILM, TROPHIES, PROOF, STANDS, TALENT, BRANDS, PRESS, SEATS, TOPICS, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN, STAGE_VH, READ_AFTER, READS, PLAYS, FORMATS } from './content.js';
 
 const BASE = import.meta.env.BASE_URL;
 const KBG = '#0b0a0a', ZONE_ON = '#ec3013', ZONE_OFF = 'rgba(243,242,242,.3)';
@@ -37,7 +37,7 @@ const list = (name, html) => { const el = $(`[data-list="${name}"]`); el.insertA
 const NEXT_LABEL = { basketball: ['02', 'Basketball', 'x1'], nfl: ['03', 'NFL', 'x2'], tennis: ['04', 'Tennis', 'x3'], motorsport: ['05', 'Motorsport', 'x4'], ft: ['FT', 'Full time', 'ft'] };
 const rItem = (a, b, h, p) => `<div data-rv class="rl-i"><div class="rl-top"><span>${a}</span><span>${b}</span></div><div class="rl-h">${h}</div>${p ? `<div class="rl-p">${p}</div>` : ''}</div>`;
 const LISTS = {
-  rights: () => RIGHTS.map((r, i) => rItem(pad2(i + 1), esc(r.sub), esc(r.name), esc(r.detail))),
+  logos: () => WORKED_WITH.map(([n, k]) => `<div data-rv class="rl-logo" title="${esc(n)}"><img src="${BASE}logos/${LOGOS[k]}" alt="${esc(n)}" loading="lazy"><span>${esc(n)}</span></div>`),
   plays: () => PLAYS.map(p => rItem(`PLAY ${p.n}`, esc(p.x), esc(p.h), `${esc(p.s)}<span class="rl-x">${p.rows.map(esc).join(' × ')}</span>`)),
   brief: () => [['01', 'Who we want', ['Fans we have', "Fans we don't"], 1], ['02', 'What they already love', SCREEN_DATA.passions], ['03', 'What we have', ['Sport', 'Athletes', 'Stories']], ['04', 'What it becomes', SCREEN_DATA.outputs, 1]]
     .map(([n, h, chips, red]) => rItem(n, 'THE BRIEF', esc(h), `<span class="rl-chips">${chips.map((c, i) => `<span class="${red && (n === '04' || i === 1) ? 'red' : ''}">${esc(c)}</span>`).join('')}</span>`)),
@@ -84,8 +84,6 @@ function layout() {
 const pAt = sY => { let q = 0; for (const st of stages) if (sY >= st.s0) q = st.a + (st.b - st.a) * Math.min(1, Math.max(0, (sY - st.s0) / (st.s1 - st.s0))); return q; };
 const scrollForP = q => { const st = stages.find(x => q >= x.a - 1e-9 && q <= x.b + 1e-9) || stages[stages.length - 1]; return st.s0 + (st.s1 - st.s0) * (q - st.a) / Math.max(1e-9, st.b - st.a); };
 layout();
-list('rights', RIGHTS.map((r, i) => `<div data-ri="${i}" style="display:flex;gap:12px;padding:clamp(3px,.7vh,7px) 0;border-bottom:1px solid rgba(243,242,242,.12);font-weight:800;font-size:12px;letter-spacing:.06em;opacity:.35"><span style="color:var(--color-accent)">${pad2(i + 1)}</span><span>${esc(r.name.toUpperCase())}</span></div>`).join(''));
-list('rightsDetail', RIGHTS.map((r, i) => `<div data-rd="${i}" style="grid-area:1/1;opacity:0">${esc(r.detail)}</div>`).join(''));
 list('drive', DRIVE.map((b, i) => `<div data-dc="${i}" style="grid-area:1/1;opacity:0;padding:14px 16px 16px">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
     <div>
@@ -163,7 +161,7 @@ list('seats', SEATS.map(([who, line, subj, q], i) => `<a href="mailto:${EMAIL}?s
 
 // chapters menu
 const groups = [
-  ['01 — FOOTBALL', 'NIGHT STADIUM', [["05'", 'The tunnel is the new runway', G('hero', 0.25)], ["15'", 'Nobody falls for 90 minutes', G('hero', 0.5)], ["20'", 'Off the pitch, into culture', G('hero', 0.9)], ["35'", 'Who I tell stories for', G('rights', 0.45)], ['READ', 'The read', 'read:football']]],
+  ['01 — FOOTBALL', 'NIGHT STADIUM', [["05'", 'The tunnel is the new runway', G('hero', 0.25)], ["15'", 'Nobody falls for 90 minutes', G('hero', 0.5)], ["20'", 'Off the pitch, into culture', G('hero', 0.9)], ["35'", 'Worked with', G('rights', 0.45)], ['READ', 'The read', 'read:football']]],
   ['02 — BASKETBALL', 'CULTURE IS THE SIDE DOOR', [['Q1', 'Culture plays', G('bball', 0.25)], ['TO', 'How I build a brief', G('bball', 0.8)], ['READ', 'The read', 'read:basketball']]],
   ['03 — NFL', 'FIT BEATS SIZE', [['1&10', 'How a fan is made', G('nfl', 0.25)], ['XI', '11 talent rules', G('nfl', 0.6)], ['READ', 'The read', 'read:nfl']]],
   ['04 — TENNIS', 'THE FORMAT IS THE PRODUCT', [['15–0', 'Battle of the Surfaces', G('tennis', 0.15)], ['30–0', 'Battle of the Sexes', G('tennis', 0.38)], ['40–0', 'Padel', G('tennis', 0.62)], ['GAME', 'New formats, new fans', G('tennis', 0.86)], ['READ', 'The read', 'read:tennis']]],
@@ -439,7 +437,7 @@ function engineOpts() {
   const quality = QUALITY === 'auto' ? ((matchMedia('(pointer: coarse)').matches || innerWidth < 820 || (navigator.hardwareConcurrency || 8) <= 4) ? 'low' : 'high') : QUALITY;
   return {
     segs: segList.map(s => ({ id: s.id, a: s.a, b: s.b })), ch: CH, quality,
-    logos: LOGOS, rights: RIGHTS, formation: XI.map(x => [x[0], x[1], x[2], x[4], x[3]]), drive: DRIVE, kit: KIT, markets: MARKETS,
+    logos: LOGOS, rights: RIGHTS, workedWith: WORKED_WITH, formation: XI.map(x => [x[0], x[1], x[2], x[4], x[3]]), drive: DRIVE, kit: KIT, markets: MARKETS,
     gates: GATES, photos: Object.fromEntries(Object.entries(PHOTOS).map(([k, v]) => [k, v ? BASE + v : v])), model: { url: BASE + 'models/matt.glb', height: 1.85 },
     noDegrade: params.has('nodegrade'), debug: params.has('debug'), flatTactics: true, fansText: FANS_TEXT, screenData: SCREEN_DATA, messages: MESSAGES, ledPlan: LED_PLAN,
   };
