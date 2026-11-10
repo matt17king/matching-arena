@@ -9,7 +9,7 @@
   [data-canvas] { height: 100lvh !important; }
   [data-grid] { display: none !important; }
   [data-scrim] { display: block; position: fixed; inset: 0; z-index: 2; pointer-events: none;
-    background: linear-gradient(to top, rgba(11,10,10,.86) 0, rgba(11,10,10,.55) 28%, rgba(11,10,10,0) 52%); }
+    background: linear-gradient(to bottom, rgba(11,10,10,.72) 0, rgba(11,10,10,0) 104px), linear-gradient(to top, rgba(11,10,10,.86) 0, rgba(11,10,10,.55) 28%, rgba(11,10,10,0) 52%); }
 
   /* header: tighter, clear of the notch */
   #root > div[style*="z-index:6"] > div:first-child { padding: calc(14px + var(--sat)) var(--gut) 12px !important; }

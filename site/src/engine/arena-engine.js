@@ -1282,7 +1282,7 @@ export async function createArena(canvas, o = {}) {
     const w = xi ? R(xt, 0.32, 0.37) : 0, sa = SPORTS[ORDER[A]], sb = SPORTS[ORDER[B]];
     const lit = xi ? (xt < 0.5 ? litA : litB) : litA;
     surfU.uA.value = A; surfU.uB.value = B; surfU.uMix.value = w; surfU.uRmax.value = Math.max(sa.ext, sb.ext) * 1.7;
-    surfU.uLit.value = lit; surfU.uLR.value = lerp(sa.lr, sb.lr, w); surfU.uAmb.value = 0.015 + (xi ? 0.03 * Math.sin(xt * Math.PI) : 0);
+    surfU.uLit.value = lit; surfU.uLR.value = lerp(sa.lr, sb.lr, w); surfU.uAmb.value = 0.015 + (xi ? 0.05 * Math.sin(xt * Math.PI) : 0);   // enough glow under a change of sport to read the new ground on a dim phone
     trackU.uLit.value = lit;
     { const on = false, Rr = w * surfU.uRmax.value; curtain.visible = on;
       if (on) { curtain.scale.set(Rr, 6 + Math.max(sa.ext, sb.ext) * 0.28, Rr / 1.3); curtainU.uOp.value = 0.32 * Math.sin(w * Math.PI); curtainU.uTime.value = time; } }
