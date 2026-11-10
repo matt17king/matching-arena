@@ -342,7 +342,7 @@ function clock(id, t) {
   if (id === 'x3') return ['SCORE', '0–0'];
   if (id === 'tennis') return ['SCORE', t < CH.SEXES[0] ? '15–0' : t < CH.PADEL[0] ? '30–0' : t < CH.PADEL[1] ? '40–0' : 'GAME'];
   if (id === 'x4') return ['LAP', 'GRID'];
-  if (id === 'race') { if (t < CH.LAP[0]) return ['LAP', 'LIGHTS']; if (t < CH.LAP[1]) { const k = Math.min(6, Math.floor((t - CH.LAP[0]) / (CH.LAP[1] - CH.LAP[0]) * 8)); return ['LAP', `1 · T${k + 1}`]; } return ['LAP', 'PIT']; }
+  if (id === 'race') { if (t < CH.LAP[0]) return ['LAP', 'LIGHTS']; if (t < CH.LAP[1]) { const k = Math.max(0, Math.min(6, Math.floor((t - CH.LAP[0]) / (CH.LAP[1] - CH.LAP[0]) * 8 - 0.3)));   // same count as the corner title return ['LAP', `1 · T${k + 1}`]; } return ['LAP', 'PIT']; }
   return ['RESULT', 'FLAG'];
 }
 function stepIndex(key, p, [a, b], n, onFn) {
@@ -466,7 +466,7 @@ const BEATS = (() => { const sp = ([a, b], n) => Array.from({ length: n }, (_, i
   return { hero: [0, 0.27, 0.52, 0.92], rights: [0.5], bball: [...sp(CH.BEATS, 7), 0.66, 0.88], nfl: [...sp(CH.DRIVE, DRIVE.length), 0.78], tennis: [0.16, 0.39, 0.63, 0.87],
     race: [0.035, ...Array.from({ length: 7 }, (_, k) => CH.LAP[0] + (CH.LAP[1] - CH.LAP[0]) * (k + 0.8) / 8), ...sp(CH.PIT, 3)], ft: [0.92] }; })();
 let stops = [], lastStop = 0, gliding = false, glideAnim = 0, glideTarget = null, targetIdx = -1;
-let lastWheel = 0, lastWheelAbs = 0, wheelAcc = 0, gestureUsed = false, touchY0 = null, touchX0 = 0, touchScroll = false, lastInput = 0, settleT = 0;
+let touchY0 = null, touchX0 = 0, touchScroll = false, lastInput = 0, settleT = 0;
 function buildStops() {
   const ih = innerHeight, hdr = innerWidth < 760 ? 72 : 92, pts = [];
   stages.forEach(st => (BEATS[st.id] || []).forEach(t => pts.push(st.s0 + (st.s1 - st.s0) * t)));
@@ -489,7 +489,7 @@ function glideTo(y, ms) {
   const tick = now => { const k = Math.min(1, (now - t0) / ms); scrollTo(0, y0 + d * easeIO(k)); if (k < 1) glideAnim = requestAnimationFrame(tick); else { gliding = false; glideTarget = null; } };
   glideAnim = requestAnimationFrame(tick);
 }
-const glideMs = dy => { const d = Math.abs(dy) / innerHeight; return Math.round(Math.min(2000, Math.max(560, 480 + d * 300))); };
+const glideMs = dy => { const d = Math.abs(dy) / innerHeight; return Math.round(Math.min(1500, Math.max(480, 400 + d * 240))); };
 const nearestIdx = y => { let bi = 0; stops.forEach((q, i) => { if (Math.abs(q - y) < Math.abs(stops[bi] - y)) bi = i; }); return bi; };
 function step(dir) {
   if (!stops.length) return;
@@ -498,21 +498,32 @@ function step(dir) {
   if (gliding && targetIdx >= 0) i = targetIdx + dir;   // a new flick during a glide carries on from where that glide was going
   else { const n = nearestIdx(y); i = Math.abs(stops[n] - y) < 6 ? n + dir : dir > 0 ? stops.findIndex(q => q > y + 6) : stops.length - 1 - [...stops].reverse().findIndex(q => q < y - 6); }
   if (i < 0 || i >= stops.length || Number.isNaN(i)) return;
-  targetIdx = i; glideTo(stops[i], glideMs(stops[i] - scrollY));
+  targetIdx = i; const st = stages.find(q => stops[i] >= q.s0 && stops[i] < q.s1);
+  glideTo(stops[i], Math.max(glideMs(stops[i] - scrollY), st && st.id === 'race' ? 1500 : 0));   // the lap: let each corner be driven, not jumped
 }
 const inStory = (y, dir) => y < lastStop - 2 || (y <= lastStop + 2 && dir < 0);
 const storyLive = () => kickWrap.style.display !== 'block' && menuEl.hidden && !frozen;
+// one flick = one step. Trackpads keep streaming fading 'momentum' events for a second or more after the fingers lift,
+// so a new flick is spotted as a fresh rise on top of that fading stream (or a change of direction), not only as a pause.
+const wg = { last: -1e9, dir: 0, peak: 0, floor: 0, acc: 0, used: false, stepAt: -1e9 };
+function wheelStep(t, dy) {
+  const a = Math.abs(dy), dir = Math.sign(dy); if (!dir) return 0;
+  if (dir !== wg.dir && a < 4 && t - wg.last < 180) return 0;          // a stray flicker against the stream
+  const dt = t - wg.last; wg.last = t;
+  let fresh = dt > 180 || dir !== wg.dir;
+  if (!fresh && wg.used && t - wg.stepAt > 280 && wg.floor < wg.peak * 0.6 && a >= 16 && a > wg.floor * 2 + 6) fresh = true;
+  if (fresh) { wg.dir = dir; wg.peak = wg.floor = a; wg.acc = 0; wg.used = false; }
+  else if (a >= wg.peak) wg.peak = wg.floor = a; else wg.floor = Math.min(wg.floor, a);
+  if (wg.used) return 0;
+  wg.acc += a; if (wg.acc >= 12) { wg.used = true; wg.stepAt = t; return dir; }
+  return 0;
+}
 addEventListener('wheel', e => {
   if (!storyLive() || e.ctrlKey) return;
-  const dir = Math.sign(e.deltaY); if (!dir || !inStory(scrollY, dir)) return;
+  const dy = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? innerHeight : 1), dir = Math.sign(dy);
+  if (!dir || !inStory(scrollY, dir)) return;
   e.preventDefault(); lastInput = performance.now();
-  const now = e.timeStamp || lastInput, dt = now - lastWheel, a = Math.abs(e.deltaY);   // event time, not handling time: a busy frame must not split one flick in two
-  // a new gesture: a pause in the wheel stream, or a fresh push stronger than the fading momentum of the last one
-  if (dt > 200 || (a > lastWheelAbs * 1.5 && a > 30 && dt > 40)) { wheelAcc = 0; gestureUsed = false; }
-  lastWheel = now; lastWheelAbs = a;
-  if (gestureUsed) return;
-  wheelAcc += e.deltaY;
-  if (Math.abs(wheelAcc) >= 12) { gestureUsed = true; step(Math.sign(wheelAcc)); }
+  const s = wheelStep(e.timeStamp || lastInput, dy); if (s) step(s);   // event time, not handling time: a busy frame must not split one flick
 }, { passive: false });
 addEventListener('touchstart', e => { if (!storyLive() || e.touches.length !== 1) { touchY0 = null; return; } touchY0 = e.touches[0].clientY; touchX0 = e.touches[0].clientX; touchScroll = false; lastInput = performance.now(); }, { passive: true });
 addEventListener('touchmove', e => {

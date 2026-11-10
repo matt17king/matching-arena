@@ -1181,8 +1181,10 @@ export async function createArena(canvas, o = {}) {
   const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.SURF[0] + 0.03, ...OVH }, { t: CH.PADEL[0] + 0.02, ...OVH }, { t: CH.PADEL[0] + 0.09, pos: [0, 44, 76], tgt: [0, 0, 6], fov: 46 }, { t: CH.PADEL[1] - 0.03, pos: [16, 42, 72], tgt: [0, 0, 6], fov: 46 }, { t: CH.FANS[0], ...OVH }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
   CAM.tennis = t => lin(tenK, t);
   const rAt3 = (s, y) => { const [x, z] = raceX.racingAt(s); return [x, y, z]; };
-  // the lap: a TV-helicopter follow. High above and behind the car on the centreline, so it never meets a barrier, a marshal post or a bridge
-  const chase = s => ({ pos: at3(s - 30, 0, 26), tgt: rAt3(s + 14, 0.8), fov: 50 });
+  // the lap: a low chase, close behind the car. The camera rides the middle of the track just above the catch fencing
+  // (fence top 4.65m), averaged over a short stretch so it glides through corners instead of swinging across them
+  const avg3 = ps => [0, 1, 2].map(i => ps.reduce((m, p) => m + p[i], 0) / ps.length);
+  const chase = s => ({ pos: avg3([at3(s - 14, 0, 5.4), at3(s - 11, 0, 5.4), at3(s - 8, 0, 5.4)]), tgt: avg3([rAt3(s + 5, 0.9), rAt3(s + 12, 0.9), rAt3(s + 19, 0.9)]), fov: 56 });
   const gridPose = { pos: at3(-68, 0, 6.8), tgt: at3(-4, 0, 0.6), fov: 52 };
   const LAPB = [-24, ...cc.apex.map(a => a.s), cc.len - 4];
   const lapS = t => { const [a, b] = CH.LAP, f = clamp((t - a) / (b - a)) * (LAPB.length - 1), k = Math.min(LAPB.length - 2, Math.floor(f)), u = f - k; return LAPB[k] + (LAPB[k + 1] - LAPB[k]) * ss(clamp(u / 0.8)); };

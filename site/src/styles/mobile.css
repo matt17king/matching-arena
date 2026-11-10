@@ -52,7 +52,7 @@
   [data-ft] > div:first-child { flex-direction: column; gap: 4px !important; font-size: 11px !important; }
 
   [data-corner] { top: calc(196px + var(--sat)) !important; left: var(--gut) !important; }
-  [data-corner] [data-corner-n] { font-size: 15vw !important; }
+  [data-corner] [data-corner-n] { font-size: 9vw !important; }
 
   /* photo moments: one strip under the header, photo left, caption right */
   .moment, .moment.top, .moment.left { top: calc(84px + var(--sat)); bottom: auto; left: var(--gut); right: var(--gut); width: auto;
