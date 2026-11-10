@@ -342,7 +342,8 @@ function clock(id, t) {
   if (id === 'x3') return ['SCORE', '0–0'];
   if (id === 'tennis') return ['SCORE', t < CH.SEXES[0] ? '15–0' : t < CH.PADEL[0] ? '30–0' : t < CH.PADEL[1] ? '40–0' : 'GAME'];
   if (id === 'x4') return ['LAP', 'GRID'];
-  if (id === 'race') { if (t < CH.LAP[0]) return ['LAP', 'LIGHTS']; if (t < CH.LAP[1]) { const k = Math.max(0, Math.min(6, Math.floor((t - CH.LAP[0]) / (CH.LAP[1] - CH.LAP[0]) * 8 - 0.3)));   // same count as the corner title return ['LAP', `1 · T${k + 1}`]; } return ['LAP', 'PIT']; }
+  // the turn count matches the corner title
+  if (id === 'race') { if (t < CH.LAP[0]) return ['LAP', 'LIGHTS']; if (t < CH.LAP[1]) { const k = Math.max(0, Math.min(6, Math.floor((t - CH.LAP[0]) / (CH.LAP[1] - CH.LAP[0]) * 8 - 0.3))); return ['LAP', `1 · T${k + 1}`]; } return ['LAP', 'PIT']; }
   return ['RESULT', 'FLAG'];
 }
 function stepIndex(key, p, [a, b], n, onFn) {
