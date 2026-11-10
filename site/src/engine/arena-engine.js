@@ -330,6 +330,61 @@ export async function createArena(canvas, o = {}) {
   seatGeoBase.rotateY(-Math.PI / 2); seatGeoBase.translate(0.2, 0, 0); seatGeoBase.computeVertexNormals();
   const seatMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42 });
   const SEATC = { grey: [0.1, 0.095, 0.093], red: [0.24, 0.04, 0.028], green: [0.06, 0.09, 0.066] };
+  // ---------- the crowd: seated figures on most seats. Two instanced meshes per stand (bodies take the clothing colour, heads the skin tone)
+  const mergeGeo = list => { const pos = [], nor = []; list.forEach(g0 => { const g = g0.index ? g0.toNonIndexed() : g0; pos.push(...g.attributes.position.array); nor.push(...g.attributes.normal.array); });
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); return g; };
+  const bodyGeo = (() => {
+    const torso = new THREE.CylinderGeometry(0.15, 0.19, 0.56, LOWQ ? 5 : 7, 1); torso.scale(1.25, 1, 0.72); torso.translate(0, 0.42, 0.05);           // shoulders wider than deep
+    if (LOWQ) return mergeGeo([torso]);
+    const legs = new THREE.BoxGeometry(0.36, 0.14, 0.4); legs.translate(0, 0.2, -0.17);
+    const shins = new THREE.BoxGeometry(0.34, 0.22, 0.12); shins.translate(0, 0.1, -0.34);
+    const armL = new THREE.BoxGeometry(0.09, 0.34, 0.26); armL.rotateX(-0.5); armL.translate(-0.235, 0.4, -0.06); const armR = armL.clone(); armR.translate(0.47, 0, 0);
+    return mergeGeo([torso, legs, armL, armR]); })();
+  // a 20-face ball with sphere normals: reads as round at stand distance for a fifth of the triangles
+  const headGeo = (() => { const g = new THREE.IcosahedronGeometry(0.118, 0).toNonIndexed(), p = g.attributes.position, n = new Float32Array(p.count * 3), v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).normalize(); n[i * 3] = v.x; n[i * 3 + 1] = v.y; n[i * 3 + 2] = v.z; }
+    g.setAttribute('normal', new THREE.BufferAttribute(n, 3)); g.scale(0.92, 1.08, 1); g.translate(0, 0.83, 0.03); return g; })();
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.86 }), headMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 });
+  const SKIN = ['#c99a7c', '#b98262', '#8d5a3c', '#6b4129', '#dbb193', '#a8744f'].map(h => C(h));
+  const CLOTH = {   // [colour, share]: mostly dark coats at night, with the home colour running through
+    grey: [['#1b1a1a', 0.3], ['#2c2a29', 0.18], ['#a42410', 0.22], ['#b9b4ae', 0.08], ['#3a2420', 0.09], ['#23303a', 0.08], ['#5a5450', 0.05]],
+    red: [['#1b1a1a', 0.26], ['#a42410', 0.32], ['#b9b4ae', 0.09], ['#2c2a29', 0.16], ['#6a1a10', 0.11], ['#23303a', 0.06]],
+    green: [['#c9c4b8', 0.2], ['#1d2a22', 0.2], ['#24392c', 0.16], ['#a39c8a', 0.12], ['#1b1a1a', 0.14], ['#4a2e58', 0.08], ['#6f6655', 0.1]],
+  };
+  const pickCloth = pal => { let r = Math.random(); for (const [h, w] of pal) { if ((r -= w) <= 0) return h; } return pal[0][0]; };
+  const _cm = new THREE.Matrix4(), _cq = new THREE.Quaternion(), _cs = new THREE.Vector3(), _cp = new THREE.Vector3(), _cy = new THREE.Vector3(0, 1, 0), _cc = new THREE.Color();
+  // list: flat [x, y, z, yaw] per seat. Fills a share of them, with a little variation in size and turn so no row reads as a pattern
+  const crowdMeshes = [];
+  function crowdOn(parent, list, palKey, fill = LOWQ ? 0.62 : 0.84) {
+    const idx = []; for (let i = 0; i < list.length; i += 4) if (Math.random() < fill) idx.push(i);
+    for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }   // shuffled, so drawing fewer thins the whole stand evenly
+    if (!idx.length) return;
+    const bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, idx.length), heads = new THREE.InstancedMesh(headGeo, headMat, idx.length), pal = CLOTH[palKey] || CLOTH.grey;
+    idx.forEach((i, k) => {
+      const sc = 0.92 + Math.random() * 0.2; _cq.setFromAxisAngle(_cy, list[i + 3] + (Math.random() - 0.5) * 0.5); _cs.set(sc * (0.94 + Math.random() * 0.14), sc, sc); _cp.set(list[i], list[i + 1] + 0.04, list[i + 2]);
+      _cm.compose(_cp, _cq, _cs); bodies.setMatrixAt(k, _cm); heads.setMatrixAt(k, _cm);
+      _cc.copy(C(pickCloth(pal))).multiplyScalar(0.85 + Math.random() * 0.3); bodies.setColorAt(k, _cc);
+      const hat = Math.random(); _cc.copy(hat < 0.1 ? C('#1a1918') : hat < 0.15 ? C('#a42410') : hat < 0.19 ? C('#d8d4cf') : SKIN[Math.floor(Math.random() * SKIN.length)]).multiplyScalar(0.9 + Math.random() * 0.2); heads.setColorAt(k, _cc);
+    });
+    [bodies, heads].forEach(m => { m.instanceMatrix.needsUpdate = true; m.instanceColor.needsUpdate = true; m.userData.noCast = true; m.userData.full = idx.length; crowdMeshes.push(m); parent.add(m); });
+  }
+  // the stepped section every stand is cut from: [depth, height] points, plus where each row of seats sits
+  function standProfile(tier) {
+    const rowD = 0.8, top = [[0, 0], [0, 1.45], [0.3, 1.45], [0.3, 1.4]]; let y = 1.4, z = 0.3, fascia = null; const rowY = [], rowZ = [];
+    for (let i = 0; i < tier * 2; i++) {
+      if (i === tier) { top.push([z, y + 2.6], [z + 0.4, y + 2.6]); fascia = { y: y + 1.3, z }; y += 2.6; z += 0.4; }
+      const yn = y + (i < tier ? 0.38 : 0.55); top.push([z, yn - 0.06], [z + 0.06, yn], [z + rowD, yn]); rowY.push(yn); rowZ.push(z + rowD / 2); z += rowD; y = yn;
+    }
+    const zEnd = z, topY = y + 1.2; top.push([zEnd, topY], [zEnd + 0.4, topY], [zEnd + 0.4, 0]);
+    return { top, rowY, rowZ, zEnd, topY, fascia };
+  }
+  // sweep a [radius, height] section through a quarter turn about the origin. Outward is (sx·sinθ, sz·cosθ); the inner radius eases from rA (θ=0) to rB (θ=90°)
+  function sweepGeo(profile, o, closed = true) {
+    const N = o.N, n = profile.length, lim = closed ? n : n - 1, pos = [], flip = o.sx * o.sz < 0;
+    const P = (i, j) => { const u = j / N, th = u * Math.PI / 2, r = Math.max(0.02, o.rA + (o.rB - o.rA) * u + profile[i][0]); return [o.sx * Math.sin(th) * r, profile[i][1], o.sz * Math.cos(th) * r]; };
+    for (let j = 0; j < N; j++) for (let i = 0; i < lim; i++) { const a = P(i, j), b = P((i + 1) % n, j), c = P((i + 1) % n, j + 1), d = P(i, j + 1); if (flip) pos.push(...a, ...c, ...b, ...a, ...d, ...c); else pos.push(...a, ...b, ...c, ...a, ...c, ...d); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g;
+  }
   function stand(len, tier, opt = {}) {
     const g = new THREE.Group(); const seats = []; const rowD = 0.8;
     const top = [[0, 0], [0, 1.45], [0.3, 1.45], [0.3, 1.4]]; let y = 1.4, z = 0.3, fascia = null;
@@ -395,6 +450,7 @@ export async function createArena(canvas, o = {}) {
       const v = (Math.floor(seats[j + 3] / 16) % 2 ? 1.18 : 1) * (0.9 + Math.random() * 0.25); col.setRGB(pal[0] * v, pal[1] * v, pal[2] * v); im.setColorAt(i, col);
     }
     im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; g.add(im);
+    { const list = []; for (let i = 0; i < seats.length; i += 5) list.push(seats[i], seats[i + 1], seats[i + 2], 0); crowdOn(g, list, opt.col); }
     return { g, seats, fascia, topY };
   }
 
@@ -410,6 +466,45 @@ export async function createArena(canvas, o = {}) {
     Vn.stands.push({ g: outer, h: st.topY + 12 });
     return st;
   }
+  // a curved corner section between two stands, so the bowl closes. Pivot (px, pz) in the quadrant (sx, sz): the long stand's front line sits rA out from
+  // the pivot, the end stand's rB. Same stepped section, seats on arcs facing the pitch, an optional roof swept round with it.
+  function addCorner(Vn, d) {
+    const pr = standProfile(d.tier), N = LOWQ ? 8 : 16, o = { sx: d.sx, sz: d.sz, rA: d.rA, rB: d.rB, N };
+    const g = new THREE.Group(); g.position.set(d.sx * d.px, d.y0 || 0, d.sz * d.pz); Vn.root.add(g);
+    g.add(new THREE.Mesh(sweepGeo(pr.top, o), mats.concrete));
+    const sp = (d.sp || 0.56) * (LOWQ ? 1.5 : 1), seats = [], aisles = [Math.PI / 4];
+    for (let i = 0; i < pr.rowY.length; i++) {
+      const rm = (d.rA + d.rB) / 2 + pr.rowZ[i] + 0.1, n = Math.floor(rm * Math.PI / 2 / sp); if (n < 2) continue;
+      for (let k = 0; k < n; k++) { const u = (k + 0.5) / n, th = u * Math.PI / 2, r = d.rA + (d.rB - d.rA) * u + pr.rowZ[i] + 0.1; if (r < 1.2) continue;
+        if (r > 6 && aisles.some(a => Math.abs(th - a) * r < 0.62)) continue;
+        const dx = d.sx * Math.sin(th), dz = d.sz * Math.cos(th); seats.push(dx * r, pr.rowY[i] + 0.005, dz * r, Math.atan2(dx, dz), i); }
+    }
+    const n = seats.length / 5, im = new THREE.InstancedMesh(seatGeoBase, seatMat, n), mx = new THREE.Matrix4(), q = new THREE.Quaternion(), one = V3(1, 1, 1), col = new THREE.Color(), list = [];
+    for (let i = 0; i < n; i++) { const j = i * 5; q.setFromAxisAngle(V3(0, 1, 0), seats[j + 3]); mx.compose(V3(seats[j], seats[j + 1], seats[j + 2]), q, one); im.setMatrixAt(i, mx);
+      const pal = d.col === 'red' ? (seats[j + 4] < d.tier ? SEATC.red : SEATC.grey) : SEATC[d.col || 'grey'], v = 0.9 + Math.random() * 0.25; col.setRGB(pal[0] * v, pal[1] * v, pal[2] * v); im.setColorAt(i, col);
+      list.push(seats[j], seats[j + 1], seats[j + 2], seats[j + 3]); }
+    im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; g.add(im);
+    crowdOn(g, list, d.col);
+    // the fascia between the tiers: a dark band with a thin red light line, carrying the LED ribbon's level round the corner
+    if (pr.fascia) { const f = pr.fascia, band = [[f.z - 0.03, f.y - 0.85], [f.z - 0.03, f.y + 0.85]], line = [[f.z - 0.06, f.y + 0.93], [f.z - 0.06, f.y + 1.0]];
+      const bm = new THREE.Mesh(sweepGeo(band, o, false), new THREE.MeshBasicMaterial({ color: C('#0d0c0b'), side: THREE.DoubleSide })); g.add(bm);
+      const lm = new THREE.Mesh(sweepGeo(line, o, false), new THREE.MeshBasicMaterial({ color: C(RED).multiplyScalar(1.25), side: THREE.DoubleSide })); g.add(lm); }
+    if (d.roof) {
+      const rf = -7, rb = pr.zEnd + 1.2, ry = pr.topY + 8, arc = [];
+      for (let i = 0; i <= 14; i++) { const t = i / 14; arc.push([rb + (rf - rb) * t, ry + Math.sin(t * Math.PI) * 1.3 + t * 1.4]); }
+      const rm = new THREE.Mesh(sweepGeo(arc.concat(arc.slice().reverse().map(([a, b]) => [a, b - 0.32])), o), mats.roof); rm.userData.noCast = true; g.add(rm);
+      const S = [];
+      for (const u of [0.2, 0.5, 0.8]) { const th = u * Math.PI / 2, r0 = d.rA + (d.rB - d.rA) * u, dx = d.sx * Math.sin(th), dz = d.sz * Math.cos(th), rr = r0 + pr.zEnd + 0.8, rfr = Math.max(0.4, r0 + rf + 0.4);
+        S.push([V3(dx * rr, 0, dz * rr), V3(dx * rr, ry + 8, dz * rr), 0.32], [V3(dx * rr, ry + 8, dz * rr), V3(dx * rfr, ry + 1.5, dz * rfr), 0.09], [V3(dx * rr, ry + 8, dz * rr), V3(dx * (rr + rfr) / 2, ry + 1.6, dz * (rr + rfr) / 2), 0.07]); }
+      struts(g, S, mats.steel);
+    }
+    Vn.root.updateMatrixWorld(true);
+    for (let i = 0; i < seats.length; i += 5 * 9) { _w.set(seats[i], seats[i + 1] + 0.45, seats[i + 2]); g.localToWorld(_w); Vn.crowdPts.push(_w.x, _w.y, _w.z); }
+    Vn.stands.push({ g, h: pr.topY + (d.roof ? 26 : 12) + (d.y0 || 0), y0: d.y0 || 0 });
+    return g;
+  }
+  // four corners at once: A = the two long stands (front line at ±zA, ending at ±px), B = the two end stands (front line at ±xB, ending at ±pz)
+  const addCorners = (Vn, px, pz, zA, xB, tier, o = {}) => { for (const sx of [-1, 1]) for (const sz of [-1, 1]) addCorner(Vn, { px, pz, sx, sz, rA: zA - pz, rB: xB - px, tier, ...o }); };
   const lampDisc = new THREE.CircleGeometry(0.66, 20), hoodG = new THREE.CylinderGeometry(0.78, 0.9, 0.55, 20, 1); hoodG.rotateX(Math.PI / 2);
   function lampHead(parent, cols, rows) {
     const head = new THREE.Group(); parent.add(head);
@@ -474,7 +569,8 @@ export async function createArena(canvas, o = {}) {
       const lean = new THREE.Group(); lean.position.set(0, 0.08, 0); lean.rotation.x = -0.1; grp.add(lean);
       rbox(lean, len, 1.24, 0.32, 0, 0.64, -0.18, 'dark', 0.1, true); makeBoard(vF, lean, len - 0.1, 1.1, 0, 0.64, 0.0, 0, 1.35, 1);
     }
-    [[72, -56], [72, 56], [-72, 56], [-72, -56]].forEach(([x, z], i) => tower(vF, x, z, 50, i / 4));
+    addCorners(vF, 58, 38, 43, 61, 13, { roof: true });
+    [[81, -62], [81, 62], [-81, 62], [-81, -62]].forEach(([x, z], i) => tower(vF, x, z, 56, i / 4));
     addCones(vF); finishVenue(vF);
   }
 
@@ -484,7 +580,8 @@ export async function createArena(canvas, o = {}) {
   const screenMat = new THREE.MeshBasicMaterial({ map: scrTex, color: C('#000000') });
   let scrSig = '', scrT = -1;
   {
-    [{ len: 34, tier: 9, pos: [0, -10], ry: Math.PI, sp: 0.7, col: 'red' }, { len: 24, tier: 9, pos: [17.5, 0], ry: Math.PI / 2, sp: 0.7, col: 'red' }, { len: 24, tier: 9, pos: [-17.5, 0], ry: -Math.PI / 2, sp: 0.7, col: 'red' }, { len: 34, tier: 9, pos: [0, 10], ry: 0, sp: 0.7, col: 'red' }].forEach(d => addStand(vB, d));
+    [{ len: 34, tier: 9, pos: [0, -10], ry: Math.PI, sp: 0.7, col: 'red' }, { len: 20, tier: 9, pos: [17.5, 0], ry: Math.PI / 2, sp: 0.7, col: 'red' }, { len: 20, tier: 9, pos: [-17.5, 0], ry: -Math.PI / 2, sp: 0.7, col: 'red' }, { len: 34, tier: 9, pos: [0, 10], ry: 0, sp: 0.7, col: 'red' }].forEach(d => addStand(vB, d));
+    addCorners(vB, 17, 10, 10, 17.5, 9, { sp: 0.7, col: 'red' });
     // hoops: padded stanchion, curved boom, tempered-glass board with LED edge, orange breakaway rim, hanging net
     { const pad = new THREE.MeshStandardMaterial({ color: C('#151414'), roughness: 0.7 }), padR = new THREE.MeshStandardMaterial({ color: C(RED), roughness: 0.55 });
       const boom = new THREE.MeshStandardMaterial({ color: C('#1c1c1d'), roughness: 0.35, metalness: 0.7 }); boom.userData.env = 0.7;
@@ -545,6 +642,49 @@ export async function createArena(canvas, o = {}) {
     rbox(jb, 7, 1.2, 7, 0, -3.0, 0, 'dark', 0.2, true);
     struts(jb, [[-4.4, -4.4], [4.4, -4.4], [4.4, 4.4], [-4.4, 4.4]].map(([x, z]) => [V3(x, 2.3, z), V3(x * 1.6, 5.2, z * 1.4), 0.04]), mats.steel);
     vB.fix.push({ o: jb, kind: 'drop', y0: 13, h: 16, t0: 0.6 }); jumbo = jb;
+    // the building: an upper deck on three sides over a suite level of lit windows, walls behind it and a trussed roof with banners.
+    // The fourth side stays open: it sits behind every camera, and the changes of sport fly in and out through it.
+    { const LD = 15.8, UY = 17.2, UT = 6, UD = 10.7, CE = 35, ZW = 10 + LD + UD + 0.8, XW = 17.5 + LD + UD + 0.8;
+      [{ len: 34, pos: [0, -(10 + LD)], ry: Math.PI }, { len: 20, pos: [17.5 + LD, 0], ry: Math.PI / 2 }, { len: 20, pos: [-(17.5 + LD), 0], ry: -Math.PI / 2 }].forEach(d => {
+        const st = addStand(vB, { ...d, tier: UT, sp: 0.7, col: 'red' }); st.g.position.y = UY; vB.stands[vB.stands.length - 1].h += UY; });
+      for (const sx of [-1, 1]) addCorner(vB, { px: 17, pz: 10, sx, sz: -1, rA: LD, rB: LD + 0.5, tier: UT, y0: UY, sp: 0.7, col: 'red' });
+      // suite level: one strip of warm windows, people inside as silhouettes
+      const [wc, wg] = cnv(1024, 128); wg.fillStyle = '#0c0b0a'; wg.fillRect(0, 0, 1024, 128);
+      for (let k = 0; k < 8; k++) { const x = k * 128 + 6, gr = wg.createLinearGradient(0, 18, 0, 112); gr.addColorStop(0, '#f3c690'); gr.addColorStop(1, '#8a5a30'); wg.fillStyle = gr; wg.fillRect(x, 18, 116, 94);
+        wg.fillStyle = 'rgba(20,14,10,0.82)'; for (let j = 0; j < 3; j++) { const px = x + 14 + Math.random() * 88, ph = 30 + Math.random() * 22; wg.beginPath(); wg.arc(px, 112 - ph, 7, 0, 7); wg.fill(); wg.fillRect(px - 9, 112 - ph + 6, 18, ph); }
+        wg.fillStyle = '#0c0b0a'; wg.fillRect(x + 56, 18, 4, 94); }
+      const suiteTex = texOf(wc); suiteTex.wrapS = THREE.RepeatWrapping;
+      const shell = new THREE.Group(); vB.root.add(shell);
+      const suite = (len, x, z, ry) => { const t = suiteTex.clone(); t.needsUpdate = true; t.repeat.set(len / 20, 1); const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; shell.add(g);
+        box(g, len, UY, 0.4, 0, UY / 2, -0.25, 'dark');
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(len, 2.5), new THREE.MeshBasicMaterial({ map: t, color: C('#ffffff').multiplyScalar(0.8) })); m.position.set(0, 15.55, 0); g.add(m);
+        box(g, len, 0.12, 0.3, 0, 14.15, 0.05, 'steel'); box(g, len, 0.1, 0.12, 0, 16.95, 0.02, redMat); };
+      suite(34.6, 0, -(10 + LD - 0.05), 0); suite(20.6, 17.5 + LD - 0.05, 0, -Math.PI / 2); suite(20.6, -(17.5 + LD - 0.05), 0, Math.PI / 2);
+      // walls: back and both sides, running the full height to the roof
+      box(shell, XW * 2 + 1, CE, 0.6, 0, CE / 2, -ZW, 'dark'); for (const sx of [-1, 1]) box(shell, 0.6, CE, ZW + 28, sx * XW, CE / 2, (28 - ZW) / 2, 'dark');
+      shell.traverse(m => { if (m.isMesh) m.userData.noCast = true; });
+      vB.stands.push({ g: shell, h: CE + 2 });
+      // roof: deck, long-span trusses with a row of house lights along each, purlins between, banners over the far side
+      const roof = new THREE.Group(); vB.root.add(roof);
+      const deck = new THREE.Mesh(new THREE.PlaneGeometry(XW * 2 + 2, ZW + 30), new THREE.MeshBasicMaterial({ color: C('#070707'), side: THREE.DoubleSide })); deck.rotation.x = Math.PI / 2; deck.position.set(0, CE, (28 - ZW) / 2); roof.add(deck);
+      const S = [], yT = CE - 0.35, yB = CE - 3.1, bay = 5.5, nb = Math.round(XW * 2 / bay), hl = new THREE.CircleGeometry(0.34, 10); hl.rotateX(Math.PI / 2);
+      const lights = [];
+      for (let z = -ZW + 4; z <= 26; z += 7.5) {
+        S.push([V3(-XW, yT, z), V3(XW, yT, z), 0.16], [V3(-XW, yB, z), V3(XW, yB, z), 0.16]);
+        for (let k = 0; k <= nb; k++) { const x = -XW + k * XW * 2 / nb; S.push([V3(x, yT, z), V3(x, yB, z), 0.07]); if (k < nb) { const x2 = -XW + (k + 1) * XW * 2 / nb; S.push(k % 2 ? [V3(x, yT, z), V3(x2, yB, z), 0.06] : [V3(x, yB, z), V3(x2, yT, z), 0.06]); }
+          if (k % 2 === 0 && k > 0 && k < nb) lights.push([x, yB - 0.2, z]); }
+      }
+      for (let k = 0; k <= 8; k++) { const x = -XW + k * XW / 4; S.push([V3(x, yT, -ZW), V3(x, yT, 26), 0.09]); }
+      struts(roof, S, mats.steel);
+      const hi = new THREE.InstancedMesh(hl, warmMat, lights.length), hm = new THREE.Matrix4(); lights.forEach(([x, y, z], i) => { hm.makeTranslation(x, y, z); hi.setMatrixAt(i, hm); }); hi.instanceMatrix.needsUpdate = true; roof.add(hi);
+      const banner = (lines, red, x) => { const [bc, bg] = cnv(256, 448); bg.fillStyle = red ? RED : '#e9e6e1'; bg.fillRect(0, 0, 256, 448); bg.fillStyle = red ? '#e9e6e1' : '#0d0c0c'; bg.fillRect(14, 14, 228, 6); bg.fillRect(14, 428, 228, 6);
+        bg.textAlign = 'center'; bg.textBaseline = 'middle'; lines.forEach(([txt, size, y]) => { let fs = size; bg.font = FONT(800, fs); LS(bg, '-2px'); while (bg.measureText(txt).width > 216 && fs > 20) { fs -= 4; bg.font = FONT(800, fs); } bg.fillText(txt, 128, y); });
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(2.9, 5.1), new THREE.MeshStandardMaterial({ map: texOf(bc), roughness: 0.85, side: THREE.DoubleSide })); m.position.set(x, CE - 6.1, -(10 + LD) + 1.5); m.userData.noCast = true; roof.add(m);
+        S.length = 0; struts(roof, [[V3(x - 1.3, yB, m.position.z), V3(x - 1.3, CE - 3.5, m.position.z), 0.025], [V3(x + 1.3, yB, m.position.z), V3(x + 1.3, CE - 3.5, m.position.z), 0.025], [V3(x - 1.5, CE - 3.5, m.position.z), V3(x + 1.5, CE - 3.5, m.position.z), 0.05]], mats.steel); };
+      [[['MK', 150, 150], ['17', 190, 320]], [['SPORT', 70, 224]], [['FASHION', 70, 224]], [['CULTURE', 70, 224]], [['FIT', 110, 130], ['BEATS', 80, 230], ['SIZE', 110, 330]], [['MK', 150, 150], ['17', 190, 320]]].forEach((l, i, a) => banner(l, i % 2 === 0, (i - (a.length - 1) / 2) * 5.2));
+      roof.traverse(m => { if (m.isMesh) m.userData.noCast = true; });
+      vB.fix.push({ o: roof, kind: 'drop', y0: 0, h: 34, t0: 0.58 });
+    }
     vB.spotK = 1.3; addCones(vB, 0.12); finishVenue(vB, 0.45);
   }
 
@@ -566,7 +706,8 @@ export async function createArena(canvas, o = {}) {
   })();
   vN.fix.push({ kind: 'fade', t0: 0.55, dur: 0.15, set: f => { nflDecal.visible = f > 0.5; } });
   {
-    [{ len: 128, tier: 16, pos: [0, -31], ry: Math.PI, roof: true, sp: 0.7 }, { len: 62, tier: 11, pos: [62, 0], ry: Math.PI / 2, sp: 0.7 }, { len: 62, tier: 11, pos: [-62, 0], ry: -Math.PI / 2, sp: 0.7 }, { len: 128, tier: 16, pos: [0, 31], ry: 0, roof: true, sp: 0.7 }].forEach(d => addStand(vN, d));
+    [{ len: 124, tier: 16, pos: [0, -31], ry: Math.PI, roof: true, sp: 0.7 }, { len: 62, tier: 11, pos: [62, 0], ry: Math.PI / 2, sp: 0.7 }, { len: 62, tier: 11, pos: [-62, 0], ry: -Math.PI / 2, sp: 0.7 }, { len: 124, tier: 16, pos: [0, 31], ry: 0, roof: true, sp: 0.7 }].forEach(d => addStand(vN, d));
+    addCorners(vN, 62, 31, 31, 62, 11, { sp: 0.7 });
     // gooseneck goalposts live in venue-detail.js
     const pyl = new THREE.Group(); vN.root.add(pyl);
     for (const x of [-54.86, -45.72, 45.72, 54.86]) for (const z of [-24.5, 24.5]) box(pyl, 0.12, 0.46, 0.12, x, 0.23, z, 'redS');
@@ -578,9 +719,10 @@ export async function createArena(canvas, o = {}) {
   // ===== 04 TENNIS (show court, real metres x3.5)
   const vT = venue('tennis', TN);
   {
-    [{ len: 32, tier: 8, pos: [0, -9.4], ry: Math.PI, roof: true, sp: 0.62, col: 'green' }, { len: 20, tier: 7, pos: [18.6, 0], ry: Math.PI / 2, sp: 0.62, col: 'green' }, { len: 20, tier: 7, pos: [-18.6, 0], ry: -Math.PI / 2, sp: 0.62, col: 'green' }, { len: 32, tier: 8, pos: [0, 9.4], ry: 0, roof: true, sp: 0.62, col: 'green' }].forEach(d => addStand(vT, d));
+    [{ len: 32, tier: 8, pos: [0, -9.4], ry: Math.PI, roof: true, sp: 0.62, col: 'green' }, { len: 18.8, tier: 7, pos: [18.6, 0], ry: Math.PI / 2, sp: 0.62, col: 'green' }, { len: 18.8, tier: 7, pos: [-18.6, 0], ry: -Math.PI / 2, sp: 0.62, col: 'green' }, { len: 32, tier: 8, pos: [0, 9.4], ry: 0, roof: true, sp: 0.62, col: 'green' }].forEach(d => addStand(vT, d));
+    addCorners(vT, 16, 9.4, 9.4, 18.6, 7, { sp: 0.62, col: 'green' });
     // net, umpire's chair, benches and line-judge chairs are built in venue-detail.js
-    [[-21, -13], [21, -13], [21, 13], [-21, 13]].forEach(([x, z], i) => mast(vT, x, z, 15, i / 4, 4, 3, 0.5, 30));
+    [[-26, -19], [26, -19], [26, 19], [-26, 19]].forEach(([x, z], i) => mast(vT, x, z, 19, i / 4, 4, 3, 0.5, 30));
     addCones(vT, 0.14); finishVenue(vT, 0.5);
   }
   const venueX = buildVenueDetail({ THREE, nets, vF, vB, vN, vT, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, mats, glowTex, redMat, makeBoard, seatGeoBase });
@@ -1178,7 +1320,7 @@ export async function createArena(canvas, o = {}) {
   const mixPose = (A, B, u) => { const L = (p, q) => p.map((v, j) => v + (q[j] - v) * u); return { pos: L(A.pos, B.pos), tgt: L(A.tgt, B.tgt), fov: A.fov + (B.fov - A.fov) * u }; };
   CAM.nfl = t => { const t0 = CH.XI[0] - 0.045; if (t < t0) return lin(nflK, t); const hp = huddlePose(Math.max(t, CH.XI[0])); return t >= CH.XI[0] ? hp : mixPose(lin(nflK, t0), hp, ss((t - t0) / (CH.XI[0] - t0))); };
   const OVH = { pos: [0, 96, 20], tgt: [0, 0, 0], fov: 44 };
-  const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.SURF[0] + 0.03, ...OVH }, { t: CH.PADEL[0] + 0.02, ...OVH }, { t: CH.PADEL[0] + 0.09, pos: [0, 44, 76], tgt: [0, 0, 6], fov: 46 }, { t: CH.PADEL[1] - 0.03, pos: [16, 42, 72], tgt: [0, 0, 6], fov: 46 }, { t: CH.FANS[0], ...OVH }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
+  const tenK = [{ t: 0, pos: [0, 26, 44], tgt: [0, 6, 0], fov: 52 }, { t: CH.SURF[0] + 0.03, ...OVH }, { t: CH.PADEL[0] + 0.02, ...OVH }, { t: CH.PADEL[0] + 0.09, pos: [0, 54, 80], tgt: [0, 0, 6], fov: 46 }, { t: CH.PADEL[1] - 0.03, pos: [16, 52, 76], tgt: [0, 0, 6], fov: 46 }, { t: CH.FANS[0], ...OVH }, { t: 1, pos: [0, 90, 16], tgt: [0, 0, 0], fov: 44 }];
   CAM.tennis = t => lin(tenK, t);
   const rAt3 = (s, y) => { const [x, z] = raceX.racingAt(s); return [x, y, z]; };
   // the lap: a low chase, close behind the car. The camera rides the middle of the track just above the catch fencing
@@ -1228,12 +1370,13 @@ export async function createArena(canvas, o = {}) {
   function driveVenue(Vn, mode, t, dim) {
     const vis = mode !== 'off'; Vn.root.visible = vis; Vn.cones.forEach(c => { c.m.visible = vis; }); if (Vn.crowd) Vn.crowd.visible = vis;
     if (!vis) { Vn.lamps.forEach(L => { L.on = 0; }); return 0; }
-    Vn.stands.forEach((st, k) => {
-      let f = 1;
+    const kN = Vn.stands.length > 4 ? 3 / (Vn.stands.length - 1) : 1;
+    Vn.stands.forEach((st, k0) => {
+      let f = 1; const k = k0 * kN;
       if (mode === 'hero') f = RO(t, 0.41 + k * 0.02, 0.49 + k * 0.02);
       else if (mode === 'out') f = 1 - R(t, 0.05 + k * 0.03, 0.28 + k * 0.03);
       else if (mode === 'in') f = R(t, 0.38 + k * 0.04, 0.66 + k * 0.04);
-      st.g.position.y = -st.h * (1 - f); st.g.visible = f > 0.002;
+      st.g.position.y = (st.y0 || 0) - st.h * (1 - f); st.g.visible = f > 0.002;
     });
     Vn.fix.forEach(fx => {
       let f = 1;
@@ -1451,7 +1594,7 @@ export async function createArena(canvas, o = {}) {
     if (post) {
       // frame-time watchdog: step the post stack down if this GPU can't hold ~40fps
       perf.ema += (dt - perf.ema) * 0.05; perf.t += dt;
-      if (!o.noDegrade && perf.t > 3 && perf.ema > 1 / 40 && time - perf.last > 2.5 && post.level < 3) { perf.last = time; post.degrade(); }
+      if (!o.noDegrade && perf.t > 3 && perf.ema > 1 / 40 && time - perf.last > 2.5 && post.level < 3) { perf.last = time; post.degrade(); if (post.level >= 2) crowdMeshes.forEach(m => { m.count = Math.ceil(m.userData.full * (post.level >= 3 ? 0.4 : 0.6)); }); }   // a struggling device gets a thinner crowd before anything else gives
       post.render();
     } else renderer.render(scene, camera);
     o.onFrame && o.onFrame({ p, project, ball: ball.visible && ballState === 'rest' ? project(ball.position.x, 0.2, ball.position.z) : null });
