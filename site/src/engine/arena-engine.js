@@ -3,6 +3,7 @@ import { drawScreen, drawTactics, placeholder, photo } from './broadcast-gfx.js'
 import { buildRaceDetail } from './race-detail.js';
 import { buildVenueDetail } from './venue-detail.js';
 import { netKit } from './nets.js';
+import { buildFigures } from './figures.js';
 import { N, P, ORDER, SPORTS, circuit, strandSet, strandShared, BB, TN, tennis as tennisCourt, padel as padelCourt } from './arena-sports.js';
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const ss = x => { x = clamp(x); return x * x * (3 - 2 * x); };
@@ -330,21 +331,10 @@ export async function createArena(canvas, o = {}) {
   seatGeoBase.rotateY(-Math.PI / 2); seatGeoBase.translate(0.2, 0, 0); seatGeoBase.computeVertexNormals();
   const seatMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42 });
   const SEATC = { grey: [0.1, 0.095, 0.093], red: [0.24, 0.04, 0.028], green: [0.06, 0.09, 0.066] };
-  // ---------- the crowd: seated figures on most seats. Two instanced meshes per stand (bodies take the clothing colour, heads the skin tone)
-  const mergeGeo = list => { const pos = [], nor = []; list.forEach(g0 => { const g = g0.index ? g0.toNonIndexed() : g0; pos.push(...g.attributes.position.array); nor.push(...g.attributes.normal.array); });
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); return g; };
-  const bodyGeo = (() => {
-    const torso = new THREE.CylinderGeometry(0.15, 0.19, 0.56, LOWQ ? 5 : 7, 1); torso.scale(1.25, 1, 0.72); torso.translate(0, 0.42, 0.05);           // shoulders wider than deep
-    if (LOWQ) return mergeGeo([torso]);
-    const legs = new THREE.BoxGeometry(0.36, 0.14, 0.4); legs.translate(0, 0.2, -0.17);
-    const shins = new THREE.BoxGeometry(0.34, 0.22, 0.12); shins.translate(0, 0.1, -0.34);
-    const armL = new THREE.BoxGeometry(0.09, 0.34, 0.26); armL.rotateX(-0.5); armL.translate(-0.235, 0.4, -0.06); const armR = armL.clone(); armR.translate(0.47, 0, 0);
-    return mergeGeo([torso, legs, armL, armR]); })();
-  // a 20-face ball with sphere normals: reads as round at stand distance for a fifth of the triangles
-  const headGeo = (() => { const g = new THREE.IcosahedronGeometry(0.118, 0).toNonIndexed(), p = g.attributes.position, n = new Float32Array(p.count * 3), v = new THREE.Vector3();
-    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).normalize(); n[i * 3] = v.x; n[i * 3 + 1] = v.y; n[i * 3 + 2] = v.z; }
-    g.setAttribute('normal', new THREE.BufferAttribute(n, 3)); g.scale(0.92, 1.08, 1); g.translate(0, 0.83, 0.03); return g; })();
-  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.86 }), headMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 });
+  // ---------- people. Figures come from figures.js: smooth bodies with arms and legs, a head with a hairline.
+  // A stand's crowd is drawn twice over: a detailed set for when the camera is near that stand and a light one for when it's far.
+  const FIG = buildFigures(THREE);
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.86, vertexColors: true }), headMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.62, vertexColors: true });
   const SKIN = ['#c99a7c', '#b98262', '#8d5a3c', '#6b4129', '#dbb193', '#a8744f'].map(h => C(h));
   const CLOTH = {   // [colour, share]: mostly dark coats at night, with the home colour running through
     grey: [['#1b1a1a', 0.3], ['#2c2a29', 0.18], ['#a42410', 0.22], ['#b9b4ae', 0.08], ['#3a2420', 0.09], ['#23303a', 0.08], ['#5a5450', 0.05]],
@@ -353,20 +343,45 @@ export async function createArena(canvas, o = {}) {
   };
   const pickCloth = pal => { let r = Math.random(); for (const [h, w] of pal) { if ((r -= w) <= 0) return h; } return pal[0][0]; };
   const _cm = new THREE.Matrix4(), _cq = new THREE.Quaternion(), _cs = new THREE.Vector3(), _cp = new THREE.Vector3(), _cy = new THREE.Vector3(0, 1, 0), _cc = new THREE.Color();
-  // list: flat [x, y, z, yaw] per seat. Fills a share of them, with a little variation in size and turn so no row reads as a pattern
-  const crowdMeshes = [];
+  const crowdMeshes = [], crowdSets = [];
+  // one instanced pair (bodies + heads) from prepared per-person data: [x, y, z, yaw, scale, widen, shirt r g b, skin r g b]
+  const figPair = (parent, bodyGeo, headGeo, P, cast = false) => {
+    const n = P.length / 12, bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, n), heads = new THREE.InstancedMesh(headGeo, headMat, n);
+    for (let k = 0; k < n; k++) { const j = k * 12; _cq.setFromAxisAngle(_cy, P[j + 3]); _cs.set(P[j + 4] * P[j + 5], P[j + 4], P[j + 4]); _cp.set(P[j], P[j + 1], P[j + 2]); _cm.compose(_cp, _cq, _cs);
+      bodies.setMatrixAt(k, _cm); heads.setMatrixAt(k, _cm); bodies.setColorAt(k, _cc.setRGB(P[j + 6], P[j + 7], P[j + 8])); heads.setColorAt(k, _cc.setRGB(P[j + 9], P[j + 10], P[j + 11])); }
+    [bodies, heads].forEach(m => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; m.userData.noCast = !cast; m.userData.full = n; parent.add(m); });
+    return [bodies, heads];
+  };
+  // list: flat [x, y, z, yaw] per seat. Fills most of them; a few are on their feet with their arms up
   function crowdOn(parent, list, palKey, fill = LOWQ ? 0.62 : 0.84) {
     const idx = []; for (let i = 0; i < list.length; i += 4) if (Math.random() < fill) idx.push(i);
-    for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }   // shuffled, so drawing fewer thins the whole stand evenly
     if (!idx.length) return;
-    const bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, idx.length), heads = new THREE.InstancedMesh(headGeo, headMat, idx.length), pal = CLOTH[palKey] || CLOTH.grey;
-    idx.forEach((i, k) => {
-      const sc = 0.92 + Math.random() * 0.2; _cq.setFromAxisAngle(_cy, list[i + 3] + (Math.random() - 0.5) * 0.5); _cs.set(sc * (0.94 + Math.random() * 0.14), sc, sc); _cp.set(list[i], list[i + 1] + 0.04, list[i + 2]);
-      _cm.compose(_cp, _cq, _cs); bodies.setMatrixAt(k, _cm); heads.setMatrixAt(k, _cm);
-      _cc.copy(C(pickCloth(pal))).multiplyScalar(0.85 + Math.random() * 0.3); bodies.setColorAt(k, _cc);
-      const hat = Math.random(); _cc.copy(hat < 0.1 ? C('#1a1918') : hat < 0.15 ? C('#a42410') : hat < 0.19 ? C('#d8d4cf') : SKIN[Math.floor(Math.random() * SKIN.length)]).multiplyScalar(0.9 + Math.random() * 0.2); heads.setColorAt(k, _cc);
-    });
-    [bodies, heads].forEach(m => { m.instanceMatrix.needsUpdate = true; m.instanceColor.needsUpdate = true; m.userData.noCast = true; m.userData.full = idx.length; crowdMeshes.push(m); parent.add(m); });
+    for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }   // shuffled, so drawing fewer thins the whole stand evenly
+    const pal = CLOTH[palKey] || CLOTH.grey, nUp = LOWQ ? 0 : Math.floor(idx.length * 0.035), sit = [], up = [], lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
+    idx.forEach((i, k) => { const sc = 0.93 + Math.random() * 0.17, c = C(pickCloth(pal)).multiplyScalar(0.85 + Math.random() * 0.3), sk = SKIN[Math.floor(Math.random() * SKIN.length)].clone().multiplyScalar(0.9 + Math.random() * 0.2), st = k < nUp;
+      (st ? up : sit).push(list[i], list[i + 1] + (st ? 0 : 0.04), list[i + 2] - (st ? 0.22 : 0), list[i + 3] + (Math.random() - 0.5) * 0.5, sc, 0.94 + Math.random() * 0.14, c.r, c.g, c.b, sk.r, sk.g, sk.b);
+      for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], list[i + a]); hi[a] = Math.max(hi[a], list[i + a]); } });
+    const far = figPair(parent, FIG.seated.lo, FIG.seatedHead.lo, sit), near = LOWQ ? null : figPair(parent, FIG.seated.hi, FIG.seatedHead.hi, sit);
+    if (near) near.forEach(m => { m.visible = false; });
+    const all = [...far, ...(near || [])]; if (up.length) all.push(...figPair(parent, FIG.cheer.lo, FIG.standHead.lo, up));
+    crowdMeshes.push(...all); crowdSets.push({ parent, far, near, lo, hi, on: false });
+  }
+  // a handful of individually placed people (stewards, players, photographers): items are [x, y, z, yaw, shirt, skin-or-helmet colour]
+  function peopleOn(parent, pose, items, head = 'skin', cast = true) {
+    if (!items.length) return [];
+    const P = []; items.forEach(([x, y, z, yaw, shirt, hc]) => { const sc = 0.96 + Math.random() * 0.1, c = C(shirt).multiplyScalar(0.9 + Math.random() * 0.2), sk = hc ? C(hc) : SKIN[Math.floor(Math.random() * SKIN.length)].clone();
+      P.push(x, y, z, yaw + (Math.random() - 0.5) * 0.3, sc, 0.96 + Math.random() * 0.1, c.r, c.g, c.b, sk.r, sk.g, sk.b); });
+    const seatedP = pose === 'seated', q = LOWQ ? 'lo' : 'hi';
+    return figPair(parent, seatedP ? FIG.seated[q] : FIG[pose][q], head === 'helmet' ? FIG.helmet : seatedP ? FIG.seatedHead[q] : FIG.standHead[q], P, cast && !LOWQ);
+  }
+  // each frame: the stands near the camera show their detailed crowd, the rest the light one
+  const _lc = new THREE.Vector3();
+  function crowdLOD() {
+    for (const cs of crowdSets) { if (!cs.near) continue;
+      _lc.copy(camera.position); cs.parent.worldToLocal(_lc);
+      const dx = Math.max(cs.lo[0] - _lc.x, 0, _lc.x - cs.hi[0]), dy = Math.max(cs.lo[1] - _lc.y, 0, _lc.y - cs.hi[1]), dz = Math.max(cs.lo[2] - _lc.z, 0, _lc.z - cs.hi[2]), d = Math.hypot(dx, dy, dz);
+      const on = !cs.off && d < (cs.on ? 46 : 40); if (on === cs.on) continue; cs.on = on;
+      cs.near.forEach(m => { m.visible = on; }); cs.far.forEach(m => { m.visible = !on; }); }
   }
   // the stepped section every stand is cut from: [depth, height] points, plus where each row of seats sits
   function standProfile(tier) {
@@ -385,6 +400,13 @@ export async function createArena(canvas, o = {}) {
     for (let j = 0; j < N; j++) for (let i = 0; i < lim; i++) { const a = P(i, j), b = P((i + 1) % n, j), c = P((i + 1) % n, j + 1), d = P(i, j + 1); if (flip) pos.push(...a, ...c, ...b, ...a, ...d, ...c); else pos.push(...a, ...b, ...c, ...a, ...c, ...d); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g;
   }
+  // shared stand parts: the lit concourse seen through a vomitory, aisle steps and their nosings
+  const vomMat = (() => { const [c, g2] = cnv(128, 128), gr = g2.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, '#5a4630'); gr.addColorStop(0.35, '#f0c48e'); gr.addColorStop(1, '#7a5632'); g2.fillStyle = gr; g2.fillRect(0, 0, 128, 128);
+    g2.fillStyle = 'rgba(18,13,9,0.8)'; g2.fillRect(0, 0, 128, 16); for (const [x, h] of [[30, 62], [58, 70], [92, 58]]) { g2.beginPath(); g2.arc(x, 128 - h, 8, 0, 7); g2.fill(); g2.fillRect(x - 10, 128 - h + 7, 20, h); }
+    return new THREE.MeshBasicMaterial({ map: texOf(c), color: C('#ffffff').multiplyScalar(0.62) }); })();
+  const deckMat = new THREE.MeshStandardMaterial({ color: C('#161514'), roughness: 0.7, metalness: 0.3, side: THREE.DoubleSide });
+  const vomGeo = new THREE.PlaneGeometry(2.4, 2.3), stepGeo = new THREE.BoxGeometry(0.5, 1, 0.4), noseGeo = new THREE.BoxGeometry(0.5, 0.02, 0.05);
+  const noseMat = new THREE.MeshStandardMaterial({ color: C('#b8b0a0'), roughness: 0.6 }), slotMat = new THREE.MeshBasicMaterial({ color: C('#f2c690').multiplyScalar(0.5) });
   function stand(len, tier, opt = {}) {
     const g = new THREE.Group(); const seats = []; const rowD = 0.8;
     const top = [[0, 0], [0, 1.45], [0.3, 1.45], [0.3, 1.4]]; let y = 1.4, z = 0.3, fascia = null;
@@ -418,7 +440,7 @@ export async function createArena(canvas, o = {}) {
     }
     vomX.forEach(vx => {
       const y0 = rowY[v0] - 0.45, z0 = rowZ[v0] - 0.4, z1 = rowZ[v1] + 0.4, hgt = 2.3;
-      box(g, 2.4, hgt, 0.05, vx, y0 + hgt / 2, z0, mats.void);
+      { const vm = new THREE.Mesh(vomGeo, vomMat); vm.position.set(vx, y0 + hgt / 2, z0 - 0.03); vm.rotation.y = Math.PI; g.add(vm); }
       for (const sx of [-1.3, 1.3]) box(g, 0.22, hgt + 0.1, z1 - z0, vx + sx, y0 + hgt / 2, (z0 + z1) / 2, 'concreteL');
       box(g, 2.82, 0.3, z1 - z0, vx, y0 + hgt + 0.15, (z0 + z1) / 2, 'concreteL');
       box(g, 2.7, 0.04, 0.04, vx, y0 + hgt + 0.32, z0 - 0.02, redMat);
@@ -428,16 +450,27 @@ export async function createArena(canvas, o = {}) {
     cyl(g, 0.035, len, 'x', 0, 2.45, 0.18, 'steel', 8);
     if (fascia) cyl(g, 0.035, len, 'x', 0, fascia.y + 1.85, fascia.z + 0.25, 'steel', 8);
     if (opt.roof) {
-      const rf = -7, rb = zEnd + 1.2, ry = topY + 8, arcP = [];
+      const rf = -(opt.over || 7), rb = zEnd + 1.2, ry = topY + 8, arcP = [], mastH = opt.mast || 8;   // a small show court takes a shorter overhang and lighter steel than a football ground
       for (let i = 0; i <= 28; i++) { const t = i / 28; arcP.push([rb + (rf - rb) * t, ry + Math.sin(t * Math.PI) * 1.3 + t * 1.4]); }
       const rm = extrude(arcP.concat(arcP.slice().reverse().map(([a, b]) => [a, b - 0.32])), len + 2, (len + 2) / 2, 'roof', false); rm.userData.noCast = true;
       const fy = ry + 1.4; cyl(g, 0.32, len + 2, 'x', 0, fy - 0.15, rf, 'steel', 14);
-      const S = [];
+      const rc = t => [rb + (rf - rb) * t, ry + Math.sin(t * Math.PI) * 1.3 + t * 1.4];   // the roof line, [z, y], from the back (0) to the front edge (1)
+      const S = [], NP = 8, head = cx => V3(cx, ry + mastH, zEnd + 0.8);
       for (let cx = -len / 2 + 6; cx <= len / 2 - 6; cx += 14) {
-        S.push([V3(cx, topY + 0.6, zEnd + 0.8), V3(cx, ry + 8, zEnd + 0.8), 0.32]);
-        S.push([V3(cx, ry + 8, zEnd + 0.8), V3(cx, fy + 0.1, rf + 0.4), 0.09]);
-        S.push([V3(cx, ry + 8, zEnd + 0.8), V3(cx, ry + 1.6, (rf + rb) / 2), 0.07]);
+        S.push([V3(cx, topY + 0.6, zEnd + 0.8), head(cx), 0.32]);                                   // mast, standing on the stand's column
+        for (let k = 0; k < NP; k++) {                                                                // cantilever truss: deep at the mast, fine at the tip
+          const t0 = k / NP * 0.97, t1 = (k + 1) / NP * 0.97, [z0, y0] = rc(t0), [z1, y1] = rc(t1), d0 = (2.7 * (1 - t0) + 0.45) * mastH / 8, d1 = (2.7 * (1 - t1) + 0.45) * mastH / 8;
+          const a2 = V3(cx, y0 - 0.38, z0), b2 = V3(cx, y1 - 0.38, z1), c2 = V3(cx, y0 - 0.38 - d0, z0), d2 = V3(cx, y1 - 0.38 - d1, z1);
+          S.push([a2, b2, 0.11], [c2, d2, 0.11], [a2, c2, 0.06], k % 2 ? [a2, d2, 0.05] : [c2, b2, 0.05]); if (k === NP - 1) S.push([b2, d2, 0.06]); }
+        for (const t of [0.5, 0.93]) { const [z, y] = rc(t); S.push([head(cx), V3(cx, y - 0.3, z), 0.065]); }   // stays from the mast head
+        S.push([head(cx), V3(cx, topY + 3, zEnd + 1.1), 0.05]);
       }
+      for (let cx = -len / 2 + 13; cx < len / 2 - 6; cx += 14) for (let k = 0; k < NP; k++) { const [z0, y0] = rc(k / NP * 0.97), [z1, y1] = rc((k + 1) / NP * 0.97); S.push([V3(cx, y0 - 0.36, z0), V3(cx, y1 - 0.36, z1), 0.07]); }   // rafters between the trusses
+      for (const t of [0.1, 0.27, 0.44, 0.61, 0.78]) { const [z, y] = rc(t); cyl(g, 0.07, len + 1.6, 'x', 0, y - 0.3, z, 'steel', 6); }   // purlins
+      { const dk = []; for (let i = 0; i <= 10; i++) { const [z, y] = rc(i / 10 * 0.46); dk.push([z, y - 0.34]); }   // solid deck over the back of the stand; the front stays translucent
+        const dm = extrude(dk.concat(dk.slice().reverse().map(([a2, b2]) => [a2, b2 - 0.1])), len + 1.8, (len + 1.8) / 2, 'dark', false); dm.userData.noCast = true; dm.material = deckMat; }
+      box(g, len + 2, ry - topY + 0.2, 0.22, 0, (ry + topY) / 2 - 0.1, zEnd + 1.3, 'dark').userData.noCast = true;                                    // back wall, closing the gap under the roof
+      { const sl = new THREE.Mesh(new THREE.BoxGeometry(len - 3, 0.3, 0.04), slotMat); sl.position.set(0, topY + 2.4, zEnd + 1.17); g.add(sl); }
       struts(g, S, mats.steel);
       const lgm = new THREE.CircleGeometry(0.26, 12); lgm.rotateX(Math.PI / 2);
       for (let x = -len / 2 + 2; x < len / 2; x += 3.2) { const lm = new THREE.Mesh(lgm, warmMat); lm.position.set(x, fy - 0.55, rf + 0.35); g.add(lm); }
@@ -450,6 +483,22 @@ export async function createArena(canvas, o = {}) {
       const v = (Math.floor(seats[j + 3] / 16) % 2 ? 1.18 : 1) * (0.9 + Math.random() * 0.25); col.setRGB(pal[0] * v, pal[1] * v, pal[2] * v); im.setColorAt(i, col);
     }
     im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; g.add(im);
+    // aisles: a half-step on every tread with a pale nosing, and a handrail up the middle of the top tier
+    { const ax = []; let k2 = 0; for (let sx = -len / 2 + 0.7; sx < len / 2 - 0.7; sx += sp, k2++) if (k2 % 16 === 15 && !(opt.gap && Math.abs(sx) < 3.6)) ax.push(sx);
+      const st = [], ns = [], S = [];
+      ax.forEach(x => { const inVom = i => i >= v0 - 1 && i <= v1 + 1 && vomX.some(v => Math.abs(x - v) < 1.8);
+        for (let i = 0; i < rows; i++) { if (inVom(i)) continue; const rise = i < tier ? 0.38 : 0.55; st.push(x, rowY[i] + rise / 4, rowZ[i] + 0.2, rise / 2); ns.push(x, rowY[i] + 0.012, rowZ[i] - 0.37, x, rowY[i] + rise / 2 + 0.012, rowZ[i] + 0.03); }
+        if (!LOWQ) for (let i = tier; i < rows - 1; i += 2) { const j = Math.min(rows - 1, i + 2); S.push([V3(x, rowY[i], rowZ[i] + 0.3), V3(x, rowY[i] + 0.95, rowZ[i] + 0.3), 0.022], [V3(x, rowY[i] + 0.95, rowZ[i] + 0.3), V3(x, rowY[j] + 0.95, rowZ[j] + 0.3), 0.022]); } });
+      if (st.length) { const m4 = new THREE.Matrix4(), si = new THREE.InstancedMesh(stepGeo, mats.concreteL, st.length / 4), ni = new THREE.InstancedMesh(noseGeo, noseMat, ns.length / 3);
+        for (let i = 0; i < st.length / 4; i++) { m4.makeScale(1, st[i * 4 + 3], 1).setPosition(st[i * 4], st[i * 4 + 1], st[i * 4 + 2]); si.setMatrixAt(i, m4); }
+        for (let i = 0; i < ns.length / 3; i++) { m4.makeTranslation(ns[i * 3], ns[i * 3 + 1], ns[i * 3 + 2]); ni.setMatrixAt(i, m4); }
+        [si, ni].forEach(m => { m.instanceMatrix.needsUpdate = true; m.userData.noCast = true; g.add(m); }); }
+      // glass balustrades with steel posts along the front of each tier
+      const glassRun = (y0g, hg, zg) => { const gl = new THREE.Mesh(new THREE.BoxGeometry(len - 0.3, hg, 0.03), mats.glass); gl.position.set(0, y0g + hg / 2, zg); gl.userData.noCast = true; g.add(gl);
+        for (let x = -len / 2 + 0.2; x <= len / 2 - 0.1; x += 2.4) S.push([V3(x, y0g - 0.05, zg), V3(x, y0g + hg + 0.06, zg), 0.028]); };
+      if (!opt.gap) glassRun(1.45, 0.95, 0.18); else { for (const sx of [-1, 1]) { const gl = new THREE.Mesh(new THREE.BoxGeometry(len / 2 - 3.2, 0.95, 0.03), mats.glass); gl.position.set(sx * (len / 4 + 1.5), 1.925, 0.18); gl.userData.noCast = true; g.add(gl); } }
+      if (fascia) glassRun(fascia.y + 1.3, 0.56, fascia.z + 0.25);
+      if (S.length) struts(g, S, mats.steel).userData.noCast = true; }
     { const list = []; for (let i = 0; i < seats.length; i += 5) list.push(seats[i], seats[i + 1], seats[i + 2], 0); crowdOn(g, list, opt.col); }
     return { g, seats, fascia, topY };
   }
@@ -496,7 +545,10 @@ export async function createArena(canvas, o = {}) {
       const S = [];
       for (const u of [0.2, 0.5, 0.8]) { const th = u * Math.PI / 2, r0 = d.rA + (d.rB - d.rA) * u, dx = d.sx * Math.sin(th), dz = d.sz * Math.cos(th), rr = r0 + pr.zEnd + 0.8, rfr = Math.max(0.4, r0 + rf + 0.4);
         S.push([V3(dx * rr, 0, dz * rr), V3(dx * rr, ry + 8, dz * rr), 0.32], [V3(dx * rr, ry + 8, dz * rr), V3(dx * rfr, ry + 1.5, dz * rfr), 0.09], [V3(dx * rr, ry + 8, dz * rr), V3(dx * (rr + rfr) / 2, ry + 1.6, dz * (rr + rfr) / 2), 0.07]); }
+      for (const u of [0.05, 0.35, 0.65, 0.95]) { const th = u * Math.PI / 2, r0 = d.rA + (d.rB - d.rA) * u, dx = d.sx * Math.sin(th), dz = d.sz * Math.cos(th);
+        for (let k = 0; k < 6; k++) { const [a0, y0] = arc[Math.round(k / 6 * 13)], [a1, y1] = arc[Math.round((k + 1) / 6 * 13)], q0 = Math.max(0.3, r0 + a0), q1 = Math.max(0.3, r0 + a1); S.push([V3(dx * q0, y0 - 0.36, dz * q0), V3(dx * q1, y1 - 0.36, dz * q1), 0.07]); } }
       struts(g, S, mats.steel);
+      const bw = new THREE.Mesh(sweepGeo([[pr.zEnd + 1.3, pr.topY - 0.1], [pr.zEnd + 1.3, ry + 0.1]], o, false), deckMat); bw.userData.noCast = true; g.add(bw);
     }
     Vn.root.updateMatrixWorld(true);
     for (let i = 0; i < seats.length; i += 5 * 9) { _w.set(seats[i], seats[i + 1] + 0.45, seats[i + 2]); g.localToWorld(_w); Vn.crowdPts.push(_w.x, _w.y, _w.z); }
@@ -719,13 +771,46 @@ export async function createArena(canvas, o = {}) {
   // ===== 04 TENNIS (show court, real metres x3.5)
   const vT = venue('tennis', TN);
   {
-    [{ len: 32, tier: 8, pos: [0, -9.4], ry: Math.PI, roof: true, sp: 0.62, col: 'green' }, { len: 18.8, tier: 7, pos: [18.6, 0], ry: Math.PI / 2, sp: 0.62, col: 'green' }, { len: 18.8, tier: 7, pos: [-18.6, 0], ry: -Math.PI / 2, sp: 0.62, col: 'green' }, { len: 32, tier: 8, pos: [0, 9.4], ry: 0, roof: true, sp: 0.62, col: 'green' }].forEach(d => addStand(vT, d));
+    [{ len: 32, tier: 8, pos: [0, -9.4], ry: Math.PI, roof: true, over: 2.4, mast: 4, sp: 0.62, col: 'green' }, { len: 18.8, tier: 7, pos: [18.6, 0], ry: Math.PI / 2, sp: 0.62, col: 'green' }, { len: 18.8, tier: 7, pos: [-18.6, 0], ry: -Math.PI / 2, sp: 0.62, col: 'green' }, { len: 32, tier: 8, pos: [0, 9.4], ry: 0, roof: true, over: 2.4, mast: 4, sp: 0.62, col: 'green' }].forEach(d => addStand(vT, d));
     addCorners(vT, 16, 9.4, 9.4, 18.6, 7, { sp: 0.62, col: 'green' });
     // net, umpire's chair, benches and line-judge chairs are built in venue-detail.js
     [[-26, -19], [26, -19], [26, 19], [-26, 19]].forEach(([x, z], i) => mast(vT, x, z, 19, i / 4, 4, 3, 0.5, 30));
     addCones(vT, 0.14); finishVenue(vT, 0.5);
   }
   const venueX = buildVenueDetail({ THREE, nets, vF, vB, vN, vT, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, mats, glowTex, redMat, makeBoard, seatGeoBase });
+
+  // ---------- people at pitch level: stewards, photographers and the benches at the football; both teams on the NFL sidelines;
+  // officials, benches and courtside seats at the basketball; ball crew at the tennis. They arrive with each venue's furniture.
+  { const HIVIS = '#e8641e', DARK = '#1b1a1a', WHITE = '#d9d5cf', HOME = '#a42410';
+    const arrive = (Vn, g, t0 = 0.7) => { Vn.root.add(g); Vn.fix.push({ kind: 'fade', t0, dur: 0.08, set: f => { g.visible = f > 0.5; } }); return g; };
+    // football
+    { const g = arrive(vF, new THREE.Group()), st = [], ph = [], subs = [], lens = [];
+      for (let x = -50; x <= 50; x += 12.5) for (const sz of [-1, 1]) { if (sz < 0 && Math.abs(x) < 16) continue; st.push([x, 0, sz * 40.6, sz > 0 ? Math.PI : 0, HIVIS]); }   // stewards face the crowd
+      for (const sx of [-1, 1]) { for (let z = -28; z <= 28; z += 14) st.push([sx * 59.2, 0, z, sx > 0 ? -Math.PI / 2 : Math.PI / 2, HIVIS]);
+        for (let z = -27; z <= 27; z += 2.4) { if (Math.abs(z) < 7 || Math.random() < 0.3) continue; ph.push([sx * 55.6, -0.02, z, sx > 0 ? Math.PI / 2 : -Math.PI / 2, Math.random() < 0.5 ? '#2a3440' : DARK]); lens.push(sx * 55.6 - sx * 0.42, 0.52, z); } }
+      for (const [dx, col] of [[-9, HOME], [9, WHITE]]) for (const [lz, ly] of [[0.15, 0.22], [1.0, 0.54]]) for (let lx = -3.6; lx <= 3.61; lx += 0.6) if (Math.random() < 0.72) subs.push([dx - lx, ly + 0.04, -36 - lz, Math.PI, ly > 0.3 ? DARK : col]);
+      peopleOn(g, 'cross', st); peopleOn(g, 'seated', ph); peopleOn(g, 'seated', subs, 'skin', false);
+      for (const [x, col] of [[-13.6, DARK], [13.6, DARK], [-4.2, DARK], [4.2, DARK]]) peopleOn(g, x * x > 100 ? 'cross' : 'stand', [[x, 0, -34.6, Math.PI, col]]);   // the managers on the edge of their areas
+      if (lens.length) { const lg = new THREE.CylinderGeometry(0.06, 0.085, 0.5, 8); lg.rotateZ(Math.PI / 2); const lm = new THREE.InstancedMesh(lg, new THREE.MeshStandardMaterial({ color: C('#d9d5cf'), roughness: 0.4 }), lens.length / 3), m4 = new THREE.Matrix4();
+        for (let i = 0; i < lens.length / 3; i++) { m4.makeTranslation(lens[i * 3], lens[i * 3 + 1], lens[i * 3 + 2]); lm.setMatrixAt(i, m4); } lm.instanceMatrix.needsUpdate = true; lm.userData.noCast = true; g.add(lm); } }
+    // NFL: two squads strung along their sidelines, helmets on, coaches a step in front
+    { const g = arrive(vN, new THREE.Group());
+      for (const [sz, jersey, helmet] of [[-1, HOME, '#7d1a0c'], [1, WHITE, '#1b1a1a']]) { const pl = [], co = [];
+        for (let x = -23; x <= 23; x += 1.5) { if (Math.random() < 0.18) continue; pl.push([x + (Math.random() - 0.5) * 0.7, 0, sz * (26.4 + Math.random() * 1.5), sz > 0 ? 0 : Math.PI, jersey, helmet]); }
+        for (const x of [-15, -6, 3, 12, 19]) co.push([x, 0, sz * 25.5, sz > 0 ? 0 : Math.PI, DARK]);
+        peopleOn(g, 'stand', pl.filter((_, i) => i % 3), 'helmet'); peopleOn(g, 'cross', pl.filter((_, i) => i % 3 === 0), 'helmet'); peopleOn(g, 'cross', co); } }
+    // basketball (local metres): the scorers' table, both benches, a coach each, and two rows courtside
+    { const g = arrive(vB, new THREE.Group(), 0.72), off = [], bench = [], cs = [];
+      for (let x = -3.8; x <= 3.81; x += 0.75) off.push([x, 0.04, -9.2, 0, DARK]);
+      for (const [sx, col] of [[-1, HOME], [1, WHITE]]) for (let x = 5.6; x <= 13.21; x += 0.62) if (Math.random() < 0.85) bench.push([sx * x, 0.04, -8.5, 0, x < 7.5 ? DARK : col]);
+      for (const [z, y] of [[8.75, 0], [9.45, 0.25]]) for (let x = -13.5; x <= 13.51; x += 0.6) if (Math.random() < 0.9) cs.push([x, y + 0.04, z, 0, pickCloth(CLOTH.red)]);
+      peopleOn(g, 'seated', off.map(q => [q[0], q[1], q[2], Math.PI, q[4]]), 'skin', false); peopleOn(g, 'seated', bench.map(q => [q[0], q[1], q[2], Math.PI, q[4]]), 'skin', false); peopleOn(g, 'seated', cs, 'skin', false);
+      peopleOn(g, 'cross', [[-4.9, 0, -7.9, Math.PI, DARK], [4.9, 0, -7.9, Math.PI, DARK]]); }
+    // tennis (local metres): ball crew at the back of the court and by the net
+    { const g = arrive(vT, new THREE.Group(), 0.72), kids = [];
+      for (const sx of [-1, 1]) { for (const z of [-4.6, 4.6]) kids.push([sx * 15.2, 0, z, sx > 0 ? Math.PI / 2 : -Math.PI / 2, '#3d2a52']); kids.push([sx * 0.9, 0, -7.6, Math.PI, '#3d2a52']); }
+      peopleOn(g, 'stand', kids); }
+  }
 
   // ===== 05 RACE (night circuit, real metres)
   const vR = venue('race', 1);
@@ -1559,7 +1644,7 @@ export async function createArena(canvas, o = {}) {
     camera.position.addScaledVector(_r, ptr.sx * kk); camera.position.y += -ptr.sy * kk * 0.5;
     if (hero && h < 0.34) camera.position.y += Math.sin(h * 300) * 0.03;
     if (Math.abs(look.yaw) + Math.abs(look.pitch) > 0.0005) { const dir = _v.clone().sub(camera.position); dir.applyAxisAngle(_u.set(0, 1, 0), -look.yaw); const rt = dir.clone().cross(_u).normalize(); dir.applyAxisAngle(rt, -look.pitch); _v.copy(camera.position).add(dir); }
-    camera.lookAt(_v);
+    camera.lookAt(_v); crowdLOD();
     const asp = W / H; let vf = ps.fov; if (asp < 1.25) { const hf = 2 * Math.atan(Math.tan(vf * Math.PI / 360) * 1.6); vf = Math.min(92, 2 * Math.atan(Math.tan(hf / 2) / asp) * 180 / Math.PI); }
     camera.fov = vf; camera.near = dist > 120 ? 3 : dist > 60 ? 1.2 : 0.35; camera.far = 3200; camera.updateProjectionMatrix();
     if (post) {
@@ -1594,7 +1679,7 @@ export async function createArena(canvas, o = {}) {
     if (post) {
       // frame-time watchdog: step the post stack down if this GPU can't hold ~40fps
       perf.ema += (dt - perf.ema) * 0.05; perf.t += dt;
-      if (!o.noDegrade && perf.t > 3 && perf.ema > 1 / 40 && time - perf.last > 2.5 && post.level < 3) { perf.last = time; post.degrade(); if (post.level >= 2) crowdMeshes.forEach(m => { m.count = Math.ceil(m.userData.full * (post.level >= 3 ? 0.4 : 0.6)); }); }   // a struggling device gets a thinner crowd before anything else gives
+      if (!o.noDegrade && perf.t > 3 && perf.ema > 1 / 40 && time - perf.last > 2.5 && post.level < 3) { perf.last = time; post.degrade(); crowdSets.forEach(cs => { cs.off = true; }); if (post.level >= 2) crowdMeshes.forEach(m => { m.count = Math.ceil(m.userData.full * (post.level >= 3 ? 0.4 : 0.6)); }); }   // a struggling device gets a thinner crowd before anything else gives
       post.render();
     } else renderer.render(scene, camera);
     o.onFrame && o.onFrame({ p, project, ball: ball.visible && ballState === 'rest' ? project(ball.position.x, 0.2, ball.position.z) : null });
