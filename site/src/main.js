@@ -398,7 +398,7 @@ function goTo(p) {
   smoothTo(scrollForP(p));
 }
 function replay() {
-  setMenu(false); cancelAnimationFrame(glideAnim); gliding = false; scrollTo(0, 0); if (eng) eng.jump(0);
+  setMenu(false); stopGlide(); stopFree(); scrollTo(0, 0); if (eng) eng.jump(0);
   kick && kick.cancel(); startIntro(Promise.resolve());
 }
 
@@ -461,77 +461,101 @@ $$('[data-deck]').forEach(dk => {
   if ('IntersectionObserver' in window) new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) run(); else { clearInterval(timer); timer = 0; dk.classList.remove('auto'); } }), { threshold: 0.55 }).observe(dk);
 });
 
-// ---------- stepping: inside the story every wheel flick, swipe or arrow key is one step to the next stop
-// (a story beat, a read page, the far side of a change of sport). The post-match scrolls freely.
-const BEATS = (() => { const sp = ([a, b], n) => Array.from({ length: n }, (_, i) => a + (b - a) * (i + 0.5) / n);
-  return { hero: [0, 0.27, 0.52, 0.92], rights: [0.5], bball: [...sp(CH.BEATS, 7), 0.66, 0.88], nfl: [...sp(CH.DRIVE, DRIVE.length), 0.78], tennis: [0.16, 0.39, 0.63, 0.87],
-    race: [0.035, ...Array.from({ length: 7 }, (_, k) => CH.LAP[0] + (CH.LAP[1] - CH.LAP[0]) * (k + 0.8) / 8), ...sp(CH.PIT, 3)], ft: [0.92] }; })();
-let stops = [], lastStop = 0, gliding = false, glideAnim = 0, glideTarget = null, targetIdx = -1;
+// ---------- scrolling. Through the grounds and the changes of sport it's free and smooth, never stopped.
+// The read pages snap: inside a read every wheel flick, swipe or arrow key is one page, and scrolling into a read
+// lands on its first page (or its last, coming back up). Leaving a read hands straight back to free scrolling.
+let zones = [], stops = [], gliding = false, glideAnim = 0, glideTarget = null, targetIdx = -1;
 let touchY0 = null, touchX0 = 0, touchScroll = false, lastInput = 0, settleT = 0;
 function buildStops() {
-  const ih = innerHeight, hdr = innerWidth < 760 ? 72 : 92, pts = [];
-  stages.forEach(st => (BEATS[st.id] || []).forEach(t => pts.push(st.s0 + (st.s1 - st.s0) * t)));
-  $$('[data-page]').forEach(el => { const r = el.getBoundingClientRect(), top = r.top + scrollY;
-    if (el.classList.contains('read-next')) { pts.push(top - ih * 0.42); return; }
-    if (el.closest('[data-post]')) return;
-    pts.push(top - hdr);
-    for (let y = top - hdr + (ih - hdr) * 0.85; y < top + r.height - ih * 0.9; y += (ih - hdr) * 0.85) pts.push(y);   // a page taller than the screen gets extra stops
-  });
-  if (postSecs[0]) pts.push(postSecs[0].getBoundingClientRect().top + scrollY - 70);   // the last stop: the start of the post-match
-  stops = pts.filter(y => y >= 0).sort((a, b) => a - b).filter((y, i, arr) => !i || y - arr[i - 1] > 24);
-  lastStop = stops[stops.length - 1] || 0;
+  const ih = innerHeight, hdr = innerWidth < 760 ? 72 : 92;
+  zones = $$('[data-read]').map(sec => { const pts = [];
+    sec.querySelectorAll('[data-page]').forEach(el => { const r = el.getBoundingClientRect(), top = r.top + scrollY;
+      if (el.classList.contains('read-next')) { pts.push(top - ih * 0.42); return; }
+      pts.push(top - hdr);
+      for (let y = top - hdr + (ih - hdr) * 0.85; y < top + r.height - ih * 0.9; y += (ih - hdr) * 0.85) pts.push(y);   // a page taller than the screen gets extra stops
+    });
+    const st = pts.filter(y => y >= 0).sort((p, q) => p - q).filter((y, i, arr) => !i || y - arr[i - 1] > 24);
+    return st.length ? { a: st[0], b: st[st.length - 1], stops: st } : null; }).filter(Boolean);
+  stops = zones.flatMap(z => z.stops);
 }
+const zoneOf = y => zones.find(z => y >= z.a - 3 && y <= z.b + 3);
 const easeIO = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 function glideTo(y, ms) {
-  cancelAnimationFrame(glideAnim); glideTarget = y;
+  stopFree(); cancelAnimationFrame(glideAnim); glideTarget = y;
   const y0 = scrollY, d = y - y0; if (Math.abs(d) < 1) { gliding = false; return; }
   if (reduceMotion) ms = Math.min(ms, 240);
   gliding = true; const t0 = performance.now();
   const tick = now => { const k = Math.min(1, (now - t0) / ms); scrollTo(0, y0 + d * easeIO(k)); if (k < 1) glideAnim = requestAnimationFrame(tick); else { gliding = false; glideTarget = null; } };
   glideAnim = requestAnimationFrame(tick);
 }
+function stopGlide() { cancelAnimationFrame(glideAnim); gliding = false; glideTarget = null; targetIdx = -1; }
 const glideMs = dy => { const d = Math.abs(dy) / innerHeight; return Math.round(Math.min(1500, Math.max(480, 400 + d * 240))); };
-const nearestIdx = y => { let bi = 0; stops.forEach((q, i) => { if (Math.abs(q - y) < Math.abs(stops[bi] - y)) bi = i; }); return bi; };
+// one step inside the read you're in; false when that step would leave it (free scrolling takes over)
 function step(dir) {
-  if (!stops.length) return;
-  const y = gliding && glideTarget !== null ? glideTarget : scrollY;
-  let i;
-  if (gliding && targetIdx >= 0) i = targetIdx + dir;   // a new flick during a glide carries on from where that glide was going
-  else { const n = nearestIdx(y); i = Math.abs(stops[n] - y) < 6 ? n + dir : dir > 0 ? stops.findIndex(q => q > y + 6) : stops.length - 1 - [...stops].reverse().findIndex(q => q < y - 6); }
-  if (i < 0 || i >= stops.length || Number.isNaN(i)) return;
-  targetIdx = i; const st = stages.find(q => stops[i] >= q.s0 && stops[i] < q.s1);
-  glideTo(stops[i], Math.max(glideMs(stops[i] - scrollY), st && st.id === 'race' ? 1500 : 0));   // the lap: let each corner be driven, not jumped
+  const y = gliding && glideTarget !== null ? glideTarget : scrollY, z = zoneOf(y); if (!z) return false;
+  const st = z.stops; let i;
+  const cur = gliding && targetIdx >= 0 ? stops[targetIdx] : null;
+  if (cur !== null && st.includes(cur)) i = st.indexOf(cur) + dir;   // a new flick during a glide carries on from where that glide was going
+  else { let n = 0; st.forEach((q, k) => { if (Math.abs(q - y) < Math.abs(st[n] - y)) n = k; });
+    i = Math.abs(st[n] - y) < 6 ? n + dir : dir > 0 ? st.findIndex(q => q > y + 6) : st.length - 1 - [...st].reverse().findIndex(q => q < y - 6); }
+  if (i < 0 || i >= st.length || Number.isNaN(i)) return false;
+  targetIdx = stops.indexOf(st[i]); glideTo(st[i], glideMs(st[i] - scrollY)); return true;
 }
-const inStory = (y, dir) => y < lastStop - 2 || (y <= lastStop + 2 && dir < 0);
+// free scrolling for the wheel: eased toward where the wheel says, so the grounds glide rather than jump a notch at a time
+let fCur = 0, fTgt = 0, fAnim = 0, fOn = false;
+function stopFree() { cancelAnimationFrame(fAnim); fOn = false; }
+function freeWheel(dy) {
+  if (gliding) stopGlide();
+  if (!fOn) { fCur = fTgt = scrollY; }
+  const max = document.documentElement.scrollHeight - innerHeight, from = fTgt;
+  let to = Math.max(0, Math.min(max, fTgt + dy * 0.8));
+  // about to scroll into a read: land on its first page (or its last, coming back up)
+  const z = dy > 0 ? zones.find(q => from < q.a - 3 && to >= q.a - 3) : [...zones].reverse().find(q => from > q.b + 3 && to <= q.b + 3);
+  if (z) { const y = dy > 0 ? z.a : z.b; targetIdx = stops.indexOf(y); glideTo(y, glideMs(y - scrollY)); return true; }
+  fTgt = to;
+  if (!fOn) { fOn = true; let tPrev = performance.now();
+    const tick = now => {
+      if (Math.abs(scrollY - fCur) > 3) { fOn = false; return; }   // something else moved the page (scrollbar, a jump): let it
+      const k = 1 - Math.pow(0.9, Math.min(4, (now - tPrev) / 16.7)); tPrev = now;   // same feel at any frame rate
+      fCur += (fTgt - fCur) * k; if (Math.abs(fTgt - fCur) < 0.5) fCur = fTgt; scrollTo(0, fCur);
+      if (fCur !== fTgt) fAnim = requestAnimationFrame(tick); else fOn = false; };
+    fAnim = requestAnimationFrame(tick); }
+  return false;
+}
 const storyLive = () => kickWrap.style.display !== 'block' && menuEl.hidden && !frozen;
 // one flick = one step. Trackpads keep streaming fading 'momentum' events for a second or more after the fingers lift,
 // so a new flick is spotted as a fresh rise on top of that fading stream (or a change of direction), not only as a pause.
-const wg = { last: -1e9, dir: 0, peak: 0, floor: 0, acc: 0, used: false, stepAt: -1e9 };
+const wg = { last: -1e9, dir: 0, peak: 0, floor: 0, acc: 0, used: false, stepAt: -1e9, owned: false };
 function wheelStep(t, dy) {
   const a = Math.abs(dy), dir = Math.sign(dy); if (!dir) return 0;
   if (dir !== wg.dir && a < 4 && t - wg.last < 180) return 0;          // a stray flicker against the stream
   const dt = t - wg.last; wg.last = t;
   let fresh = dt > 180 || dir !== wg.dir;
   if (!fresh && wg.used && t - wg.stepAt > 280 && wg.floor < wg.peak * 0.6 && a >= 16 && a > wg.floor * 2 + 6) fresh = true;
-  if (fresh) { wg.dir = dir; wg.peak = wg.floor = a; wg.acc = 0; wg.used = false; }
+  if (fresh) { wg.dir = dir; wg.peak = wg.floor = a; wg.acc = 0; wg.used = false; wg.owned = false; }
   else if (a >= wg.peak) wg.peak = wg.floor = a; else wg.floor = Math.min(wg.floor, a);
   if (wg.used) return 0;
   wg.acc += a; if (wg.acc >= 12) { wg.used = true; wg.stepAt = t; return dir; }
   return 0;
 }
+// inside a read and not stepping out of it
+const inRead = (y, dir) => { const z = zoneOf(y); return !!z && !(dir > 0 && y >= z.b - 3) && !(dir < 0 && y <= z.a + 3); };
 addEventListener('wheel', e => {
   if (!storyLive() || e.ctrlKey) return;
-  const dy = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? innerHeight : 1), dir = Math.sign(dy);
-  if (!dir || !inStory(scrollY, dir)) return;
+  const dy = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? innerHeight : 1), dir = Math.sign(dy); if (!dir) return;
   e.preventDefault(); lastInput = performance.now();
-  const s = wheelStep(e.timeStamp || lastInput, dy); if (s) step(s);   // event time, not handling time: a busy frame must not split one flick
+  const s = wheelStep(e.timeStamp || lastInput, dy);   // event time, not handling time: a busy frame must not split one flick
+  if (wg.owned) return;                                 // the rest of a flick that already turned a page: swallow its momentum
+  const y = gliding && glideTarget !== null ? glideTarget : scrollY;
+  if (inRead(y, dir)) { if (s && step(s)) wg.owned = true; return; }
+  if (freeWheel(dy)) { wg.owned = true; wg.used = true; }
 }, { passive: false });
-addEventListener('touchstart', e => { if (!storyLive() || e.touches.length !== 1) { touchY0 = null; return; } touchY0 = e.touches[0].clientY; touchX0 = e.touches[0].clientX; touchScroll = false; lastInput = performance.now(); }, { passive: true });
+addEventListener('touchstart', e => { if (!storyLive() || e.touches.length !== 1) { touchY0 = null; return; } touchY0 = e.touches[0].clientY; touchX0 = e.touches[0].clientX; touchScroll = false; lastInput = performance.now(); if (gliding) stopGlide(); stopFree(); }, { passive: true });
 addEventListener('touchmove', e => {
   if (touchY0 === null) return;
   const dy = touchY0 - e.touches[0].clientY, dx = touchX0 - e.touches[0].clientX;
   if (Math.abs(dx) > Math.abs(dy) && e.target.closest('.deck-idx')) return;   // sideways on the deck tabs: let them scroll
-  if (inStory(scrollY, Math.sign(dy) || 1)) { e.preventDefault(); touchScroll = true; }
+  if (touchScroll || inRead(scrollY, Math.sign(dy) || 1)) { e.preventDefault(); touchScroll = true; }
 }, { passive: false });
 addEventListener('touchend', e => {
   if (touchY0 === null) return; const dy = touchY0 - e.changedTouches[0].clientY; touchY0 = null; lastInput = performance.now();
@@ -540,18 +564,20 @@ addEventListener('touchend', e => {
 addEventListener('keydown', e => {
   if (!storyLive() || e.target.closest('input, textarea, [contenteditable], [role="tab"]')) return;
   const k = e.key, dir = k === 'ArrowDown' || k === 'PageDown' || (k === ' ' && !e.shiftKey) ? 1 : k === 'ArrowUp' || k === 'PageUp' || (k === ' ' && e.shiftKey) ? -1 : 0;
-  if (!dir || !inStory(scrollY, dir)) return;
+  if (!dir || !inRead(scrollY, dir)) return;
   e.preventDefault(); lastInput = performance.now(); step(dir);
 });
-// anything else that moves the page inside the story (the scrollbar, find-in-page) settles on the nearest stop once it stops
-addEventListener('scroll', () => { if (gliding) return; clearTimeout(settleT); settleT = setTimeout(() => {
-  if (gliding || !storyLive() || performance.now() - lastInput < 400 || !inStory(scrollY, -1) || !stops.length) return;
-  const n = nearestIdx(scrollY); if (Math.abs(stops[n] - scrollY) > 6) { targetIdx = n; glideTo(stops[n], 520); } }, 220); }, { passive: true });
+// anything that comes to rest part-way into a read (a swipe's momentum, the scrollbar, find-in-page) settles on its nearest page
+addEventListener('scroll', () => { if (gliding || fOn) return; clearTimeout(settleT); settleT = setTimeout(() => {
+  if (gliding || fOn || touchY0 !== null || !storyLive() || performance.now() - lastInput < 300) return;
+  const y = scrollY, z = zones.find(q => y > q.a + 6 && y < q.b - 6) || zoneOf(y); if (!z) return;
+  let n = z.stops[0]; z.stops.forEach(q => { if (Math.abs(q - y) < Math.abs(n - y)) n = q; });
+  if (Math.abs(n - y) > 6) { targetIdx = stops.indexOf(n); glideTo(n, 520); } }, 220); }, { passive: true });
 addEventListener('resize', () => { buildStops(); });
 addEventListener('load', () => { buildStops(); });
 if ('ResizeObserver' in window) new ResizeObserver(() => buildStops()).observe(document.body);
 buildStops();
-if (params.has('debug')) window.__snap = () => ({ gliding, targetIdx, y: Math.round(scrollY), near: stops.filter(q => Math.abs(q - scrollY) < innerHeight * 2).map(Math.round), lastStop: Math.round(lastStop) });
+if (params.has('debug')) window.__snap = () => ({ gliding, free: fOn, targetIdx, y: Math.round(scrollY), zones: zones.map(z => [Math.round(z.a), Math.round(z.b), z.stops.length]) });
 
 // ---------- boot
 function engineOpts() {
