@@ -160,3 +160,13 @@
 /* deck pages use the full width */
 .rb-deck.rp { align-items: stretch; }
 @media (max-width: 760px) { .rb.rp .rb-l .rb-photo img { max-height: 22vh; aspect-ratio: 16/9; } }
+
+/* ===== the ghost number behind a read's title page ===== */
+.read { overflow-x: clip; }
+.rp-title { position: relative; }
+.rp-title > :not(.read-ghost) { position: relative; z-index: 1; }
+.read-ghost { position: absolute; right: -0.04em; bottom: 4%; z-index: 0; pointer-events: none; user-select: none;
+  font-weight: 800; font-size: clamp(260px, 40vw, 640px); line-height: .74; letter-spacing: -.06em; font-variant-numeric: tabular-nums;
+  color: transparent; -webkit-text-stroke: 2px rgba(243,242,242,.11); }
+@supports not (-webkit-text-stroke: 1px #000) { .read-ghost { color: rgba(243,242,242,.05); } }
+@media (max-width: 760px) { .read-ghost { font-size: 62vw; bottom: auto; top: 6%; right: -0.02em; -webkit-text-stroke-width: 1.5px; } }

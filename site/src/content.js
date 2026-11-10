@@ -9,7 +9,7 @@ export const SEGS = [['hero', 1300], ['rights', 650], ['x1', 420], ['bball', 105
 // Beat ranges inside each venue, as fractions of that venue's segment.
 export const CH = { RR: [0.08, 0.9], BEATS: [0.06, 0.44], TAC: [0.5, 0.92], DRIVE: [0.03, 0.5], XI: [0.55, 0.96], SURF: [0.03, 0.27], SEXES: [0.27, 0.5], PADEL: [0.5, 0.74], FANS: [0.77, 0.92], LAP: [0.08, 0.62], PIT: [0.66, 0.92] };
 // How far you scroll through each chapter's 3D stage (vh). The reads below sit between the venues and scroll like a normal page.
-export const STAGE_VH = { hero: 780, rights: 200, x1: 240, bball: 450, x2: 240, nfl: 540, x3: 240, tennis: 480, x4: 240, race: 520, ft: 220 };
+export const STAGE_VH = { hero: 660, rights: 200, x1: 190, bball: 450, x2: 190, nfl: 540, x3: 190, tennis: 480, x4: 190, race: 520, ft: 220 };
 export const READ_AFTER = { rights: 'football', bball: 'basketball', nfl: 'nfl', tennis: 'tennis', race: 'motorsport' };
 // The reads: after each venue's cinematic, the same thinking laid out to read at your own pace.
 // A block can carry a list (rendered from the data above), a photo, or both.

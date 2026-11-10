@@ -32,6 +32,9 @@
 
   /* caption bar: one line, ellipsis rather than a two-line wrap */
   [data-cap] { padding: 0 var(--gut) calc(16px + var(--sab)) !important; }
+  [data-open] { padding: 0 var(--gut) calc(78px + var(--sab)) !important; }
+  [data-open] > div:nth-child(2) { font-size: 11.4vw !important; max-width: none !important; }
+  [data-m="xt"] { font-size: 11.8vw !important; }
   [data-cap] > div { padding-top: 10px !important; font-size: 11px !important; letter-spacing: .14em !important; }
   [data-cap] [data-sk] { min-width: 0; gap: 10px !important; }
   [data-cap] [data-sk] > span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -80,8 +83,16 @@
   section[data-post-sec] { padding-bottom: 72px !important; }
   section#film-room { padding-top: 64px !important; }
   section[data-post-sec] h2 { font-size: 12.4vw !important; }
-  [data-list="brands"] { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+  [data-list="brands"] { grid-template-columns: repeat(3, minmax(0,1fr)) !important; }
+  [data-list="brands"] > div { padding: 10px !important; gap: 8px !important; }
+  [data-list="brands"] > div img { max-height: 40px !important; }
+  [data-list="brands"] > div > div:last-child { font-size: 8.5px !important; letter-spacing: .1em !important; }
+  [data-list="talent"] { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; }
+  [data-list="talent"] > div { padding: 11px 0 !important; row-gap: 4px !important; align-content: start; }
+  [data-list="talent"] > div > span:nth-child(2) { font-size: 17px !important; }
   [data-list="stands"] { grid-template-columns: repeat(2, minmax(0,1fr)) !important; gap: 12px !important; }
+  [data-list="stands"] > figure:last-child img { flex: none; height: auto; aspect-ratio: 3/2 !important; object-position: center 30%; }
+  [data-burger] i { width: 16px; }
   [data-list="talent"] > div { grid-template-columns: 30px 1fr !important; }
   [data-list="talent"] > div > span:last-child { grid-column: 2; text-align: left !important; }
   [data-list="press"] article > div:first-child { min-height: 180px !important; }

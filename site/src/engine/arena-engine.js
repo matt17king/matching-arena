@@ -1310,7 +1310,7 @@ export async function createArena(canvas, o = {}) {
     strips.forEach(st => { const off = blackT > 0 && (st.z > 84 || blackT * 1.25 > (84 - st.z) / 40) ? 1 : 0; const v = 1 - off * 0.97; st.sm.color.setRGB(2.2 * v, 2.07 * v, 1.93 * v); st.rm.opacity = 0.32 * v; });
     tLights.forEach(l => { l.intensity = hero && h < 0.42 ? 3.2 * (1 - blackT) : 0; });
     gates.forEach(gt => {
-      const dd = cz - gt.z; let op = ss((dd - 0.8) / 3.2) * (1 - ss((dd - 20) / 12)); if (!hero || dd < -0.5) op = 0;
+      const dd = cz - gt.z; let op = ss((dd - 0.8) / 3.2) * (1 - ss((dd - 9.5) / 3.5)); if (!hero || dd < -0.5) op = 0;
       if (gt.kind === 'care') op *= ss((blackT - 0.4) * 2);
       const near = gt.kind !== 'care' && dd > 0 && dd < 15 && hero;
       if (near) { const f = Math.sin(time * 57 + gt.z) * Math.sin(time * 21 + gt.z * 0.3); op *= f > -0.2 ? 1 : 0.55; gt.wp.position.x = (Math.random() - 0.5) * 0.07 * (1 - dd / 15); } else gt.wp.position.x = 0;

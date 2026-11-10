@@ -4,7 +4,7 @@ import './styles/site.css';
 import './styles/reads.css';
 import './styles/mobile.css';
 import { drawBrief } from './engine/broadcast-gfx.js';
-import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, WORKED_WITH, XI, DRIVE, FILM, TROPHIES, PROOF, STANDS, TALENT, BRANDS, PRESS, SEATS, TOPICS, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN, STAGE_VH, READ_AFTER, READS, PLAYS, FORMATS } from './content.js';
+import { EMAIL, SEGS, CH, VENUE, KIT, MARKETS, GATES, PHOTOS, LOGOS, RIGHTS, WORKED_WITH, XI, DRIVE, FILM, TROPHIES, PROOF, STANDS, TALENT, BRANDS, PRESS, SEATS, TOPICS, FANS_TEXT, SCREEN_DATA, MESSAGES, LED_PLAN, STAGE_VH, READ_AFTER, READS, PLAYS, FORMATS, LINKEDIN, INSTAGRAM } from './content.js';
 
 const BASE = import.meta.env.BASE_URL;
 const KBG = '#0b0a0a', ZONE_ON = '#ec3013', ZONE_OFF = 'rgba(243,242,242,.3)';
@@ -63,6 +63,7 @@ function readHTML(key) {
   return `<section class="read" data-read="${key}" id="read-${key}">
   <div class="read-in">
     <div class="rp rp-title" data-page>
+      <div class="read-ghost" aria-hidden="true">${R.n}</div>
       <div data-rv class="read-head"><span><b>${R.n} / 05</b> ${esc(R.venue.toUpperCase())}</span><span>THE READ</span></div>
       <h2 data-rv class="read-title">${esc(R.title)}</h2>
       <p data-rv class="read-intro">${esc(R.intro)}</p>
@@ -177,7 +178,9 @@ const row = (m, n, tag, go) => `<button class="menu-row" data-go="${go}" style="
 </button>`;
 list('chapters', row('00', 'Kick-off', 'REPLAY', 'replay') + groups.map(([n, m, rows]) =>
   `<div style="display:flex;justify-content:space-between;gap:12px;padding:14px 16px 6px;font-size:10px;font-weight:800;letter-spacing:.18em;color:rgba(243,242,242,.5);border-bottom:1px solid rgba(243,242,242,.1)"><span>${esc(n)}</span><span style="color:var(--color-accent)">${esc(m)}</span></div>`
-  + rows.map(([mm, nn, act]) => row(mm, nn, '', act)).join('')).join(''));
+  + rows.map(([mm, nn, act]) => row(mm, nn, '', act)).join('')).join('')
+  + `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-top:2px solid rgba(243,242,242,.2)">${[["Let's talk →", `mailto:${EMAIL}`, 1], ['LinkedIn ↗', LINKEDIN, 0], ['Instagram ↗', INSTAGRAM, 0]].map(([t, h, red]) =>
+    `<a href="${h}" ${red ? '' : 'target="_blank" rel="noopener"'} class="${red ? 'btn-red' : 'btn-line'}" style="padding:14px 12px;font-size:12px;font-weight:800;letter-spacing:.04em;text-align:center;white-space:nowrap;color:#f3f2f2;${red ? 'background:var(--color-accent)' : 'border-left:1px solid rgba(243,242,242,.2)'}">${t}</a>`).join('')}</div>`);
 
 // ---------- the brief (basketball timeout): drawn flat so it reads at any angle
 const briefEl = $('[data-brief]'), briefC = $('[data-brief-c]'), briefM = $('[data-brief-m]'), briefCard = $$('[data-sk^="bball:.53"]')[0];
@@ -279,7 +282,6 @@ window.addEventListener('pointermove', e => { if (tipEl.style.display === 'block
 
 if (innerWidth < 760) {
   $$('[data-hide-m]').forEach(e => { e.style.display = 'none'; });
-  $('[data-scroll-hint]').textContent = 'SCROLL ↓';
   $$('[data-m="sheet"]').forEach(e => Object.assign(e.style, { left: '16px', right: '16px', width: 'auto', top: 'auto', bottom: '78px', maxHeight: '42vh', overflow: 'auto' }));
 }
 
