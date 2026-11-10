@@ -67,11 +67,21 @@ export function buildFigures(THREE) {
       else P.push(limb(V(x * 0.215, 1.42, -0.01), V(x * 0.25, 1.16, 0), 0.052, 0.044, ls, 1, false), limb(V(x * 0.25, 1.16, 0), V(x * 0.25, 0.9, -0.04), 0.043, 0.034, ls)); });
     return merge(P);
   };
+  // ---- kneeling on the left knee, both hands forward on a tool (a wheel gun, a jack handle)
+  const kneeling = hi => {
+    const s = hi ? 8 : 6, ls = hi ? 5 : 4;
+    const P = [loft([[0.42, 0.165, 0.11, 0.02], [0.58, 0.15, 0.1, 0], [0.78, 0.185, 0.115, -0.05], [0.93, 0.205, 0.1, -0.09], [1.0, 0.13, 0.075, -0.11], [1.04, 0.055, 0.05, -0.12]], s)];
+    P.push(limb(V(-0.09, 0.46, 0.02), V(-0.1, 0.07, -0.02), 0.082, 0.062, ls, TR), limb(V(-0.1, 0.07, -0.02), V(-0.1, 0.05, 0.42), 0.058, 0.044, ls, TR), limb(V(-0.1, 0.04, 0.42), V(-0.1, 0.02, 0.56), 0.05, 0.038, 4, SH));        // knee down, shin back along the ground
+    P.push(limb(V(0.09, 0.46, 0.0), V(0.11, 0.5, -0.4), 0.082, 0.062, ls, TR), limb(V(0.11, 0.5, -0.4), V(0.11, 0.07, -0.42), 0.058, 0.044, ls, TR), limb(V(0.11, 0.04, -0.4), V(0.11, 0.03, -0.56), 0.05, 0.038, 4, SH));      // other foot planted in front
+    mirror(x => P.push(limb(V(x * 0.215, 0.93, -0.09), V(x * 0.2, 0.72, -0.3), 0.052, 0.044, ls, 1, false), limb(V(x * 0.2, 0.72, -0.3), V(x * 0.07, 0.6, -0.56), 0.043, 0.034, ls)));
+    return merge(P);
+  };
   const headAt = (y, z, hi, hair = true, r = 0.105) => merge([head(V(0, y, z), r, hi ? 8 : 5, hi ? 6 : 3, hair)]);
   return {
     seated: { hi: seated(true), lo: seated(false) }, seatedHead: { hi: headAt(0.865, 0.025, true), lo: headAt(0.865, 0.025, false) },
     stand: { hi: standing(true), lo: standing(false) }, cheer: { hi: standing(true, 'up'), lo: standing(false, 'up') }, cross: { hi: standing(true, 'cross'), lo: standing(false, 'cross') },
     standHead: { hi: headAt(1.645, -0.01, true), lo: headAt(1.645, -0.01, false) },
     helmet: headAt(1.65, -0.01, true, false, 0.135),
+    kneel: { hi: kneeling(true), lo: kneeling(false) }, kneelHead: { hi: headAt(1.155, -0.12, true), lo: headAt(1.155, -0.12, false) }, kneelHelmet: headAt(1.16, -0.12, true, false, 0.135), seatedHelmet: headAt(0.87, 0.025, true, false, 0.135),
   };
 }

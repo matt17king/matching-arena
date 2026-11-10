@@ -372,7 +372,8 @@ export async function createArena(canvas, o = {}) {
     const P = []; items.forEach(([x, y, z, yaw, shirt, hc]) => { const sc = 0.96 + Math.random() * 0.1, c = C(shirt).multiplyScalar(0.9 + Math.random() * 0.2), sk = hc ? C(hc) : SKIN[Math.floor(Math.random() * SKIN.length)].clone();
       P.push(x, y, z, yaw + (Math.random() - 0.5) * 0.3, sc, 0.96 + Math.random() * 0.1, c.r, c.g, c.b, sk.r, sk.g, sk.b); });
     const seatedP = pose === 'seated', q = LOWQ ? 'lo' : 'hi';
-    return figPair(parent, seatedP ? FIG.seated[q] : FIG[pose][q], head === 'helmet' ? FIG.helmet : seatedP ? FIG.seatedHead[q] : FIG.standHead[q], P, cast && !LOWQ);
+    const hg = pose === 'kneel' ? (head === 'helmet' ? FIG.kneelHelmet : FIG.kneelHead[q]) : seatedP ? (head === 'helmet' ? FIG.seatedHelmet : FIG.seatedHead[q]) : head === 'helmet' ? FIG.helmet : FIG.standHead[q];
+    return figPair(parent, seatedP ? FIG.seated[q] : FIG[pose][q], hg, P, cast && !LOWQ);
   }
   // each frame: the stands near the camera show their detailed crowd, the rest the light one
   const _lc = new THREE.Vector3();
@@ -881,8 +882,11 @@ export async function createArena(canvas, o = {}) {
     // pit building + pit wall + garages (kit on the back walls)
     const pg = new THREE.Group(); const [px, pz] = atf(20, 30); pg.position.set(px, 0, pz); orient(pg, 20); vR.root.add(pg);
     const fz = -cc.sIn;
-    rbox(pg, 140, 9, 12, 0, 4.5, 0, 'concreteL', 0.2, true);
-    for (let k = -6; k <= 6; k++) box(pg, 8.8, 5.4, 0.5, k * 10.5, 2.7, fz * 6.0, mats.void);
+    // an upper storey carried on piers over thirteen bays. Ten are open garages, fitted out in race-detail.js; the three behind the story boards stay shut
+    box(pg, 140, 3.4, 12, 0, 7.3, 0, 'concreteL'); box(pg, 140, 5.6, 0.4, 0, 2.8, -fz * 5.8, 'concreteL');
+    for (let k = -6; k <= 5; k++) box(pg, 1.7, 5.6, 12, (k + 0.5) * 10.5, 2.8, 0, 'concreteL');
+    for (const sx of [-1, 1]) box(pg, 2.6, 5.6, 12, sx * 68.7, 2.8, 0, 'concreteL');
+    for (const k of [-2, 0, 2]) box(pg, 8.8, 5.6, 0.5, k * 10.5, 2.8, fz * 5.7, mats.void);
     box(pg, 142, 0.35, 4, 0, 9.1, fz * 7.6, 'dark'); box(pg, 142, 0.3, 0.12, 0, 8.7, fz * 9.6, redMat);
     box(pg, 150, 1.1, 0.5, 0, 0.55, fz * 19.5, 'concreteL', true); box(pg, 150, 0.1, 0.55, 0, 1.15, fz * 19.5, redMat);
     (o.kit || []).forEach((kt, k) => {
@@ -909,7 +913,7 @@ export async function createArena(canvas, o = {}) {
       addLamp(vR, g, 22, head, rowsM, V3(ax, 0, az), s / cc.len * 0.9, 7, 0.6); }
     const E = SPORTS.race.ext; [[-0.5, -0.4], [0.5, -0.4], [0.5, 0.4], [-0.5, 0.4]].forEach(([a, b]) => vR.keys.push({ pos: V3(a * E, 150, b * E), aim: V3(a * E * 0.6, 0, b * E * 0.6), lamp: null }));
     raceX = buildRaceDetail({ THREE, vR, cc, atf, mats, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, glowTex, fogU, triplanar, texConcrete, NOISE,
-      makeStrip: (geo, len, h, bright, dir, parent) => makeStrip(vR, geo, len, h, bright, dir, parent), addStand, redMat, voidMat: mats.void, warmStrip: warmMat, timeU: coneTime });
+      makeStrip: (geo, len, h, bright, dir, parent) => makeStrip(vR, geo, len, h, bright, dir, parent), addStand, peopleOn, redMat, voidMat: mats.void, warmStrip: warmMat, timeU: coneTime });
     vR.fix.push({ o: raceX.root, kind: 'growY', t0: 0.56 });
     vR.spotK = 1.1; finishVenue(vR, 0.55);
   }

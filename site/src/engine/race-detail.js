@@ -4,7 +4,7 @@ import { f1CarFactory } from './f1-car.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
 export function buildRaceDetail(X) {
-  const { THREE, vR, cc, atf, mats, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, glowTex, fogU, makeStrip, addStand, triplanar, texConcrete, NOISE } = X;
+  const { THREE, vR, cc, atf, mats, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, glowTex, fogU, makeStrip, addStand, triplanar, texConcrete, NOISE, peopleOn } = X;
   const root = new THREE.Group(); vR.root.add(root);
   const M = cc.M, ds = cc.ds, L = cc.len;
   const wrapS = s => ((s % L) + L) % L;
@@ -52,8 +52,8 @@ export function buildRaceDetail(X) {
     const [fc, fg] = cnv(128, 128); fg.clearRect(0, 0, 128, 128); fg.strokeStyle = 'rgba(210,210,206,1)'; fg.lineWidth = 3;
     for (let k = -128; k <= 256; k += 32) { fg.beginPath(); fg.moveTo(k, 0); fg.lineTo(k + 128, 128); fg.stroke(); fg.beginPath(); fg.moveTo(k + 128, 0); fg.lineTo(k, 128); fg.stroke(); }
     fg.fillStyle = 'rgba(200,200,196,1)'; fg.fillRect(0, 0, 128, 5); fg.fillRect(0, 123, 128, 5);
-    const ft = new THREE.CanvasTexture(fc); ft.wrapS = THREE.RepeatWrapping; ft.colorSpace = THREE.SRGBColorSpace; ft.repeat.set(1 / 1.6, 1);
-    const fenceMat = new THREE.MeshStandardMaterial({ map: ft, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide, roughness: 0.4, metalness: 0.7, color: C('#9a9894') });
+    const ft = new THREE.CanvasTexture(fc); ft.wrapS = ft.wrapT = THREE.RepeatWrapping; ft.colorSpace = THREE.SRGBColorSpace; ft.repeat.set(1 / 0.9, 3.8); ft.anisotropy = 8;
+    const fenceMat = new THREE.MeshStandardMaterial({ map: ft, transparent: true, alphaTest: 0.2, side: THREE.DoubleSide, roughness: 0.4, metalness: 0.7, color: C('#9a9894') });
     const postGeo = new THREE.CylinderGeometry(0.07, 0.07, 3.6, 8); postGeo.translate(0, WH + 1.8, 0);
     const posts = [];
     runs.forEach(({ side, a, b }) => {
@@ -88,10 +88,74 @@ export function buildRaceDetail(X) {
     // garage interiors: warm light falling out onto the lane
     const gm = new THREE.MeshBasicMaterial({ map: (() => { const [c, g] = cnv(256, 160); const gr = g.createLinearGradient(0, 0, 0, 160); gr.addColorStop(0, '#d8d0c6'); gr.addColorStop(0.55, '#8d867f'); gr.addColorStop(1, '#3a3632'); g.fillStyle = gr; g.fillRect(0, 0, 256, 160); g.fillStyle = 'rgba(20,18,17,0.55)'; for (let x = 18; x < 256; x += 46) g.fillRect(x, 40, 30, 70); g.fillStyle = 'rgba(236,48,19,0.7)'; g.fillRect(0, 4, 256, 6); return texOf(c); })(), color: C('#ffffff').multiplyScalar(0.62) });
     const spill = new THREE.MeshBasicMaterial({ map: glowTex, color: C('#ffe9d2'), transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false });
+    // ---- the garages. Each open bay is a real room: epoxy floor, white liner walls with the team stripe, a graphic back wall, light panels overhead,
+    // tool chests, a workstation with timing screens, tyre sets in their stacks, a spare nose on its stand, and crew.
+    const n = fz > 0 ? 1 : -1, Zd = d => fz * (6 - d), faceLane = fz > 0 ? 0 : Math.PI;
+    const TEAMS = [['#a42410', '#d9d5cf', 'MK', '17'], ['#1b1a1a', '#a42410', 'BLK', '04'], ['#d9d5cf', '#1b1a1a', 'WHT', '09'], ['#3b3f45', '#d9d5cf', 'GRY', '22'], ['#6e0d05', '#d9d5cf', 'CLR', '31']];
+    const floorM = new THREE.MeshStandardMaterial({ color: C('#55524e'), roughness: 0.3, metalness: 0.1 }); floorM.userData.env = 0.5;
+    const linerM = new THREE.MeshStandardMaterial({ color: C('#c9c4bd'), roughness: 0.6 }), lightM = new THREE.MeshBasicMaterial({ color: C('#fff3e2').multiplyScalar(1.0) }), chestTop = new THREE.MeshStandardMaterial({ color: C('#151414'), roughness: 0.5 });
+    const teamM = TEAMS.map(t => new THREE.MeshStandardMaterial({ color: C(t[0]), roughness: 0.45, metalness: 0.2 }));
+    const backTex = t => { const [c2, g2] = cnv(512, 320); g2.fillStyle = '#d6d1ca'; g2.fillRect(0, 0, 512, 320); g2.fillStyle = t[0]; g2.fillRect(0, 0, 512, 54); g2.fillRect(0, 250, 512, 14);
+      g2.fillStyle = t[0] === '#d9d5cf' ? '#1b1a1a' : t[0]; g2.font = FONT(800, 150); LS(g2, '-6px'); g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.fillText(t[3], 256, 158);
+      g2.fillStyle = t[0] === '#d9d5cf' ? '#1b1a1a' : '#f3f2f2'; g2.font = FONT(800, 30); LS(g2, '8px'); g2.fillText(t[2] + ' RACING', 256, 30); return texOf(c2); };
+    const backM = TEAMS.map(t => new THREE.MeshStandardMaterial({ map: backTex(t), roughness: 0.6, emissive: C('#ffffff'), emissiveMap: null, emissiveIntensity: 0 }));
+    const scrM = (() => { const [c2, g2] = cnv(256, 160); g2.fillStyle = '#05070a'; g2.fillRect(0, 0, 256, 160); for (let r = 0; r < 9; r++) { g2.fillStyle = r === 0 ? RED : r % 2 ? 'rgba(160,190,220,0.8)' : 'rgba(220,226,232,0.85)'; g2.fillRect(10, 12 + r * 16, 18, 10); g2.fillRect(36, 12 + r * 16, 90 + Math.random() * 60, 10); g2.fillRect(200, 12 + r * 16, 46, 10); }
+      return new THREE.MeshBasicMaterial({ map: texOf(c2), color: C('#ffffff').multiplyScalar(1.1) }); })();
+    const tyres = [], bands = [], crewIn = [];                                    // gathered across bays, drawn as instances
+    const stack = (x, z, col, nT = 4) => { for (let i = 0; i < nT; i++) { tyres.push(x, 0.2 + i * 0.39, z, 0); bands.push(x, 0.2 + i * 0.39, z, 0, col); } };
     for (let k = -6; k <= 6; k++) {
-      const back = new THREE.Mesh(new THREE.PlaneGeometry(8.6, 5.2), gm); back.position.set(k * 10.5, 2.7, fz * 6.27); back.rotation.y = fz > 0 ? 0 : Math.PI; pg.add(back);
       const sp = new THREE.Mesh(new THREE.PlaneGeometry(11, 9), spill); sp.rotation.x = -Math.PI / 2; sp.position.set(k * 10.5, 0.03, fz * 9.5); pg.add(sp);
+      if (k === -2 || k === 0 || k === 2) continue;
+      const ti = ((k + 7) % TEAMS.length), b = new THREE.Group(); b.position.x = k * 10.5; pg.add(b);
+      const fl = new THREE.Mesh(new THREE.PlaneGeometry(8.8, 11.5), floorM); fl.rotation.x = -Math.PI / 2; fl.position.set(0, 0.02, Zd(5.75)); b.add(fl);
+      for (const sx of [-1, 1]) { box(b, 0.06, 3.6, 10.8, sx * 4.36, 1.8, Zd(5.6), linerM); box(b, 0.075, 0.3, 10.8, sx * 4.355, 3.05, Zd(5.6), teamM[ti]); }
+      const bk = new THREE.Mesh(new THREE.PlaneGeometry(8.7, 5.4), backM[ti]); bk.position.set(0, 2.72, Zd(11.35)); bk.rotation.y = faceLane; b.add(bk);
+      box(b, 8.8, 0.2, 11.5, 0, 5.5, Zd(5.75), 'dark'); for (const x of [-2.8, 0, 2.8]) box(b, 2.2, 0.05, 7.5, x, 5.37, Zd(5.4), lightM);
+      rbox(b, 8.9, 0.5, 0.5, 0, 5.38, Zd(0.1), 'dark', 0.05);                                                      // the rolled shutter in its housing
+      for (const [x, d] of [[-3.3, 9.9], [3.3, 9.9], [-3.5, 6.2]]) { rbox(b, 1.5, 1.0, 0.62, x, 0.52, Zd(d), teamM[ti], 0.04); box(b, 1.54, 0.05, 0.66, x, 1.05, Zd(d), chestTop); }
+      box(b, 2.4, 0.06, 0.75, 1.6, 1.0, Zd(10.5), chestTop); for (const x of [0.5, 2.7]) box(b, 0.08, 1.0, 0.7, x, 0.5, Zd(10.5), 'steel');           // workstation
+      for (const x of [1.05, 2.15]) { const m = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.58), scrM); m.position.set(x, 1.5, Zd(10.72)); m.rotation.y = faceLane; b.add(m); rbox(b, 1.0, 0.63, 0.05, x, 1.5, Zd(10.76), 'dark', 0.02); }
+      const cols = ['#a42410', '#d8b21a', '#d9d5cf'], bx = k * 10.5; stack(bx + 2.3, Zd(2.2), cols[0]); stack(bx + 3.2, Zd(2.2), cols[0]); stack(bx + 2.3, Zd(3.1), cols[1]); stack(bx + 3.2, Zd(3.1), cols[1]); stack(bx - 3.4, Zd(2.3), cols[2], 3);
+      { const nose = new THREE.Mesh(new THREE.ConeGeometry(0.2, 1.5, 12), teamM[ti]); nose.rotation.z = -Math.PI / 2; nose.scale.set(1, 1, 1.6); nose.position.set(-0.9, 0.95, Zd(8.2)); b.add(nose);
+        box(b, 1.5, 0.05, 0.9, -0.9, 0.68, Zd(8.2), teamM[ti]); for (const x of [-1.4, -0.4]) box(b, 0.05, 0.7, 0.05, x, 0.35, Zd(8.2), 'steel'); }
+      for (const sx of [-1, 1]) { box(b, 0.22, 0.22, 5.5, sx * 2.4, 4.7, Zd(2.2), 'steel'); box(b, 0.14, 0.04, 4.6, sx * 2.4, 4.57, Zd(2.2), lightM); cyl(b, 0.04, 0.7, 'y', sx * 2.4, 5.05, Zd(0.4), 'steel', 6); cyl(b, 0.04, 0.7, 'y', sx * 2.4, 5.05, Zd(4.4), 'steel', 6); }
+      const suit = TEAMS[ti][0];
+      crewIn.push([k * 10.5 - 1.9, 0, Zd(6.9), n > 0 ? 0.5 : Math.PI + 0.5, suit], [k * 10.5 + 1.2, 0, Zd(9.4), n > 0 ? Math.PI * 0.9 : -0.2, suit], [k * 10.5 + 0.4, 0, Zd(3.4), n > 0 ? -0.4 : Math.PI - 0.4, '#1b1a1a']);
     }
+
+    // ---- the stops: a crew on each of the three cars. Gunners kneel at every wheel with a second mechanic beside them, jack men front and rear,
+    // the old set of tyres already off and lying by the car, air lines trailing back to the garage
+    const kneelers = [[], [], []], standers = [], guns = [], hoses = [], S = [];
+    [-21, 0, 21].forEach((cx, ci) => { const zc = fz * 9.6, suit = TEAMS[ci][0], hel = TEAMS[ci][1];
+      for (const [wx, front] of [[1.85, 1], [-1.6, 0]]) for (const side of [1, -1]) {             // side 1 = the pit-lane side, -1 = the garage side
+        const zOut = zc + n * side * 1.62, yaw = n * side > 0 ? 0 : Math.PI;
+        kneelers[ci].push([cx + wx, 0, zOut, yaw, suit, hel], [cx + wx + (front ? 0.85 : -0.85), 0, zc + n * side * 1.45, yaw + (front ? -0.45 : 0.45) * (n * side), suit, hel]);
+        guns.push(cx + wx, 0.6, zOut - n * side * 0.6);
+        tyres.push(cx + wx + (front ? 1.5 : -1.5), 0.2, zc + n * side * 2.3, 0); bands.push(cx + wx + (front ? 1.5 : -1.5), 0.2, zc + n * side * 2.3, 0, '#d8b21a');
+        hoses.push([V3(cx + wx, 0.5, zOut), V3(cx + wx + 0.5 * side, 0.05, zOut + n * side * 0.5), V3(cx + wx * 0.6, 0.04, zc - n * 2.6), V3(cx + wx * 0.4, 0.04, Zd(0.6))]);
+      }
+      kneelers[ci].push([cx + 3.55, 0, zc, Math.PI / 2, suit, hel]); standers.push([cx - 3.5, 0, zc, -Math.PI / 2, suit, hel], [cx - 4.6, 0, zc + n * 2.7, n > 0 ? 0.5 : Math.PI + 0.5, suit, hel], [cx + 5.0, 0, zc + n * 2.5, n > 0 ? -0.5 : Math.PI - 0.5, suit, hel]);
+      S.push([V3(cx + 3.2, 0.62, zc), V3(cx + 2.7, 0.12, zc), 0.035], [V3(cx + 3.2, 0.62, zc - 0.28), V3(cx + 3.2, 0.62, zc + 0.28), 0.03], [V3(cx + 2.7, 0.1, zc - 0.35), V3(cx + 2.7, 0.1, zc + 0.35), 0.05],       // front jack
+        [V3(cx - 3.2, 0.95, zc), V3(cx - 2.45, 0.14, zc), 0.035], [V3(cx - 3.2, 0.95, zc - 0.28), V3(cx - 3.2, 0.95, zc + 0.28), 0.03], [V3(cx - 2.45, 0.1, zc - 0.4), V3(cx - 2.45, 0.1, zc + 0.4), 0.05]);          // rear jack
+      // the boom over the box: lights along it and the stop/go light at its tip
+      box(pg, 0.3, 0.3, 4.4, cx, 5.25, fz * 8.0, 'steel'); box(pg, 0.16, 0.04, 3.6, cx, 5.08, fz * 8.2, lightM); box(pg, 0.5, 0.9, 0.2, cx + 0.0, 4.75, fz * 10.25, 'dark'); const lamp = new THREE.Mesh(new THREE.CircleGeometry(0.15, 14), X.redMat); lamp.position.set(cx, 4.95, fz * 10.25 + n * 0.11); lamp.rotation.y = faceLane; pg.add(lamp);
+    });
+    if (peopleOn) {
+      kneelers.forEach(l => peopleOn(pg, 'kneel', l, 'helmet')); peopleOn(pg, 'cross', standers, 'helmet'); peopleOn(pg, 'cross', crewIn.filter((_, i) => i % 3 !== 2)); peopleOn(pg, 'stand', crewIn.filter((_, i) => i % 3 === 2));
+      // the pit wall: engineers on their stools in front of the timing screens
+      const perch = []; for (let k = -3; k <= 3; k++) for (const x of [-1.5, -0.5, 0.5, 1.5]) if (Math.random() < 0.8) perch.push([k * 21 + x, 1.87, fz * 18.8 + n * 0.15, n > 0 ? 0 : Math.PI, TEAMS[(k + 3) % TEAMS.length][0]]);
+      peopleOn(pg, 'seated', perch, 'skin', false);
+    }
+    struts(pg, S, mats.steel);
+    { const m4 = new THREE.Matrix4(), tg = new THREE.CylinderGeometry(0.34, 0.34, 0.37, LOWQ ? 12 : 20), rubber = new THREE.MeshStandardMaterial({ color: C('#0f0f10'), roughness: 0.85 });
+      const ti2 = new THREE.InstancedMesh(tg, rubber, tyres.length / 4), bg = new THREE.CylinderGeometry(0.346, 0.346, 0.07, LOWQ ? 12 : 20, 1, true), bi = new THREE.InstancedMesh(bg, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 }), bands.length / 5), col = new THREE.Color();
+      for (let i = 0; i < tyres.length / 4; i++) { m4.makeTranslation(tyres[i * 4], tyres[i * 4 + 1], tyres[i * 4 + 2]); ti2.setMatrixAt(i, m4); }
+      for (let i = 0; i < bands.length / 5; i++) { m4.makeTranslation(bands[i * 5], bands[i * 5 + 1], bands[i * 5 + 2]); bi.setMatrixAt(i, m4); bi.setColorAt(i, col.set(bands[i * 5 + 4])); }
+      [ti2, bi].forEach(m => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; pg.add(m); });
+      const gg = new THREE.BoxGeometry(0.14, 0.2, 0.34), gi = new THREE.InstancedMesh(gg, new THREE.MeshStandardMaterial({ color: C('#b02a14'), roughness: 0.4, metalness: 0.4 }), guns.length / 3);
+      for (let i = 0; i < guns.length / 3; i++) { m4.makeTranslation(guns[i * 3], guns[i * 3 + 1], guns[i * 3 + 2]); gi.setMatrixAt(i, m4); } gi.instanceMatrix.needsUpdate = true; pg.add(gi);
+      const hoseM = new THREE.MeshStandardMaterial({ color: C('#151515'), roughness: 0.6 });
+      if (!LOWQ) hoses.forEach(p => pg.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(p), 20, 0.028, 6, false), hoseM))); }
     // pit-wall stands: raised deck, canopy, stools, a bank of timing monitors, antennas
     { const tim = () => { const [c, g] = cnv(256, 160); g.fillStyle = '#05070a'; g.fillRect(0, 0, 256, 160);
         for (let r = 0; r < 9; r++) { g.fillStyle = r === 0 ? RED : r % 2 ? 'rgba(160,190,220,0.8)' : 'rgba(220,226,232,0.85)'; g.fillRect(10, 12 + r * 16, 18, 10); g.fillRect(36, 12 + r * 16, 90 + Math.random() * 60, 10); g.fillRect(200, 12 + r * 16, 46, 10); } return texOf(c); };
