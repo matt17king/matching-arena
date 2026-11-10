@@ -93,8 +93,8 @@ export function createPost(THREE, renderer, scene, camera) {
         float l=dot(c,vec3(0.2126,0.7152,0.0722));
         c=mix(c, c*vec3(0.92,0.98,1.08), (1.0-smoothstep(0.0,0.35,l))*0.55);   // cool shadows
         c=mix(c, c*vec3(1.06,1.0,0.92), smoothstep(0.45,1.0,l)*0.5);          // warm highlights
-        c=mix(c, c*c*(3.0-2.0*c), 0.22);                                        // S-curve
-        c=mix(vec3(l), c, 1.06);                                               // a touch more saturation
+        c=mix(c, c*c*(3.0-2.0*c), 0.34);                                        // S-curve: real blacks, clean highlights
+        c=mix(vec3(dot(c,vec3(0.2126,0.7152,0.0722))), c, 1.2);                // richer colour: the green of the pitch, the red of the stands
         float v=smoothstep(0.85,0.2,length(d*vec2(uAsp*0.75,1.0))); c*=mix(1.0,v,uVig);
         c+=uFlash*vec3(1.0,0.95,0.9);
         float bh=uBars*0.5*(1.0-uAsp/2.39); if(bh>0.0 && (vUv.y<bh || vUv.y>1.0-bh)) c=vec3(0.043,0.039,0.039);

@@ -34,7 +34,7 @@ export async function createArena(canvas, o = {}) {
   const PHONE = window.matchMedia('(pointer: coarse)').matches && Math.min(window.innerWidth, window.innerHeight) < 760;
   renderer.setPixelRatio(LOWQ ? (PHONE ? Math.min(window.devicePixelRatio || 1, 1.5) : 1) : Math.min(window.devicePixelRatio || 1, 1.6));
   renderer.setClearColor(C(BG), 1);
-  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.14;
   if (!LOWQ) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
   const ANISO = renderer.capabilities.getMaxAnisotropy();
   const scene = new THREE.Scene();
@@ -149,6 +149,9 @@ export async function createArena(canvas, o = {}) {
   sky.renderOrder = -10; scene.add(sky);
   const hemi = new THREE.HemisphereLight(0xd6dcff, 0x1a1210, 0.05); scene.add(hemi);
   const moon = new THREE.DirectionalLight(0x9fb2d6, 0.1); moon.position.set(-300, 400, 200); scene.add(moon);
+  // floodlight wash: when a venue's lamps come on, the whole bowl is lit from above (stands, crowd, playing surface), not just the pools under the key lights.
+  // Two soft directions so faces of the stands on every side take light.
+  const washA = new THREE.DirectionalLight(0xfff2e2, 0), washB = new THREE.DirectionalLight(0xe9efff, 0); washA.position.set(120, 320, 160); washB.position.set(-140, 300, -150); scene.add(washA, washB);
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), triplanar(new THREE.MeshStandardMaterial({ color: C('#2b2826'), roughness: 0.95 }), texAsphalt, 0.12, 0));
   ground.rotation.x = -Math.PI / 2; ground.position.y = -0.4; // well below the playing surfaces so low-precision depth targets never z-fight scene.add(ground);
 
@@ -1515,7 +1518,7 @@ export async function createArena(canvas, o = {}) {
       L.rowsM.forEach((m, r) => { const v = (a0 >= 0 ? flick(t, a0 + r * 0.003) : on) * dim; m.color.setRGB(0.012 + v * 3.2, 0.011 + v * 3.0, 0.01 + v * 2.7); });
       L.halo.material.opacity = on * 0.9 * dim; L.on = on * dim; sum += L.on;
     });
-    Vn.cones.forEach(c => { c.m.material.uniforms.uOp.value = c.lamp.on * c.k; });
+    Vn.cones.forEach(c => { c.m.material.uniforms.uOp.value = c.lamp.on * c.k * 1.3; });
     const crw = mode === 'hero' ? R(t, 0.75, 0.85) : mode === 'out' ? 1 - R(t, 0, 0.12) : mode === 'in' ? R(t, 0.86, 1) : 1;
     if (Vn.crowd) { const u = Vn.crowd.material.uniforms; u.uOp.value = crw * 0.45; u.uTime.value = time; }
     const bon = mode === 'hero' ? R(t, 0.72, 0.77) : mode === 'out' ? 1 - R(t, 0, 0.1) : mode === 'in' ? R(t, 0.84, 0.95) : 1;
@@ -1547,7 +1550,7 @@ export async function createArena(canvas, o = {}) {
     const fd = lerp(sa.fog, sb.fog, xi ? R(xt, 0.15, 0.85) : 0); scene.fog.density = fd; fogU.uFogDen.value = fd;
     const mainV = venues[xi && xt > 0.5 ? B : A]; placeSpots(mainV);
     spots.forEach((s, i) => { const k = mainV.keys[i]; s.intensity = k ? (k.lamp ? k.lamp.on : lit) * mainV.spotK : 0; });
-    skyU.uGlow.value = lit; skyU.uTime.value = time; skyU.uStars.value = mainV.id === 'basketball' ? 0 : 1; coneTime.value = time; hemi.intensity = 0.05 + 0.22 * lit;
+    skyU.uGlow.value = lit; skyU.uTime.value = time; skyU.uStars.value = mainV.id === 'basketball' ? 0 : 1; coneTime.value = time; hemi.intensity = 0.05 + 0.3 * lit; washA.intensity = 0.95 * lit; washB.intensity = 0.55 * lit;
     // lines
     // tennis: the lines glide into the Battle of the Sexes court and back out before the next venue
     // then on into a padel court, which is what the next transition starts from
