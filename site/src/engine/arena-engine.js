@@ -343,10 +343,19 @@ export async function createArena(canvas, o = {}) {
   };
   const pickCloth = pal => { let r = Math.random(); for (const [h, w] of pal) { if ((r -= w) <= 0) return h; } return pal[0][0]; };
   const _cm = new THREE.Matrix4(), _cq = new THREE.Quaternion(), _cs = new THREE.Vector3(), _cp = new THREE.Vector3(), _cy = new THREE.Vector3(0, 1, 0), _cc = new THREE.Color();
+  const helmetMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.32, metalness: 0.05, vertexColors: true }); helmetMat.userData.env = 0.45;
+  // contact shadows: soft dark discs laid on the ground under people, tyres and parked cars, so nothing floats
+  const blobMat = (() => { const [c, g2] = cnv(128, 128), gr = g2.createRadialGradient(64, 64, 4, 64, 64, 62); gr.addColorStop(0, 'rgba(0,0,0,0.85)'); gr.addColorStop(0.55, 'rgba(0,0,0,0.38)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, 128, 128);
+    return new THREE.MeshBasicMaterial({ map: texOf(c), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, toneMapped: false }); })();
+  const blobGeo = new THREE.PlaneGeometry(1, 1); blobGeo.rotateX(-Math.PI / 2);
+  // list: flat [x, y, z, width, length, yaw]
+  function blobsOn(parent, list) { if (!list.length) return; const im = new THREE.InstancedMesh(blobGeo, blobMat, list.length / 6);
+    for (let i = 0; i < list.length / 6; i++) { const j = i * 6; _cq.setFromAxisAngle(_cy, list[j + 5]); _cm.compose(_cp.set(list[j], list[j + 1] + 0.03, list[j + 2]), _cq, _cs.set(list[j + 3], 1, list[j + 4])); im.setMatrixAt(i, _cm); }
+    im.instanceMatrix.needsUpdate = true; im.renderOrder = 2; im.userData.noCast = true; parent.add(im); return im; }
   const crowdMeshes = [], crowdSets = [];
   // one instanced pair (bodies + heads) from prepared per-person data: [x, y, z, yaw, scale, widen, shirt r g b, skin r g b]
-  const figPair = (parent, bodyGeo, headGeo, P, cast = false) => {
-    const n = P.length / 12, bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, n), heads = new THREE.InstancedMesh(headGeo, headMat, n);
+  const figPair = (parent, bodyGeo, headGeo, P, cast = false, hMat = headMat) => {
+    const n = P.length / 12, bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, n), heads = new THREE.InstancedMesh(headGeo, hMat, n);
     for (let k = 0; k < n; k++) { const j = k * 12; _cq.setFromAxisAngle(_cy, P[j + 3]); _cs.set(P[j + 4] * P[j + 5], P[j + 4], P[j + 4]); _cp.set(P[j], P[j + 1], P[j + 2]); _cm.compose(_cp, _cq, _cs);
       bodies.setMatrixAt(k, _cm); heads.setMatrixAt(k, _cm); bodies.setColorAt(k, _cc.setRGB(P[j + 6], P[j + 7], P[j + 8])); heads.setColorAt(k, _cc.setRGB(P[j + 9], P[j + 10], P[j + 11])); }
     [bodies, heads].forEach(m => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; m.userData.noCast = !cast; m.userData.full = n; parent.add(m); });
@@ -373,7 +382,8 @@ export async function createArena(canvas, o = {}) {
       P.push(x, y, z, yaw + (Math.random() - 0.5) * 0.3, sc, 0.96 + Math.random() * 0.1, c.r, c.g, c.b, sk.r, sk.g, sk.b); });
     const seatedP = pose === 'seated', q = LOWQ ? 'lo' : 'hi';
     const hg = pose === 'kneel' ? (head === 'helmet' ? FIG.kneelHelmet : FIG.kneelHead[q]) : seatedP ? (head === 'helmet' ? FIG.seatedHelmet : FIG.seatedHead[q]) : head === 'helmet' ? FIG.helmet : FIG.standHead[q];
-    return figPair(parent, seatedP ? FIG.seated[q] : FIG[pose][q], hg, P, cast && !LOWQ);
+    const bl = []; items.forEach(([x, y, z, yaw]) => { if (y < 0.3) bl.push(x, y, z, pose === 'kneel' ? 1.15 : 0.95, pose === 'kneel' ? 1.7 : seatedP ? 1.3 : 0.95, yaw); }); blobsOn(parent, bl);
+    return figPair(parent, seatedP ? FIG.seated[q] : FIG[pose][q], hg, P, cast && !LOWQ, head === 'helmet' ? helmetMat : headMat);
   }
   // each frame: the stands near the camera show their detailed crowd, the rest the light one
   const _lc = new THREE.Vector3();
@@ -883,9 +893,23 @@ export async function createArena(canvas, o = {}) {
     const pg = new THREE.Group(); const [px, pz] = atf(20, 30); pg.position.set(px, 0, pz); orient(pg, 20); vR.root.add(pg);
     const fz = -cc.sIn;
     // an upper storey carried on piers over thirteen bays. Ten are open garages, fitted out in race-detail.js; the three behind the story boards stay shut
-    box(pg, 140, 3.4, 12, 0, 7.3, 0, 'concreteL'); box(pg, 140, 5.6, 0.4, 0, 2.8, -fz * 5.8, 'concreteL');
-    for (let k = -6; k <= 5; k++) box(pg, 1.7, 5.6, 12, (k + 0.5) * 10.5, 2.8, 0, 'concreteL');
-    for (const sx of [-1, 1]) box(pg, 2.6, 5.6, 12, sx * 68.7, 2.8, 0, 'concreteL');
+    const clad = (() => { const [c, g2] = cnv(512, 512); g2.fillStyle = '#242322'; g2.fillRect(0, 0, 512, 512);
+      for (let y = 0; y < 4; y++) for (let x = 0; x < 2; x++) { const v = 30 + Math.floor(Math.random() * 10); g2.fillStyle = `rgb(${v + 4},${v + 3},${v + 2})`; g2.fillRect(x * 256 + 3, y * 128 + 3, 250, 122); }
+      g2.fillStyle = 'rgba(0,0,0,0.5)'; for (let y = 0; y <= 4; y++) g2.fillRect(0, y * 128 - 1, 512, 3); for (let x = 0; x <= 2; x++) g2.fillRect(x * 256 - 1, 0, 3, 512);
+      const t = texOf(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })();
+    const cladM = (rx, ry2) => { const t = clad.clone(); t.needsUpdate = true; t.repeat.set(rx, ry2); const m = new THREE.MeshStandardMaterial({ map: t, roughness: 0.48, metalness: 0.45 }); m.userData.env = 0.7; return m; };
+    box(pg, 140, 3.4, 12, 0, 7.3, 0, cladM(28, 1)); box(pg, 140, 5.6, 0.4, 0, 2.8, -fz * 5.8, cladM(28, 1.6));
+    const pierM = cladM(0.5, 1.6); for (let k = -6; k <= 5; k++) box(pg, 1.7, 5.6, 12, (k + 0.5) * 10.5, 2.8, 0, pierM);
+    for (const sx of [-1, 1]) box(pg, 2.6, 5.6, 12, sx * 68.7, 2.8, 0, pierM);
+    { // hospitality glazing along the upper storey: warm rooms behind mullions
+      const [c, g2] = cnv(1024, 128); g2.fillStyle = '#0d0c0b'; g2.fillRect(0, 0, 1024, 128);
+      for (let k = 0; k < 8; k++) { const x = k * 128 + 5, gr = g2.createLinearGradient(0, 14, 0, 114); gr.addColorStop(0, '#eac08c'); gr.addColorStop(1, '#7d5330'); g2.fillStyle = gr; g2.fillRect(x, 14, 118, 100);
+        g2.fillStyle = 'rgba(20,14,10,0.8)'; for (let j = 0; j < 3; j++) { const px = x + 14 + Math.random() * 90, ph = 34 + Math.random() * 24; g2.beginPath(); g2.arc(px, 114 - ph, 7, 0, 7); g2.fill(); g2.fillRect(px - 9, 114 - ph + 6, 18, ph); } g2.fillStyle = '#0d0c0b'; g2.fillRect(x + 57, 14, 4, 100); }
+      const t = texOf(c); t.wrapS = THREE.RepeatWrapping; t.repeat.set(13, 1);
+      const win = new THREE.Mesh(new THREE.PlaneGeometry(138, 2.2), new THREE.MeshBasicMaterial({ map: t, color: C('#ffffff').multiplyScalar(0.55) })); win.position.set(0, 7.25, fz * 6.03); win.rotation.y = fz > 0 ? 0 : Math.PI; pg.add(win);
+      const names = ['CLR RACING', 'MK RACING', 'BLK RACING', 'WHT RACING', 'GRY RACING'];
+      for (let k = -6; k <= 6; k++) { if (k === -2 || k === 0 || k === 2) continue; const [nc, ng] = cnv(512, 64); ng.fillStyle = '#0b0a0a'; ng.fillRect(0, 0, 512, 64); ng.fillStyle = '#f3f2f2'; ng.font = FONT(800, 34); LS(ng, '10px'); ng.textAlign = 'center'; ng.textBaseline = 'middle'; ng.fillText(names[(k + 7) % 5], 256, 34); ng.fillStyle = RED; ng.fillRect(0, 58, 512, 6);
+        const s2 = new THREE.Mesh(new THREE.PlaneGeometry(8.6, 0.5), new THREE.MeshBasicMaterial({ map: texOf(nc), color: C('#ffffff').multiplyScalar(0.85) })); s2.position.set(k * 10.5, 5.88, fz * 6.03); s2.rotation.y = fz > 0 ? 0 : Math.PI; pg.add(s2); } }
     for (const k of [-2, 0, 2]) box(pg, 8.8, 5.6, 0.5, k * 10.5, 2.8, fz * 5.7, mats.void);
     box(pg, 142, 0.35, 4, 0, 9.1, fz * 7.6, 'dark'); box(pg, 142, 0.3, 0.12, 0, 8.7, fz * 9.6, redMat);
     box(pg, 150, 1.1, 0.5, 0, 0.55, fz * 19.5, 'concreteL', true); box(pg, 150, 0.1, 0.55, 0, 1.15, fz * 19.5, redMat);
@@ -913,11 +937,13 @@ export async function createArena(canvas, o = {}) {
       addLamp(vR, g, 22, head, rowsM, V3(ax, 0, az), s / cc.len * 0.9, 7, 0.6); }
     const E = SPORTS.race.ext; [[-0.5, -0.4], [0.5, -0.4], [0.5, 0.4], [-0.5, 0.4]].forEach(([a, b]) => vR.keys.push({ pos: V3(a * E, 150, b * E), aim: V3(a * E * 0.6, 0, b * E * 0.6), lamp: null }));
     raceX = buildRaceDetail({ THREE, vR, cc, atf, mats, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, glowTex, fogU, triplanar, texConcrete, NOISE,
-      makeStrip: (geo, len, h, bright, dir, parent) => makeStrip(vR, geo, len, h, bright, dir, parent), addStand, peopleOn, redMat, voidMat: mats.void, warmStrip: warmMat, timeU: coneTime });
+      makeStrip: (geo, len, h, bright, dir, parent) => makeStrip(vR, geo, len, h, bright, dir, parent), addStand, peopleOn, blobsOn, redMat, voidMat: mats.void, warmStrip: warmMat, timeU: coneTime });
     vR.fix.push({ o: raceX.root, kind: 'growY', t0: 0.56 });
     vR.spotK = 1.1; finishVenue(vR, 0.55);
   }
 
+  // pit-stop lamps: a warm light over each box so crews and cars are lit as forms, not silhouettes. Always in the scene (no shader recompiles), lit only for the stops
+  const pitLamps = [-1, 0, 1].map(k => { const pl = new THREE.PointLight(0xfff0dc, 0, 22, 1.4); const [x, z] = atf(20 + k * 21, 19.4); pl.position.set(x, 5.0, z); scene.add(pl); return pl; });
   // ---------- global key spotlights (repositioned onto whichever venue is live)
   const spots = [0, 1, 2, 3].map(() => { const s = new THREE.SpotLight(0xfff1e2, 0, 0, 0.75, 0.65, 0); scene.add(s, s.target); return s; });
   let spotVenue = null;
@@ -1610,7 +1636,7 @@ export async function createArena(canvas, o = {}) {
       const s = rc && t > CH.LAP[0] && t < CH.LAP[1] ? lapS(t) : -999;
       kerbs.forEach((kb, k) => { const d = Math.abs(s - kb.s), a = rc ? Math.max(0, 1 - d / 40) : 0; kb.km.emissiveIntensity = a * (0.6 + 0.3 * Math.sin(time * 9)); signs[k].color.setScalar(0.5 + a * 0.7); });
       const pf = rc ? clamp((t - CH.PIT[0]) / (CH.PIT[1] - CH.PIT[0])) * 3 : -1, pk = Math.min(2, Math.floor(pf)), pon = rc ? R(t, CH.PIT[0] - 0.02, CH.PIT[0]) : 0;
-      kitLED.forEach((m, k) => { m.color.setScalar(0.18 + (k === pk ? pon * 0.5 : 0)); });
+      kitLED.forEach((m, k) => { m.color.setScalar(0.18 + (k === pk ? pon * 0.5 : 0)); }); pitLamps.forEach(pl => { pl.intensity = pon * 17; });
       if (raceX && vR.root.visible) raceX.update({ rc, t, LAP: CH.LAP, lapS, time }); }
     venueX.update({ camera, fdX: fdLine.position.x, driveOn: fdLine.visible, time, goalT, ballX: ball.position.x, ballZ: ball.position.z });
     const bloomK = 0.42 + 0.25 * lit + 0.2 * spot + (xi ? 0.08 * Math.sin(xt * Math.PI) : 0);

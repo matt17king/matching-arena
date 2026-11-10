@@ -4,7 +4,7 @@ import { f1CarFactory } from './f1-car.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
 export function buildRaceDetail(X) {
-  const { THREE, vR, cc, atf, mats, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, glowTex, fogU, makeStrip, addStand, triplanar, texConcrete, NOISE, peopleOn } = X;
+  const { THREE, vR, cc, atf, mats, box, rbox, cyl, struts, cnv, texOf, FONT, LS, C, V3, RED, CHALK, LOWQ, glowTex, fogU, makeStrip, addStand, triplanar, texConcrete, NOISE, peopleOn, blobsOn } = X;
   const root = new THREE.Group(); vR.root.add(root);
   const M = cc.M, ds = cc.ds, L = cc.len;
   const wrapS = s => ((s % L) + L) % L;
@@ -83,11 +83,11 @@ export function buildRaceDetail(X) {
     for (let i = 0; i < 9000; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '10,10,10' : '90,88,84'},${Math.random() * 0.35})`; g.fillRect(Math.random() * 2048, Math.random() * 192, 2, 2); }
     g.fillStyle = 'rgba(232,229,225,0.9)'; g.fillRect(0, 118, 2048, 4); g.fillRect(0, 186, 2048, 4);
     for (let k = -6; k <= 6; k++) { const x = 1024 + k * 10.5 / 150 * 2048; g.strokeStyle = k % 2 ? 'rgba(232,229,225,0.85)' : 'rgba(236,48,19,0.9)'; g.lineWidth = 4; g.strokeRect(x - 60, 6, 120, 104); }
-    const lane = new THREE.Mesh(new THREE.PlaneGeometry(150, 14), new THREE.MeshStandardMaterial({ map: texOf(c), roughness: 0.55, polygonOffset: true, polygonOffsetFactor: -2 }));
+    const lane = new THREE.Mesh(new THREE.PlaneGeometry(150, 14), (() => { const m = new THREE.MeshStandardMaterial({ map: texOf(c), roughness: 0.3, metalness: 0.15, polygonOffset: true, polygonOffsetFactor: -2 }); m.userData.env = 0.9; return m; })());
     lane.rotation.x = -Math.PI / 2; if (fz < 0) lane.rotation.z = Math.PI; lane.position.set(0, 0.016, fz * 13); lane.receiveShadow = !LOWQ; pg.add(lane);
     // garage interiors: warm light falling out onto the lane
     const gm = new THREE.MeshBasicMaterial({ map: (() => { const [c, g] = cnv(256, 160); const gr = g.createLinearGradient(0, 0, 0, 160); gr.addColorStop(0, '#d8d0c6'); gr.addColorStop(0.55, '#8d867f'); gr.addColorStop(1, '#3a3632'); g.fillStyle = gr; g.fillRect(0, 0, 256, 160); g.fillStyle = 'rgba(20,18,17,0.55)'; for (let x = 18; x < 256; x += 46) g.fillRect(x, 40, 30, 70); g.fillStyle = 'rgba(236,48,19,0.7)'; g.fillRect(0, 4, 256, 6); return texOf(c); })(), color: C('#ffffff').multiplyScalar(0.62) });
-    const spill = new THREE.MeshBasicMaterial({ map: glowTex, color: C('#ffe9d2'), transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false });
+    const spill = new THREE.MeshBasicMaterial({ map: glowTex, color: C('#ffe9d2'), transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false });
     // ---- the garages. Each open bay is a real room: epoxy floor, white liner walls with the team stripe, a graphic back wall, light panels overhead,
     // tool chests, a workstation with timing screens, tyre sets in their stacks, a spare nose on its stand, and crew.
     const n = fz > 0 ? 1 : -1, Zd = d => fz * (6 - d), faceLane = fz > 0 ? 0 : Math.PI;
@@ -147,6 +147,7 @@ export function buildRaceDetail(X) {
       peopleOn(pg, 'seated', perch, 'skin', false);
     }
     struts(pg, S, mats.steel);
+    if (blobsOn) { const bl = []; for (let i = 0; i < tyres.length / 4; i++) if (tyres[i * 4 + 1] < 0.3) bl.push(tyres[i * 4], 0, tyres[i * 4 + 2], 1.15, 1.15, 0); [-21, 0, 21].forEach(cx => bl.push(cx + 0.1, 0, fz * 9.6, 6.6, 2.9, 0)); blobsOn(pg, bl); }
     { const m4 = new THREE.Matrix4(), tg = new THREE.CylinderGeometry(0.34, 0.34, 0.37, LOWQ ? 12 : 20), rubber = new THREE.MeshStandardMaterial({ color: C('#0f0f10'), roughness: 0.85 });
       const ti2 = new THREE.InstancedMesh(tg, rubber, tyres.length / 4), bg = new THREE.CylinderGeometry(0.346, 0.346, 0.07, LOWQ ? 12 : 20, 1, true), bi = new THREE.InstancedMesh(bg, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 }), bands.length / 5), col = new THREE.Color();
       for (let i = 0; i < tyres.length / 4; i++) { m4.makeTranslation(tyres[i * 4], tyres[i * 4 + 1], tyres[i * 4 + 2]); ti2.setMatrixAt(i, m4); }

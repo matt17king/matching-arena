@@ -34,12 +34,12 @@ export function buildFigures(THREE) {
     return p;
   };
   // head: a slightly long sphere; everything above the brow and round the back is hair (a dark tint of the skin tone)
-  const head = (c, r, seg, rings, hair = true) => {
+  const head = (c, r, seg, rings, hair = true, visor = false) => {
     const p = part();
     for (let k = 0; k <= rings; k++) { const ph = k / rings * Math.PI, y = Math.cos(ph), rr = Math.sin(ph);
       for (let i = 0; i < seg; i++) { const t = i / seg * Math.PI * 2, x = Math.cos(t) * rr, z = Math.sin(t) * rr;
         p.pos.push(c.x + x * r * 0.9, c.y + y * r * 1.12, c.z + z * r); p.nor.push(x, y, z);
-        const h = hair && (y > 0.42 || (z > 0.25 && y > -0.35)) ? 0.16 : 1; p.col.push(h, h, h); } }
+        const h = visor ? (z < -0.3 && y > -0.3 && y < 0.38 ? 0.05 : 1) : hair && (y > 0.42 || (z > 0.25 && y > -0.35)) ? 0.16 : 1; p.col.push(h, h, h); } }
     for (let k = 0; k < rings; k++) for (let i = 0; i < seg; i++) { const j = (i + 1) % seg, a = k * seg + i, b = k * seg + j, c2 = (k + 1) * seg + i, d = (k + 1) * seg + j; p.idx.push(a, d, c2, a, b, d); }
     return p;
   };
@@ -76,7 +76,7 @@ export function buildFigures(THREE) {
     mirror(x => P.push(limb(V(x * 0.215, 0.93, -0.09), V(x * 0.2, 0.72, -0.3), 0.052, 0.044, ls, 1, false), limb(V(x * 0.2, 0.72, -0.3), V(x * 0.07, 0.6, -0.56), 0.043, 0.034, ls)));
     return merge(P);
   };
-  const headAt = (y, z, hi, hair = true, r = 0.105) => merge([head(V(0, y, z), r, hi ? 8 : 5, hi ? 6 : 3, hair)]);
+  const headAt = (y, z, hi, hair = true, r = 0.105) => merge([hair ? head(V(0, y, z), r, hi ? 8 : 5, hi ? 6 : 3, true) : head(V(0, y, z), r, 12, 8, false, true)]);   // helmets: rounder, with the visor band
   return {
     seated: { hi: seated(true), lo: seated(false) }, seatedHead: { hi: headAt(0.865, 0.025, true), lo: headAt(0.865, 0.025, false) },
     stand: { hi: standing(true), lo: standing(false) }, cheer: { hi: standing(true, 'up'), lo: standing(false, 'up') }, cross: { hi: standing(true, 'cross'), lo: standing(false, 'cross') },

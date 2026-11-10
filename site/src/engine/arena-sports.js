@@ -11,7 +11,7 @@ function football() {
   S.push({ pts: rect(-L, -Wd, L, Wd), t: [0, 0.42], closed: true });
   S.push({ pts: [[0, Wd], [0, -Wd]], t: [0.36, 0.52] });
   S.push({ pts: arc(0, 0, 9.15, Math.PI / 2, Math.PI * 2.5, 80), t: [0.46, 0.66], closed: true });
-  S.push({ pts: arc(0, 0, 0.25, 0, TAU, 12), t: [0.64, 0.66], closed: true });
+  S.push({ pts: arc(0, 0, 0.12, 0, TAU, 24), t: [0.64, 0.66], closed: true });
   for (const sx of [-1, 1]) {
     S.push({ pts: [[sx * L, -20.16], [sx * (L - 16.5), -20.16], [sx * (L - 16.5), 20.16], [sx * L, 20.16]], t: [0.56, 0.8] });
     S.push({ pts: [[sx * L, -9.16], [sx * (L - 5.5), -9.16], [sx * (L - 5.5), 9.16], [sx * L, 9.16]], t: [0.74, 0.88] });
