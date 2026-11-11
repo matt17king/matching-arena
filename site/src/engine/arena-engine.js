@@ -103,9 +103,20 @@ export async function createArena(canvas, o = {}) {
     void: new THREE.MeshBasicMaterial({ color: C('#0d0c0b') }),
     roof: new THREE.MeshPhysicalMaterial({ color: C('#9aa1a6'), roughness: 0.35, metalness: 0.1, transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide }),
   };
+  Object.entries(mats).forEach(([k, m]) => { m.name = k; });
+  // ---------- baked lighting. A venue can ship a bake (public/bake/<venue>.bin, made offline in Blender from this same geometry): bounced floodlight,
+  // soft shadowing and colour spill, stored per vertex for the structure, per seat for everything instanced, and as a small map for the pitch.
+  // Materials opt in with bakeable(); geometry without the aBake attribute reads zero, so every other venue is untouched.
+  const bakeU = { value: 0 }, BAKE_K = 2.3;
+  const bakeable = mat => { const prev = mat.onBeforeCompile, tag = prev ? 'tri' : 'plain';
+    mat.onBeforeCompile = sh => { if (prev) prev(sh); sh.uniforms.uBakeK = bakeU;
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec3 aBake; varying vec3 vBake;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvBake = aBake;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uBakeK; varying vec3 vBake;').replace('#include <lights_fragment_end>', 'irradiance += vBake * uBakeK;\n#include <lights_fragment_end>'); };
+    mat.customProgramCacheKey = () => 'bake:' + tag + ':' + (mat.vertexColors ? 'vc' : ''); mat.userData.bake = true; return mat; };
+  ['concrete', 'concreteL', 'dark', 'steel'].forEach(k => bakeable(mats[k]));
   const edgeMat = new THREE.LineBasicMaterial({ color: C(CHALK), transparent: true, opacity: 0.02, depthWrite: false });
-  const redMat = new THREE.MeshBasicMaterial({ color: C(RED).multiplyScalar(1.25) });
-  const warmMat = new THREE.MeshBasicMaterial({ color: C('#fff1df').multiplyScalar(2.2) });
+  const redMat = new THREE.MeshBasicMaterial({ color: C(RED).multiplyScalar(1.25) }); redMat.name = 'redline';
+  const warmMat = new THREE.MeshBasicMaterial({ color: C('#fff1df').multiplyScalar(2.2) }); warmMat.name = 'warm';
   const box = (parent, w, h, d, x, y, z, kind = 'concrete', edges = false) => {
     const g = new THREE.BoxGeometry(w, h, d); const m = new THREE.Mesh(g, typeof kind === 'string' ? mats[kind] : kind);
     m.position.set(x, y, z); parent.add(m); if (edges) m.add(new THREE.LineSegments(new THREE.EdgesGeometry(g, 25), edgeMat)); return m;
@@ -332,12 +343,12 @@ export async function createArena(canvas, o = {}) {
   [[-0.2, 0.03], [-0.17, 0.0], [0.11, 0.0], [0.15, 0.03], [0.2, 0.4], [0.18, 0.44], [0.14, 0.43], [0.1, 0.09], [-0.18, 0.1], [-0.21, 0.07]].forEach(([a, b], i) => i ? seatShape.lineTo(a, b) : seatShape.moveTo(a, b));
   const seatGeoBase = new THREE.ExtrudeGeometry(seatShape, { depth: 0.4, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.015, bevelSegments: 1, curveSegments: 1 });
   seatGeoBase.rotateY(-Math.PI / 2); seatGeoBase.translate(0.2, 0, 0); seatGeoBase.computeVertexNormals();
-  const seatMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42 });
+  const seatMat = bakeable(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42 })); seatMat.name = 'seat';
   const SEATC = { grey: [0.1, 0.095, 0.093], red: [0.24, 0.04, 0.028], green: [0.06, 0.09, 0.066] };
   // ---------- people. Figures come from figures.js: smooth bodies with arms and legs, a head with a hairline.
   // A stand's crowd is drawn twice over: a detailed set for when the camera is near that stand and a light one for when it's far.
   const FIG = buildFigures(THREE);
-  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.86, vertexColors: true }), headMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.62, vertexColors: true });
+  const bodyMat = bakeable(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.86, vertexColors: true })), headMat = bakeable(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.62, vertexColors: true })); bodyMat.name = 'body'; headMat.name = 'head';
   const SKIN = ['#c99a7c', '#b98262', '#8d5a3c', '#6b4129', '#dbb193', '#a8744f'].map(h => C(h));
   const CLOTH = {   // [colour, share]: mostly dark coats at night, with the home colour running through
     grey: [['#1b1a1a', 0.3], ['#2c2a29', 0.18], ['#a42410', 0.22], ['#b9b4ae', 0.08], ['#3a2420', 0.09], ['#23303a', 0.08], ['#5a5450', 0.05]],
@@ -417,10 +428,10 @@ export async function createArena(canvas, o = {}) {
   // shared stand parts: the lit concourse seen through a vomitory, aisle steps and their nosings
   const vomMat = (() => { const [c, g2] = cnv(128, 128), gr = g2.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, '#5a4630'); gr.addColorStop(0.35, '#f0c48e'); gr.addColorStop(1, '#7a5632'); g2.fillStyle = gr; g2.fillRect(0, 0, 128, 128);
     g2.fillStyle = 'rgba(18,13,9,0.8)'; g2.fillRect(0, 0, 128, 16); for (const [x, h] of [[30, 62], [58, 70], [92, 58]]) { g2.beginPath(); g2.arc(x, 128 - h, 8, 0, 7); g2.fill(); g2.fillRect(x - 10, 128 - h + 7, 20, h); }
-    return new THREE.MeshBasicMaterial({ map: texOf(c), color: C('#ffffff').multiplyScalar(0.62) }); })();
-  const deckMat = new THREE.MeshStandardMaterial({ color: C('#161514'), roughness: 0.7, metalness: 0.3, side: THREE.DoubleSide });
+    const m = new THREE.MeshBasicMaterial({ map: texOf(c), color: C('#ffffff').multiplyScalar(0.62) }); m.name = 'vom'; return m; })();
+  const deckMat = bakeable(new THREE.MeshStandardMaterial({ color: C('#161514'), roughness: 0.7, metalness: 0.3, side: THREE.DoubleSide })); deckMat.name = 'deck';
   const vomGeo = new THREE.PlaneGeometry(2.4, 2.3), stepGeo = new THREE.BoxGeometry(0.5, 1, 0.4), noseGeo = new THREE.BoxGeometry(0.5, 0.02, 0.05);
-  const noseMat = new THREE.MeshStandardMaterial({ color: C('#b8b0a0'), roughness: 0.6 }), slotMat = new THREE.MeshBasicMaterial({ color: C('#f2c690').multiplyScalar(0.5) });
+  const noseMat = bakeable(new THREE.MeshStandardMaterial({ color: C('#b8b0a0'), roughness: 0.6 })), slotMat = new THREE.MeshBasicMaterial({ color: C('#f2c690').multiplyScalar(0.5) }); noseMat.name = 'nose'; slotMat.name = 'slot';
   function stand(len, tier, opt = {}) {
     const g = new THREE.Group(); const seats = []; const rowD = 0.8;
     const top = [[0, 0], [0, 1.45], [0.3, 1.45], [0.3, 1.4]]; let y = 1.4, z = 0.3, fascia = null;
@@ -519,7 +530,7 @@ export async function createArena(canvas, o = {}) {
 
   // ---------- venues
   const venues = [];
-  function venue(id, s) { const root = new THREE.Group(); root.scale.setScalar(s); scene.add(root); const Vn = { id, s, root, stands: [], fix: [], lamps: [], boards: [], cones: [], keys: [], extra: [], crowdPts: [], crowd: null, spotK: 1.5 }; venues.push(Vn); return Vn; }
+  function venue(id, s) { const root = new THREE.Group(); root.name = 'venue:' + id; root.scale.setScalar(s); scene.add(root); const Vn = { id, s, root, stands: [], fix: [], lamps: [], boards: [], cones: [], keys: [], extra: [], crowdPts: [], crowd: null, spotK: 1.5 }; venues.push(Vn); return Vn; }
   const _w = new THREE.Vector3();
   function addStand(Vn, d) {
     const st = stand(d.len, d.tier, d); const outer = new THREE.Group(); outer.position.set(d.pos[0], 0, d.pos[1]); outer.rotation.y = d.ry; outer.add(st.g); Vn.root.add(outer);
@@ -532,7 +543,7 @@ export async function createArena(canvas, o = {}) {
   // a curved corner section between two stands, so the bowl closes. Pivot (px, pz) in the quadrant (sx, sz): the long stand's front line sits rA out from
   // the pivot, the end stand's rB. Same stepped section, seats on arcs facing the pitch, an optional roof swept round with it.
   function addCorner(Vn, d) {
-    const pr = standProfile(d.tier), N = LOWQ ? 8 : 16, o = { sx: d.sx, sz: d.sz, rA: d.rA, rB: d.rB, N };
+    const pr = standProfile(d.tier), N = 16, o = { sx: d.sx, sz: d.sz, rA: d.rA, rB: d.rB, N };
     const g = new THREE.Group(); g.position.set(d.sx * d.px, d.y0 || 0, d.sz * d.pz); Vn.root.add(g);
     g.add(new THREE.Mesh(sweepGeo(pr.top, o), mats.concrete));
     const sp = (d.sp || 0.56) * (LOWQ ? 1.5 : 1), seats = [], aisles = [Math.PI / 4];
@@ -1550,7 +1561,8 @@ export async function createArena(canvas, o = {}) {
     const fd = lerp(sa.fog, sb.fog, xi ? R(xt, 0.15, 0.85) : 0); scene.fog.density = fd; fogU.uFogDen.value = fd;
     const mainV = venues[xi && xt > 0.5 ? B : A]; placeSpots(mainV);
     spots.forEach((s, i) => { const k = mainV.keys[i]; s.intensity = k ? (k.lamp ? k.lamp.on : lit) * mainV.spotK : 0; });
-    skyU.uGlow.value = lit; skyU.uTime.value = time; skyU.uStars.value = mainV.id === 'basketball' ? 0 : 1; coneTime.value = time; hemi.intensity = 0.05 + 0.3 * lit; washA.intensity = 0.95 * lit; washB.intensity = 0.55 * lit;
+    skyU.uGlow.value = lit; skyU.uTime.value = time; skyU.uStars.value = mainV.id === 'basketball' ? 0 : 1; coneTime.value = time; { const bk = mainV.baked ? 1 : 0; hemi.intensity = 0.05 + (bk ? 0.12 : 0.3) * lit; washA.intensity = (bk ? 0.3 : 0.95) * lit; washB.intensity = (bk ? 0.18 : 0.55) * lit; bakeU.value = lit * BAKE_K;
+      if (bakePitch) { const on = mainV === bakePitch.Vn && lit > 0.01; bakePitch.m.visible = on; bakePitch.m.material.uniforms.uK.value = lit; } }
     // lines
     // tennis: the lines glide into the Battle of the Sexes court and back out before the next venue
     // then on into a padel court, which is what the next transition starts from
@@ -1723,6 +1735,48 @@ export async function createArena(canvas, o = {}) {
     ground.receiveShadow = true; tunnel.traverse(m => { if (m.isMesh) m.receiveShadow = true; });
   }
   scene.traverse(m => { if (!m.isMesh || !m.material || !m.material.isMeshStandardMaterial) return; const mm = m.material; mm.envMapIntensity = mm.userData.env != null ? mm.userData.env : mm === mats.steel ? 0.6 : mm === mats.glass ? 0.6 : mm === seatMat ? 0.16 : mm === surfMat ? 0.22 : 0.1; });
+  // ----- bake: keys, export (debug only) and loader
+  const BAKE_MESH = new Set(['concrete', 'concreteL', 'dark', 'steel', 'deck']);
+  const bakeKeys = Vn => { const seen = {}, out = []; Vn.root.updateMatrixWorld(true);
+    Vn.root.traverse(m => { if (!m.isMesh || m.isInstancedMesh || !m.material || !BAKE_MESH.has(m.material.name)) return; const g = m.geometry; if (!g.boundingBox) g.computeBoundingBox();
+      const c = g.boundingBox.getCenter(new THREE.Vector3()).applyMatrix4(m.matrixWorld); let k = `${m.material.name}|${c.x.toFixed(1)}|${c.y.toFixed(1)}|${c.z.toFixed(1)}|${g.attributes.position.count}`; seen[k] = (seen[k] || 0) + 1; out.push([k + '#' + seen[k], m]); }); return out; };
+  if (o.debug) window.__mkBakeExport = id => { const Vn = venues.find(v => v.id === id), keys = new Map(bakeKeys(Vn).map(([k, m]) => [m, k])), out = [];
+    const b64 = a => { const u = new Uint8Array(a.buffer, a.byteOffset, a.byteLength); let s2 = ''; for (let i = 0; i < u.length; i += 32768) s2 += String.fromCharCode.apply(null, u.subarray(i, i + 32768)); return btoa(s2); };
+    Vn.root.traverse(m => { if (!m.isMesh || !m.material) return; const mt = m.material, g = m.geometry, e = { mat: mt.name || mt.type, mw: Array.from(m.matrixWorld.elements), transparent: !!mt.transparent, col: mt.color ? mt.color.toArray() : null, bakeInst: !!(mt.userData && mt.userData.bake) };
+      if (m.isInstancedMesh) { e.kind = 'inst'; e.im = b64(m.instanceMatrix.array); e.count = m.userData.full || m.count; }
+      else { e.kind = 'mesh'; e.key = keys.get(m) || null; e.pos = b64(g.attributes.position.array); e.nor = g.attributes.normal ? b64(g.attributes.normal.array) : null; e.idx = g.index ? b64(new Uint32Array(g.index.array)) : null; }
+      out.push(e); });
+    return out; };
+  let bakePitch = null;
+  async function applyBake(Vn, url) {
+    let buf; try { const r = await fetch(url); if (!r.ok) return; buf = await r.arrayBuffer(); } catch (e) { return; }
+    if (buf.byteLength < 16 || new DataView(buf).getUint32(0, true) !== 0x454b4142) return;   // 'BAKE'
+    const dv = new DataView(buf, 4), jl = dv.getUint32(0, true), meta = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 8, jl))), base = 8 + jl + ((4 - (jl % 4)) % 4);
+    const dec = (u8, n) => { const f = new Float32Array(n * 3); for (let i = 0; i < n; i++) for (let a = 0; a < 3; a++) { const v = u8[i * 4 + a] / 255; f[i * 3 + a] = v * v * meta.range; } return f; };
+    // structure: swap in the subdivided geometry that carries the bake
+    const byKey = new Map(meta.meshes.map(q => [q.key, q]));
+    bakeKeys(Vn).forEach(([k, m]) => { const q = byKey.get(k); if (!q) return; const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buf, base + q.pos, q.nv * 3), 3)); g.setAttribute('normal', new THREE.BufferAttribute(new Int8Array(buf, base + q.nor, q.nv * 4), 4, true));
+      g.setAttribute('aBake', new THREE.BufferAttribute(dec(new Uint8Array(buf, base + q.col, q.nv * 4), q.nv), 3)); g.setIndex(new THREE.BufferAttribute(q.i16 ? new Uint16Array(buf, base + q.idx, q.ni) : new Uint32Array(buf, base + q.idx, q.ni), 1)); m.geometry = g; });
+    // everything instanced (seats, crowd, steps, steel) takes its light from the nearest probe
+    const P = meta.probes, pp = new Float32Array(buf, base + P.pos, P.n * 3), pc = dec(new Uint8Array(buf, base + P.col, P.n * 4), P.n), cell = P.cell, grid = new Map(), K = (x, y, z) => `${Math.round(x / cell)},${Math.round(y / cell)},${Math.round(z / cell)}`;
+    for (let i = 0; i < P.n; i++) grid.set(K(pp[i * 3], pp[i * 3 + 1], pp[i * 3 + 2]), i);
+    const look = (x, y, z) => { let i = grid.get(K(x, y, z)); if (i !== undefined) return i; let bd = 1e9, bi = -1;
+      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) { const j = grid.get(K(x + dx * cell, y + dy * cell, z + dz * cell)); if (j === undefined) continue; const d = (pp[j * 3] - x) ** 2 + (pp[j * 3 + 1] - y) ** 2 + (pp[j * 3 + 2] - z) ** 2; if (d < bd) { bd = d; bi = j; } } return bi; };
+    const mx = new THREE.Matrix4(), v = new THREE.Vector3();
+    Vn.root.traverse(m => { if (!m.isInstancedMesh || !m.material.userData || !m.material.userData.bake) return; const n = m.userData.full || m.count, a = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) { m.getMatrixAt(i, mx); v.setFromMatrixPosition(mx).applyMatrix4(m.matrixWorld); const j = look(v.x, v.y, v.z); if (j < 0) { a[i * 3] = a[i * 3 + 1] = a[i * 3 + 2] = meta.fallback; continue; } a[i * 3] = pc[j * 3]; a[i * 3 + 1] = pc[j * 3 + 1]; a[i * 3 + 2] = pc[j * 3 + 2]; }
+      const g0 = m.geometry, g = new THREE.BufferGeometry(); Object.keys(g0.attributes).forEach(k => g.setAttribute(k, g0.attributes[k])); if (g0.index) g.setIndex(g0.index); g.boundingBox = g0.boundingBox; g.boundingSphere = g0.boundingSphere;
+      g.setAttribute('aBake', new THREE.InstancedBufferAttribute(a, 3)); m.geometry = g; });
+    // the pitch: a small map of how the light falls across it, laid over the turf (2x multiply, so it can lift as well as shade)
+    const T = meta.pitch, tex = new THREE.DataTexture(new Uint8Array(buf, base + T.off, T.w * T.h * 4), T.w, T.h, THREE.RGBAFormat); tex.magFilter = tex.minFilter = THREE.LinearFilter; tex.needsUpdate = true;
+    const pm = new THREE.Mesh(new THREE.PlaneGeometry(T.sx, T.sz), new THREE.ShaderMaterial({ uniforms: { tMap: { value: tex }, uK: { value: 0 } }, vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+      fragmentShader: 'uniform sampler2D tMap; uniform float uK; varying vec2 vUv; void main(){ vec3 r=texture2D(tMap,vUv).rgb*2.0; float l=dot(r,vec3(0.2126,0.7152,0.0722)); r=mix(vec3(l),r,0.45); r=min(pow(max(r,vec3(0.0)),vec3(0.55)),vec3(1.12)); vec2 e=min(vUv,1.0-vUv); float f=smoothstep(0.0,0.04,min(e.x,e.y)); gl_FragColor=vec4(mix(vec3(0.5),r*0.5,uK*f),1.0); }',
+      transparent: true, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.DstColorFactor, blendDst: THREE.SrcColorFactor, polygonOffset: true, polygonOffsetFactor: -3 }));
+    pm.rotation.x = -Math.PI / 2; pm.position.y = 0.02; pm.renderOrder = 1.2; pm.visible = false; scene.add(pm); bakePitch = { m: pm, Vn };
+    Vn.baked = true;
+  }
+  if (o.bake && o.bake.football && !(o.debug && new URLSearchParams(location.search).has('nobake'))) await applyBake(vF, o.bake.football);
   try { venues.forEach(Vn => { Vn.root.visible = true; }); [wwCentre, wwRing, tac, fans, fdLine].forEach(m => { if (m) m.visible = true; }); if (renderer.compileAsync) await renderer.compileAsync(scene, camera); } catch (e) {}
   update(0, 0); raf = requestAnimationFrame(frame);
   setTimeout(loadFigure, 1500);
