@@ -1,5 +1,5 @@
 // The field: one WebGL canvas behind the whole page.
-//  1. trail sim   — a feedback buffer. Anything that moves (cursor, runners) leaves light that decays: a long exposure.
+//  1. trail sim   — a feedback buffer. The cursor (or a tap) leaves light that decays: a long exposure. Nothing moves on its own.
 //  2. composite   — the base colour, two soft fields of light with panned streaks and contour lines, the trails, and film grain.
 //  3. photo pass  — the "in the stands" strip, drawn with a real directional blur tied to how fast it is moving.
 // Plain WebGL1, no libraries. If the context can't be created the page still works on its CSS background.
@@ -67,7 +67,7 @@ void main(){
   // fine contour lines through the light, the rings a moving lamp leaves on a long exposure
   float ring=smoothstep(.3,.7,.5+.5*sin(da*uRes.y*uLines+w.x*5.));
   float ring2=smoothstep(.3,.7,.5+.5*sin(db*uRes.y*uLines*.8-w.y*5.));
-  a*=.8+.2*ring; b*=.84+.16*ring2;
+  a*=.87+.13*ring; b*=.9+.1*ring2;
   a=a*a*(3.-2.*a)*uEnergy; b=b*b*(3.-2.*b)*uEnergy;
 
   vec3 tr=texture2D(uTrail,vUv).rgb*.5+texture2D(uTrail,vUv+vec2(.006,0.)).rgb*.25+texture2D(uTrail,vUv-vec2(.006,0.)).rgb*.25;
@@ -76,7 +76,7 @@ void main(){
   // grain: fine + slightly coarser, and it also breaks up every blend edge (the airbrushed, gritty falloff)
   vec2 fc=gl_FragCoord.xy; float g=hash(fc+uSeed)-.5, g2=hash(floor(fc*.5)+uSeed*1.7)-.5; float gr=g*.68+g2*.32;
   float ea=a*(1.-a)*4., eb=b*(1.-b)*4., eh=halo*(1.-halo)*4., ec=core*(1.-core)*4.;
-  a=clamp(a+gr*.5*ea,0.,1.); b=clamp(b+gr*.5*eb,0.,1.); halo=clamp(halo+gr*.55*eh,0.,1.); core=clamp(core+gr*.5*ec,0.,1.);
+  a=clamp(a+gr*.36*ea,0.,1.); b=clamp(b+gr*.36*eb,0.,1.); halo=clamp(halo+gr*.4*eh,0.,1.); core=clamp(core+gr*.36*ec,0.,1.);
 
   vec3 col=uBg;
   col=mix(col,uB,b*uMix.y);
@@ -115,23 +115,6 @@ void main(){
   al=min(al,max(rr,clamp(uBlur*10.,0.,1.)));
   gl_FragColor=vec4(c,al*uAlpha*f);
 }`;
-
-// The lines the light draws, one per scene. Each returns a point in 0..1 screen space (y up) for runner i at time t.
-const tri = x => 1 - Math.abs(((x % 2) + 2) % 2 - 1);
-export const RUNNERS = {
-  // every line keeps to the upper part of the screen: headlines sit low and left, and light should pass behind them, not through them
-  drift: (i, t) => [0.56 + 0.42 * Math.sin(t * 0.46 + i * 2.4 + 1), 0.74 + 0.2 * Math.sin(t * 0.61 + i * 1.3)],
-  // runway: long straight passes, low to high
-  runway: (i, t) => { const u = (t * 0.16 + i * 0.5) % 1; return [0.2 + 1.0 * u, 0.56 + i * 0.13 + 0.3 * u]; },
-  // arc: the flight of a shot
-  arc: (i, t) => { const u = (t * 0.17 + i * 0.5) % 1, dir = i ? -1 : 1; return [0.55 + dir * (u - 0.5) * 0.86, 0.54 + 0.4 * 4 * u * (1 - u)]; },
-  // route: straight upfield, then a hard cut
-  route: (i, t) => { const u = (t * 0.15 + i * 0.5) % 1, x0 = 0.42 + i * 0.4, s = i ? -1 : 1; return u < 0.55 ? [x0, 0.5 + u * 0.62] : [x0 + s * (u - 0.55) * 0.8, 0.84 + (u - 0.55) * 0.2]; },
-  // rally: over the net and back
-  rally: (i, t) => { const k = t * 0.34 + i * 0.5; return [0.2 + 0.72 * tri(k), 0.58 + 0.3 * Math.abs(Math.sin(k * Math.PI)) + i * 0.05]; },
-  // lap: a circuit with a chicane, two cars
-  lap: (i, t) => { const th = t * 0.62 - i * 0.55; return [0.66 + 0.26 * Math.cos(th) + 0.05 * Math.cos(3 * th), 0.7 + 0.18 * Math.sin(th) + 0.04 * Math.sin(2 * th)]; },
-};
 
 function compile(gl, type, src) { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || 'shader'); return s; }
 function program(gl, vs, fs) {
@@ -174,10 +157,8 @@ export function createField(canvas, { reduced = false } = {}) {
   }
   resize();
 
-  // runners + pointer: up to six light sources. Each keeps its last position so we can stamp the whole segment it travelled.
+  // light sources: the pointer's last move and any tap. Each is stamped as the whole segment it travelled.
   const segs = new Float32Array(24), segP = new Float32Array(18);
-  const last = Array.from({ length: 6 }, () => null);
-  let mode = 'drift';
   const pointer = { x: 0.5, y: 0.5, px: 0.5, py: 0.5, moved: false, burst: 0 };
 
   // photo strip
@@ -202,7 +183,7 @@ export function createField(canvas, { reduced = false } = {}) {
 
   let seedT = 0, seed = 0, slow = 0, frames = 0;
   function frame(s) {
-    // s: { time, dt, scroll (in viewport heights), flow (page movement this frame in viewport heights), vel 0..1, theme {bg,a,b,halo,core,mix}, blob [ax,ay,bx,by], energy, runners 0..1, mode, strip:[{i,x,y,w,h,blur,duo,alpha}] }
+    // s: { time, dt, scroll (in viewport heights), flow (page movement this frame in viewport heights), vel 0..1, theme {bg,a,b,halo,core,mix}, blob [ax,ay,bx,by], energy, strip:[{i,x,y,w,h,blur,duo,alpha}] }
     resize();
     const aspect = W / H, t = s.time;
     if (!reduced) { seedT += s.dt; if (seedT > 1 / 14) { seedT = 0; seed = Math.random() * 97; } }
@@ -211,14 +192,6 @@ export function createField(canvas, { reduced = false } = {}) {
     let n = 0;
     const rs = Math.min(1, aspect * 1.2); // on a narrow screen the same light would be a blob, so scale it with the width
     const push = (ax, ay, bx, by, rc, rh, str) => { if (n >= 6) return; segs.set([ax * aspect, ay, bx * aspect, by], n * 4); segP.set([rc * rs, rh * rs, str], n * 3); n++; };
-    if (s.mode !== mode) { mode = s.mode; last[0] = last[1] = last[2] = null; }
-    const fn = RUNNERS[mode] || RUNNERS.drift, count = mode === 'drift' ? 1 : 2;
-    if (!reduced && s.runners > 0.01) for (let i = 0; i < count; i++) {
-      const [x, y] = fn(i, t); const l = last[i];
-      // a runner that wraps round to the start of its line shouldn't draw the jump back
-      if (l && Math.hypot(x - l[0], y - l[1]) < 0.2) push(l[0], l[1] + s.flow, x, y, 0.0065, 0.045, 0.55 * s.runners);
-      last[i] = [x, y];
-    }
     if (pointer.moved) {
       const sp = Math.hypot(pointer.x - pointer.px, pointer.y - pointer.py);
       if (sp > 0.0005 && sp < 0.5) push(pointer.px, pointer.py + s.flow, pointer.x, pointer.y, 0.007 + Math.min(sp, 0.08) * 0.12, 0.05 + Math.min(sp, 0.08) * 0.5, Math.min(0.95, 0.3 + sp * 14));
@@ -251,7 +224,7 @@ export function createField(canvas, { reduced = false } = {}) {
     // ---- photo strip
     if (s.strip && s.strip.length) {
       gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      gl.useProgram(photo.p); const pu = photo.u; gl.uniform1i(pu.uTex, 0); gl.uniform1f(pu.uSeed, seed); gl.uniform1f(pu.uGrain, s.grain * 1.4);
+      gl.useProgram(photo.p); const pu = photo.u; gl.uniform1i(pu.uTex, 0); gl.uniform1f(pu.uSeed, seed); gl.uniform1f(pu.uGrain, s.grain * 0.45);
       gl.uniform3fv(pu.uLo, s.duoLo); gl.uniform3fv(pu.uHi, s.duoHi);
       for (const q of s.strip) {
         const ph = photos[q.i]; if (!ph || !ph.ready || q.alpha <= 0.003) continue;

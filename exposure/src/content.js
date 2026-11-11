@@ -6,13 +6,13 @@ export const LINKEDIN = 'https://linkedin.com/in/mattking17';
 export const INSTAGRAM = 'https://instagram.com/mattking.17';
 
 // The five frames. Each one is an idea first; the sport is where it was learned.
-// `scene` picks the line the light draws behind the title (see RUNNERS in src/gl/field.js).
+// Each frame's playing surface is drawn in line behind its title (see src/pitches.js, keyed by `id`).
 export const FRAMES = [
-  { id: 'runway', n: '01', sport: 'Football', scene: 'runway', title: ['The tunnel is', 'the new <em>runway.</em>'], intro: 'Fashion is everywhere in sport. Nobody falls for 90 minutes. They fall for the story.' },
-  { id: 'side-door', n: '02', sport: 'Basketball', scene: 'arc', title: ['Culture is', 'the <em>side door.</em>'], intro: 'Reach people through what they already love. Then put the sport in that world.' },
-  { id: 'fit', n: '03', sport: 'NFL', scene: 'route', title: ['Fit beats', '<em>size.</em>'], intro: 'How a fan is made, one stage at a time. Then the eleven rules I cast talent by.' },
-  { id: 'format', n: '04', sport: 'Tennis', scene: 'rally', title: ['The format is', 'the <em>product.</em>'], intro: 'Change the format and you change who turns up. Split surfaces, handicapped courts, smaller courts with walls, one-point shoot-outs: the sport stays, the door gets wider.' },
-  { id: 'story', n: '05', sport: 'Motorsport', scene: 'lap', title: ['Story before', '<em>sport.</em>'], intro: 'Drive to Survive turned box-set watchers into F1 fans. They came for the people and stayed for the racing.' },
+  { id: 'runway', n: '01', sport: 'Football', title: ['The tunnel is', 'the new <em>runway.</em>'], intro: 'Fashion is everywhere in sport. Nobody falls for 90 minutes. They fall for the story.' },
+  { id: 'side-door', n: '02', sport: 'Basketball', title: ['Culture is', 'the <em>side door.</em>'], intro: 'Reach people through what they already love. Then put the sport in that world.' },
+  { id: 'fit', n: '03', sport: 'NFL', title: ['Fit beats', '<em>size.</em>'], intro: 'How a fan is made, one stage at a time. Then the eleven rules I cast talent by.' },
+  { id: 'format', n: '04', sport: 'Tennis', title: ['The format is', 'the <em>product.</em>'], intro: 'Change the format and you change who turns up. Split surfaces, handicapped courts, smaller courts with walls, one-point shoot-outs: the sport stays, the door gets wider.' },
+  { id: 'story', n: '05', sport: 'Motorsport', title: ['Story before', '<em>sport.</em>'], intro: 'Drive to Survive turned box-set watchers into F1 fans. They came for the people and stayed for the racing.' },
 ];
 
 // Frame 01

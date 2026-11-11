@@ -1,6 +1,8 @@
 // Turns content.js into markup. No behaviour here; main.js wires it up afterwards.
 import { EMAIL, FRAMES, RUNWAY, PLAYS, BRIEF, JOURNEY, RULES, FORMATS, FORMAT_PHOTOS, MARKETS, KIT, FILM, RECORD, RIGHTS, ROUTE, STANDS, WORKED_WITH, TALENT, PRESS, SEATS, TOPICS } from './content.js';
 
+import { pitchSVG } from './pitches.js';
+
 const B = import.meta.env.BASE_URL;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pad2 = n => String(n).padStart(2, '0');
@@ -14,11 +16,14 @@ const photo = ([f, title, line, alt], cls = '') => `<figure class="ph ${cls}" da
 </figure>`;
 const logo = (f, name) => `<i class="lg" role="img" aria-label="${esc(name)}" style="-webkit-mask-image:url('${B}logos/${f}');mask-image:url('${B}logos/${f}')"></i>`;
 
-const card = (f, i) => `<header class="fr-card" data-scene="${f.scene}" data-blob="${['.82,.3,.1,.85', '.2,.72,.92,.2', '.75,.75,.15,.2', '.5,.25,.95,.9', '.78,.5,.05,.1'][i]}" data-energy="1" data-runners="1">
-  <span class="fr-num" aria-hidden="true">${f.n}</span>
-  <div class="fr-meta mono"><span>Frame ${f.n} / 05</span><span>${esc(f.sport)}</span></div>
-  <h2 class="fr-title" data-r="smear" data-split data-smear="46">${f.title.map(l => `<span class="ln">${l.replace('<em>', '<em class="hi">')}</span>`).join(' ')}</h2>
-  <p class="fr-intro lead" data-r="fade" style="--d:.25s">${esc(f.intro)}</p>
+// A frame's title card is pinned for a moment while its playing surface is drawn in line behind the title.
+const card = (f, i) => `<header class="pin fr-pin" style="--len:.9" data-scene data-blob="${['.82,.3,.1,.85', '.2,.72,.92,.2', '.75,.75,.15,.2', '.5,.25,.95,.9', '.78,.5,.05,.1'][i]}" data-energy="1">
+  <div class="pin-in fr-card">
+    ${pitchSVG(f.id, 'fr-pitch')}
+    <div class="fr-meta mono"><span>Frame ${f.n} / 05</span><span>${esc(f.sport)}</span></div>
+    <h2 class="fr-title" data-r="smear" data-split data-smear="46">${f.title.map(l => `<span class="ln">${l.replace('<em>', '<em class="hi">')}</span>`).join(' ')}</h2>
+    <p class="fr-intro lead" data-r="fade" style="--d:.25s">${esc(f.intro)}</p>
+  </div>
 </header>`;
 
 const BODY = {
@@ -106,10 +111,10 @@ export function renderAll() {
   const THEME = { fit: 'sky' };
   fill('frames', FRAMES.map((f, i) => `<section class="frame" id="${f.id}" data-theme="${THEME[f.id] || 'raven'}" data-label="Frame ${f.n} — ${esc(f.sport)}">
     ${card(f, i)}
-    <div class="fr-body" data-scene="drift" data-blob="${i % 2 ? '-.05,.5,1.05,.9' : '1.05,.55,-.05,.1'}" data-energy=".34" data-runners=".2">${BODY[f.id]()}</div>
+    <div class="fr-body" data-scene data-blob="${i % 2 ? '-.05,.5,1.05,.9' : '1.05,.55,-.05,.1'}" data-energy=".34">${BODY[f.id]()}</div>
   </section>`).join(''));
 
-  fill('sheet', FRAMES.map(f => `<li data-r="fade" style="--d:${(+f.n - 1) * 0.06}s"><a href="#${f.id}"><span class="mono">${f.n}</span><span class="sheet-t">${f.title.join(' ').replace(/<\/?em>/g, '')}</span><span class="mono sheet-s">${esc(f.sport)}</span><i aria-hidden="true">→</i></a></li>`).join(''));
+  fill('sheet', FRAMES.map(f => `<li data-r="fade" style="--d:${(+f.n - 1) * 0.06}s"><a href="#${f.id}"><span class="mono">${f.n}</span><span class="sheet-t">${f.title.join(' ').replace(/<\/?em>/g, '')}</span><span class="sheet-s">${pitchSVG(f.id, 'pi')}<span class="mono">${esc(f.sport)}</span></span><i aria-hidden="true">→</i></a></li>`).join(''));
 
   fill('film', FILM.map((f, i) => `<article class="fm${i ? '' : ' on'}" data-r="fade" style="--d:${i * 0.05}s">
     <button class="fm-b" aria-expanded="${!i}" aria-controls="fm-${i}"><span class="mono">${pad2(i + 1)}</span><span class="fm-t">${esc(f.title)}</span><span class="mono fm-tag">${esc(f.tag)}</span><i aria-hidden="true"></i></button>

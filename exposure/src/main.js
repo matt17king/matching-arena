@@ -103,9 +103,9 @@ function measure() {
   vw = innerWidth; vh = innerHeight; docH = Math.max(1, document.documentElement.scrollHeight - vh);
   const box = el => { const top = pageTop(el); return { el, top, bottom: top + el.offsetHeight }; };
   themes = $$('[data-theme]').map(el => ({ ...box(el), name: el.dataset.theme }));
-  scenes = $$('[data-scene]').map(el => ({ ...box(el), mode: el.dataset.scene, blob: el.dataset.blob.split(',').map(Number), energy: +el.dataset.energy, runners: +el.dataset.runners }));
+  scenes = $$('[data-scene]').map(el => ({ ...box(el), blob: el.dataset.blob.split(',').map(Number), energy: +el.dataset.energy }));
   labels = $$('[data-label]').map(el => ({ ...box(el), label: el.dataset.label }));
-  cards = $$('.fr-card').map(el => ({ ...box(el), num: $('.fr-num', el) }));
+  cards = $$('.fr-pin').map(el => ({ ...box(el), len: Math.max(1, el.offsetHeight - vh), svg: $('.fr-pitch', el), paths: $$('.fr-pitch path', el) }));
   $$('[data-pin]').forEach(el => { const b = box(el); pins[el.dataset.pin] = { ...b, len: Math.max(1, el.offsetHeight - vh), stage: $('.pin-in', el) }; });
 }
 const progress = (pin, y) => clamp((y - pin.top) / pin.len);
@@ -177,17 +177,18 @@ ctTabs.forEach((b, i) => b.addEventListener('click', () => { const pin = pins.co
 /* ---------- in the stands: the strip. Scroll or drag it; it only comes into focus when it stops. */
 const strip = { f: 0, last: 0, speed: 0, at: -1, quads: [], loaded: false };
 const stripCap = $('.strip-cap'), stripN = $('[data-strip-n]'), stripT = $('[data-strip-t]'), stripL = $('[data-strip-l]');
-function stripScene(sy, ssy, dt) {
+function stripScene(sy, ssy, dt, idle) {
   const pin = pins.strip; strip.quads.length = 0; if (!pin || !field) return;
   if (!strip.loaded && sy > pin.top - vh * 2.5) { strip.loaded = true; data.stands.forEach((u, i) => field.loadPhoto(i, u)); }
   if (sy < pin.top - vh * 1.2 || sy > pin.bottom + vh * 0.2) return;
-  const n = data.stands.length, target = progress(pin, ssy) * (n - 1);
-  strip.f = lerp(strip.f, target, reduced ? 1 : 1 - Math.exp(-dt * 9));
+  // while the page is moving the strip follows it exactly; the moment it stops, the strip settles on the nearest photo
+  const n = data.stands.length, raw = progress(pin, ssy) * (n - 1), target = idle || reduced ? Math.round(raw) : raw;
+  strip.f = lerp(strip.f, target, reduced ? 1 : 1 - Math.exp(-dt * (idle ? 7 : 11)));
   const sp = (strip.f - strip.last) / Math.max(dt, 1 / 240); strip.last = strip.f; strip.speed = lerp(strip.speed, sp, 0.35);
   const mob = vw <= 820, ch = canvas.clientHeight || vh;
   const cellH = mob ? vh * 0.44 : Math.min(vh * 0.58, 660), cellW = cellH * 0.74, step = cellW * (mob ? 1.07 : 1.1);
   const topPx = sy < pin.top ? pin.top - sy : sy > pin.top + pin.len ? pin.top + pin.len - sy : 0;
-  const blur = reduced ? 0 : clamp(Math.abs(strip.speed) * 0.34, 0, 1.4), still = 1 - clamp(Math.abs(strip.speed) * 0.9);
+  const blur = reduced ? 0 : clamp((Math.abs(strip.speed) - 0.25) * 0.06, 0, 0.2), still = 1 - clamp(Math.abs(strip.speed) * 0.7);
   for (let i = 0; i < n; i++) {
     const dx = i - strip.f; if (Math.abs(dx) * step > vw * 0.5 + cellW * 1.6) continue;
     const focus = smooth(clamp(1 - Math.abs(dx))), sc = 0.84 + 0.26 * focus;
@@ -202,14 +203,32 @@ function stripScene(sy, ssy, dt) {
 }
 (() => { // drag the strip sideways: it simply moves the page, so scroll stays the single source of truth
   const pin = $('[data-pin="strip"]'), stage = pin && $('.pin-in', pin); if (!stage) return; let down = null;
-  stage.addEventListener('pointerdown', e => { if (!field || (e.pointerType === 'mouse' && e.button)) return; down = { x: e.clientX, id: e.pointerId }; stage.classList.add('drag'); });
+  stage.addEventListener('pointerdown', e => { if (!field || (e.pointerType === 'mouse' && e.button)) return; down = { x: e.clientX, x0: e.clientX, id: e.pointerId }; stage.classList.add('drag'); });
   addEventListener('pointermove', e => {
     if (!down || e.pointerId !== down.id || !pins.strip) return; const dx = e.clientX - down.x; down.x = e.clientX;
     const mob = vw <= 820, cellH = mob ? vh * 0.44 : Math.min(vh * 0.58, 660), step = cellH * 0.74 * (mob ? 1.07 : 1.1);
     scrollBy(0, (-dx / step) * (pins.strip.len / (data.stands.length - 1)));
   }, { passive: true });
-  const up = () => { down = null; stage.classList.remove('drag'); }; addEventListener('pointerup', up); addEventListener('pointercancel', up);
+  const cellStep = () => { const mob = vw <= 820, cellH = mob ? vh * 0.44 : Math.min(vh * 0.58, 660); return cellH * 0.74 * (mob ? 1.07 : 1.1); };
+  const up = e => {
+    // a click (not a drag) on a photo to either side brings that photo to the middle
+    if (down && e && e.type === 'pointerup' && Math.abs(e.clientX - down.x0) < 6 && pins.strip) {
+      const n = data.stands.length, i = clamp(Math.round(strip.f + (e.clientX - vw / 2) / cellStep()), 0, n - 1);
+      if (i !== Math.round(strip.f)) scrollTo({ top: pins.strip.top + (i / (n - 1)) * pins.strip.len, behavior: reduced ? 'auto' : 'smooth' });
+    }
+    down = null; stage.classList.remove('drag');
+  };
+  addEventListener('pointerup', up); addEventListener('pointercancel', up);
 })();
+
+/* ---------- frame cards: the playing surface is drawn in line behind the title while the card is pinned */
+function cardScene(c, y) {
+  if (!c.svg) return;
+  const p = reduced ? 1 : clamp((y - (c.top - vh * 0.55)) / (vh * 0.55 + c.len * 0.9)), n = c.paths.length, t = p * (n + 2.5);
+  c.paths.forEach((el, k) => { el.style.strokeDashoffset = (1 - smooth(clamp((t - k) / 3.5))).toFixed(3); });
+  const q = smooth(p);
+  c.svg.style.transform = `perspective(1500px) rotateX(${lerp(30, 61, q).toFixed(2)}deg) rotateZ(${lerp(-4, -23, q).toFixed(2)}deg) scale(${lerp(0.92, 1.05, q).toFixed(3)})`;
+}
 
 /* ---------- lists that focus on whatever is nearest the middle of the screen */
 const focusLists = $$('[data-focus]').map(el => ({ el, items: [...el.children], on: false }));
@@ -283,12 +302,12 @@ addEventListener('pointerdown', e => { if (field) field.burst(e.clientX / vw, 1 
 
 /* ---------- the loop */
 const bar = $('[data-bar]'), hdLabel = $('[data-hd-label]'), hdCount = $('[data-hd-count]');
-let sy = scrollY, ssy = sy, lastSy = sy, vel = 0, last = performance.now(), time = 0, labelAt = -1;
-const scene = { blob: [0.8, 0.7, 0.08, 0.12], energy: 1, runners: 0.85, mode: 'drift' };
+let sy = scrollY, ssy = sy, lastSy = sy, vel = 0, last = performance.now(), time = 0, labelAt = -1, movedAt = 0;
+const scene = { blob: [0.8, 0.72, 0.02, 1.02], energy: 1 };
 const pick = (list, y) => { let best = null; for (const s of list) if (y >= s.top && y < s.bottom && (!best || s.bottom - s.top <= best.bottom - best.top)) best = s; return best; };
 function tick(now) {
   const dt = Math.min(0.1, Math.max(0.001, (now - last) / 1000)); last = now; time += dt;
-  sy = scrollY; const d = sy - lastSy; lastSy = sy;
+  sy = scrollY; const d = sy - lastSy; lastSy = sy; if (d) movedAt = time;
   ssy = Math.abs(sy - ssy) < 0.4 || reduced ? sy : lerp(ssy, sy, 1 - Math.exp(-dt * 12));
   vel = lerp(vel, clamp(Math.abs(d) / (vh * 0.07)), 0.18);
   const mid = sy + vh * 0.55;
@@ -296,7 +315,7 @@ function tick(now) {
   const th = pick(themes, mid); if (th && th.name !== themeName) { themeName = th.name; themeMoving = true; }
   if (themeMoving) easeTheme(reduced ? 1 : 1 - Math.exp(-dt * 5.5));
   const sc = pick(scenes, sy + vh * 0.5);
-  if (sc) { const k = 1 - Math.exp(-dt * 2.2); for (let i = 0; i < 4; i++) scene.blob[i] = lerp(scene.blob[i], sc.blob[i], k); scene.energy = lerp(scene.energy, sc.energy, k); scene.runners = lerp(scene.runners, sc.runners, k * 1.6); scene.mode = sc.mode; }
+  if (sc) { const k = 1 - Math.exp(-dt * 2.2); for (let i = 0; i < 4; i++) scene.blob[i] = lerp(scene.blob[i], sc.blob[i], k); scene.energy = lerp(scene.energy, sc.energy, k); }
   const lb = pick(labels, mid), li = lb ? labels.indexOf(lb) : -1;
   if (li !== labelAt && lb) { labelAt = li; hdLabel.textContent = lb.label; hdCount.textContent = `${pad2(li)} / ${pad2(labels.length - 1)}`; }
   bar.style.transform = `scaleX(${clamp(sy / docH).toFixed(4)})`;
@@ -304,16 +323,16 @@ function tick(now) {
   if (pins.thesis && sy > pins.thesis.top - vh && sy < pins.thesis.bottom) thesis(progress(pins.thesis, ssy));
   if (pins.journey && sy > pins.journey.top - vh && sy < pins.journey.bottom) journey(progress(pins.journey, ssy));
   if (pins.court && sy > pins.court.top - vh && sy < pins.court.bottom) courtScene(progress(pins.court, ssy));
-  stripScene(sy, ssy, dt);
+  stripScene(sy, ssy, dt, time - movedAt > 0.16);
   focusPull();
-  for (const c of cards) if (sy > c.top - vh && sy < c.bottom) c.num.style.transform = `translate3d(0,${((ssy - c.top) * 0.22).toFixed(1)}px,0)`;
+  for (const c of cards) if (sy > c.top - vh * 1.2 && sy < c.bottom + vh * 0.2) cardScene(c, ssy);
 
-  if (field) field.frame({ time, dt, scroll: ssy / vh, flow: d / (canvas.clientHeight || vh), vel, grain: 0.085, theme: theme.gl, blob: scene.blob, energy: scene.energy, runners: scene.runners, mode: scene.mode, strip: strip.quads, duoLo: C.raven, duoHi: C.sky });
+  if (field) field.frame({ time, dt, scroll: ssy / vh, flow: d / (canvas.clientHeight || vh), vel, grain: 0.05, theme: theme.gl, blob: scene.blob, energy: scene.energy, strip: strip.quads, duoLo: C.raven, duoHi: C.sky });
   requestAnimationFrame(tick);
 }
 
 /* ---------- start */
-function layout() { measure(); measureJourney(); thesis(pins.thesis ? progress(pins.thesis, scrollY) : 0); journey(pins.journey ? progress(pins.journey, scrollY) : 0); courtScene(pins.court ? progress(pins.court, scrollY) : 0); }
+function layout() { measure(); measureJourney(); cards.forEach(c => cardScene(c, scrollY)); thesis(pins.thesis ? progress(pins.thesis, scrollY) : 0); journey(pins.journey ? progress(pins.journey, scrollY) : 0); courtScene(pins.court ? progress(pins.court, scrollY) : 0); }
 let lastW = innerWidth, rz;
 addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (innerWidth !== lastW || Math.abs(innerHeight - vh) > 120) { lastW = innerWidth; layout(); } else { vh = innerHeight; } }, 120); });
 new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(layout, 150); }).observe(document.body);
