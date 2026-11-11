@@ -471,10 +471,11 @@ export async function createArena(canvas, o = {}) {
       box(g, 2.7, 0.04, 0.04, vx, y0 + hgt + 0.32, z0 - 0.02, redMat);
     });
     const colGeo = new THREE.CylinderGeometry(0.32, 0.4, topY + 0.6, 14);
-    for (let cx = -len / 2 + 6; cx <= len / 2 - 6; cx += 14) { const cm = new THREE.Mesh(colGeo, mats.steel); cm.position.set(cx, (topY + 0.6) / 2, zEnd + 0.8); g.add(cm); }
+    for (let cx = -len / 2 + 6; cx <= len / 2 - 6; cx += 14) { const cm = new THREE.Mesh(colGeo, mats.steel); cm.position.set(cx, (topY + 0.6) / 2, zEnd + 0.8); cm.userData.oldRoof = true; g.add(cm); }
     cyl(g, 0.035, len, 'x', 0, 2.45, 0.18, 'steel', 8);
     if (fascia) cyl(g, 0.035, len, 'x', 0, fascia.y + 1.85, fascia.z + 0.25, 'steel', 8);
     if (opt.roof) {
+      const c0r = g.children.length;
       const rf = -(opt.over || 7), rb = zEnd + 1.2, ry = topY + 8, arcP = [], mastH = opt.mast || 8;   // a small show court takes a shorter overhang and lighter steel than a football ground
       for (let i = 0; i <= 28; i++) { const t = i / 28; arcP.push([rb + (rf - rb) * t, ry + Math.sin(t * Math.PI) * 1.3 + t * 1.4]); }
       const rm = extrude(arcP.concat(arcP.slice().reverse().map(([a, b]) => [a, b - 0.32])), len + 2, (len + 2) / 2, 'roof', false); rm.userData.noCast = true;
@@ -499,6 +500,7 @@ export async function createArena(canvas, o = {}) {
       struts(g, S, mats.steel);
       const lgm = new THREE.CircleGeometry(0.26, 12); lgm.rotateX(Math.PI / 2);
       for (let x = -len / 2 + 2; x < len / 2; x += 3.2) { const lm = new THREE.Mesh(lgm, warmMat); lm.position.set(x, fy - 0.55, rf + 0.35); g.add(lm); }
+      g.children.slice(c0r).forEach(ch => { ch.userData.oldRoof = true; });   // a venue with a built shell hides these
     }
     const n = seats.length / 5, im = new THREE.InstancedMesh(seatGeoBase, seatMat, n);
     const mx = new THREE.Matrix4(), col = new THREE.Color();
@@ -564,6 +566,7 @@ export async function createArena(canvas, o = {}) {
       const bm = new THREE.Mesh(sweepGeo(band, o, false), new THREE.MeshBasicMaterial({ color: C('#0d0c0b'), side: THREE.DoubleSide })); g.add(bm);
       const lm = new THREE.Mesh(sweepGeo(line, o, false), new THREE.MeshBasicMaterial({ color: C(RED).multiplyScalar(1.25), side: THREE.DoubleSide })); g.add(lm); }
     if (d.roof) {
+      const c0r = g.children.length;
       const rf = -7, rb = pr.zEnd + 1.2, ry = pr.topY + 8, arc = [];
       for (let i = 0; i <= 14; i++) { const t = i / 14; arc.push([rb + (rf - rb) * t, ry + Math.sin(t * Math.PI) * 1.3 + t * 1.4]); }
       const rm = new THREE.Mesh(sweepGeo(arc.concat(arc.slice().reverse().map(([a, b]) => [a, b - 0.32])), o), mats.roof); rm.userData.noCast = true; g.add(rm);
@@ -574,6 +577,7 @@ export async function createArena(canvas, o = {}) {
         for (let k = 0; k < 6; k++) { const [a0, y0] = arc[Math.round(k / 6 * 13)], [a1, y1] = arc[Math.round((k + 1) / 6 * 13)], q0 = Math.max(0.3, r0 + a0), q1 = Math.max(0.3, r0 + a1); S.push([V3(dx * q0, y0 - 0.36, dz * q0), V3(dx * q1, y1 - 0.36, dz * q1), 0.07]); } }
       struts(g, S, mats.steel);
       const bw = new THREE.Mesh(sweepGeo([[pr.zEnd + 1.3, pr.topY - 0.1], [pr.zEnd + 1.3, ry + 0.1]], o, false), deckMat); bw.userData.noCast = true; g.add(bw);
+      g.children.slice(c0r).forEach(ch => { ch.userData.oldRoof = true; });
     }
     Vn.root.updateMatrixWorld(true);
     for (let i = 0; i < seats.length; i += 5 * 9) { _w.set(seats[i], seats[i + 1] + 0.45, seats[i + 2]); g.localToWorld(_w); Vn.crowdPts.push(_w.x, _w.y, _w.z); }
@@ -1416,8 +1420,8 @@ export async function createArena(canvas, o = {}) {
   const heroKeys = [
     { t: 0.00, pos: [0, 1.7, 126], tgt: [0, 1.65, 90], fov: 64 }, { t: 0.17, pos: [0, 1.7, 82], tgt: [0, 1.65, 40], fov: 62 },
     { t: 0.34, pos: [0, 1.72, 47.5], tgt: [0, 1.6, 10], fov: 58 }, { t: 0.40, pos: [0, 2.4, 35], tgt: [0, 1.2, 0], fov: 56 },
-    { t: 0.48, pos: [-14, 7, 30], tgt: [0, 0, 0], fov: 55 }, { t: 0.57, pos: [-50, 25, 34], tgt: [0, 8, 0], fov: 54 },
-    { t: 0.65, pos: [-76, 34, 6], tgt: [0, 13, 0], fov: 54 }, { t: 0.76, pos: [-46, 25, -50], tgt: [0, 0, 0], fov: 50 },
+    { t: 0.48, pos: [-14, 7, 30], tgt: [0, 0, 0], fov: 55 }, { t: 0.57, pos: [-42, 27, 32], tgt: [0, 8, 0], fov: 54 },
+    { t: 0.65, pos: [-64, 48, 4], tgt: [0, 10, 0], fov: 54 }, { t: 0.76, pos: [-40, 24, -33], tgt: [0, 0, 0], fov: 50 },   // up and over the open bowl, never through the roof
     { t: 0.88, pos: [-6, 7, -30], tgt: [0, 2, 0], fov: 48 }, { t: 1.00, pos: [-5.2, 1.55, -4.6], tgt: [5, 1.2, 2.6], fov: 46 },
   ];
   function spline(k, t) {
@@ -1505,7 +1509,7 @@ export async function createArena(canvas, o = {}) {
       if (mode === 'hero') f = RO(t, 0.41 + k * 0.02, 0.49 + k * 0.02);
       else if (mode === 'out') f = 1 - R(t, 0.05 + k * 0.03, 0.28 + k * 0.03);
       else if (mode === 'in') f = R(t, 0.38 + k * 0.04, 0.66 + k * 0.04);
-      st.g.position.y = (st.y0 || 0) - st.h * (1 - f); st.g.visible = f > 0.002;
+      st.g.position.y = (st.y0 || 0) - st.h * (1 - f); st.g.visible = f > 0.002; if (st.follow) { st.follow.position.y = -st.h * (1 - f); st.follow.visible = st.g.visible; }
     });
     Vn.fix.forEach(fx => {
       let f = 1;
@@ -1562,6 +1566,7 @@ export async function createArena(canvas, o = {}) {
     const mainV = venues[xi && xt > 0.5 ? B : A]; placeSpots(mainV);
     spots.forEach((s, i) => { const k = mainV.keys[i]; s.intensity = k ? (k.lamp ? k.lamp.on : lit) * mainV.spotK : 0; });
     skyU.uGlow.value = lit; skyU.uTime.value = time; skyU.uStars.value = mainV.id === 'basketball' ? 0 : 1; coneTime.value = time; { const bk = mainV.baked ? 1 : 0; hemi.intensity = 0.05 + (bk ? 0.12 : 0.3) * lit; washA.intensity = (bk ? 0.3 : 0.95) * lit; washB.intensity = (bk ? 0.18 : 0.55) * lit; bakeU.value = lit * BAKE_K;
+      if (shellLamp) shellLamp.color.setScalar(0.04 + 2.6 * lit);
       if (bakePitch) { const on = mainV === bakePitch.Vn && lit > 0.01; bakePitch.m.visible = on; bakePitch.m.material.uniforms.uK.value = lit; } }
     // lines
     // tennis: the lines glide into the Battle of the Sexes court and back out before the next venue
@@ -1742,12 +1747,12 @@ export async function createArena(canvas, o = {}) {
       const c = g.boundingBox.getCenter(new THREE.Vector3()).applyMatrix4(m.matrixWorld); let k = `${m.material.name}|${c.x.toFixed(1)}|${c.y.toFixed(1)}|${c.z.toFixed(1)}|${g.attributes.position.count}`; seen[k] = (seen[k] || 0) + 1; out.push([k + '#' + seen[k], m]); }); return out; };
   if (o.debug) window.__mkBakeExport = id => { const Vn = venues.find(v => v.id === id), keys = new Map(bakeKeys(Vn).map(([k, m]) => [m, k])), out = [];
     const b64 = a => { const u = new Uint8Array(a.buffer, a.byteOffset, a.byteLength); let s2 = ''; for (let i = 0; i < u.length; i += 32768) s2 += String.fromCharCode.apply(null, u.subarray(i, i + 32768)); return btoa(s2); };
-    Vn.root.traverse(m => { if (!m.isMesh || !m.material) return; const mt = m.material, g = m.geometry, e = { mat: mt.name || mt.type, mw: Array.from(m.matrixWorld.elements), transparent: !!mt.transparent, col: mt.color ? mt.color.toArray() : null, bakeInst: !!(mt.userData && mt.userData.bake) };
+    Vn.root.traverse(m => { if (!m.isMesh || !m.material) return; const mt = m.material, g = m.geometry, e = { mat: mt.name || mt.type, mw: Array.from(m.matrixWorld.elements), transparent: !!mt.transparent, col: mt.color ? mt.color.toArray() : null, bakeInst: !!(mt.userData && mt.userData.bake), old: !!m.userData.oldRoof };
       if (m.isInstancedMesh) { e.kind = 'inst'; e.im = b64(m.instanceMatrix.array); e.count = m.userData.full || m.count; }
       else { e.kind = 'mesh'; e.key = keys.get(m) || null; e.pos = b64(g.attributes.position.array); e.nor = g.attributes.normal ? b64(g.attributes.normal.array) : null; e.idx = g.index ? b64(new Uint32Array(g.index.array)) : null; }
       out.push(e); });
     return out; };
-  let bakePitch = null;
+  let bakePitch = null, shellLamp = null;
   async function applyBake(Vn, url) {
     let buf; try { const r = await fetch(url); if (!r.ok) return; buf = await r.arrayBuffer(); } catch (e) { return; }
     if (buf.byteLength < 16 || new DataView(buf).getUint32(0, true) !== 0x454b4142) return;   // 'BAKE'
@@ -1774,6 +1779,22 @@ export async function createArena(canvas, o = {}) {
       fragmentShader: 'uniform sampler2D tMap; uniform float uK; varying vec2 vUv; void main(){ vec3 r=texture2D(tMap,vUv).rgb*2.0; float l=dot(r,vec3(0.2126,0.7152,0.0722)); r=mix(vec3(l),r,0.45); r=min(pow(max(r,vec3(0.0)),vec3(0.55)),vec3(1.12)); vec2 e=min(vUv,1.0-vUv); float f=smoothstep(0.0,0.04,min(e.x,e.y)); gl_FragColor=vec4(mix(vec3(0.5),r*0.5,uK*f),1.0); }',
       transparent: true, depthWrite: false, blending: THREE.CustomBlending, blendSrc: THREE.DstColorFactor, blendDst: THREE.SrcColorFactor, polygonOffset: true, polygonOffsetFactor: -3 }));
     pm.rotation.x = -Math.PI / 2; pm.position.y = 0.02; pm.renderOrder = 1.2; pm.visible = false; scene.add(pm); bakePitch = { m: pm, Vn };
+    // the shell: roof, steelwork, façade and rear walls built offline, arriving here with their light already in them. One group per stand, so each rises with its own
+    if (meta.shell && !(o.debug && new URLSearchParams(location.search).has('noshell'))) {
+      const tx = n => { const t = new THREE.TextureLoader().load(url.replace(/[^/]+$/, n)); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
+      const std = (map, c, r, mt2, side) => { const m = bakeable(new THREE.MeshStandardMaterial({ map, color: C(c), roughness: r, metalness: mt2, side: side || THREE.FrontSide })); m.userData.env = 0.35; return m; };
+      const SM = { clad: std(tx('tex_clad.jpg'), '#ffffff', 0.5, 0.35), roofm: std(tx('tex_roof.jpg'), '#ffffff', 0.45, 0.4, THREE.DoubleSide), conc: std(tx('tex_conc.jpg'), '#ffffff', 0.9, 0), steel: std(null, '#d6d3ce', 0.45, 0.2),
+        glass: new THREE.MeshPhysicalMaterial({ color: C('#aab4ba'), roughness: 0.3, metalness: 0.1, transparent: true, opacity: 0.26, depthWrite: false, side: THREE.DoubleSide }),
+        win: new THREE.MeshBasicMaterial({ map: tx('tex_win.jpg'), color: C('#ffffff').multiplyScalar(0.8) }), lamp: new THREE.MeshBasicMaterial({ color: C('#fff3e2') }) };
+      shellLamp = SM.lamp;
+      const groups = Vn.stands.map(() => { const g = new THREE.Group(); Vn.root.add(g); return g; });
+      meta.shell.forEach(q => { const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buf, base + q.pos, q.nv * 3), 3)); g.setAttribute('normal', new THREE.BufferAttribute(new Int8Array(buf, base + q.nor, q.nv * 4), 4, true)); g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(buf, base + q.uv, q.nv * 2), 2));
+        g.setAttribute('aBake', new THREE.BufferAttribute(dec(new Uint8Array(buf, base + q.col, q.nv * 4), q.nv), 3)); g.setIndex(new THREE.BufferAttribute(q.i16 ? new Uint16Array(buf, base + q.idx, q.ni) : new Uint32Array(buf, base + q.idx, q.ni), 1));
+        const m = new THREE.Mesh(g, SM[q.mat]); m.userData.noCast = q.mat === 'glass' || q.mat === 'win' || q.mat === 'lamp'; if (groups[q.seg]) groups[q.seg].add(m); });
+      Vn.stands.forEach((st, k) => { if (!groups[k] || !groups[k].children.length) return; st.follow = groups[k]; st.h = Math.max(st.h, 36); });
+      Vn.root.traverse(m => { if (m.userData.oldRoof) m.visible = false; });
+    }
     Vn.baked = true;
   }
   if (o.bake && o.bake.football && !(o.debug && new URLSearchParams(location.search).has('nobake'))) await applyBake(vF, o.bake.football);

@@ -9,7 +9,7 @@ import bpy
 from mathutils import Vector, Matrix
 
 ap = argparse.ArgumentParser(); ap.add_argument('exports', nargs='+'); ap.add_argument('--out', required=True); ap.add_argument('--preview'); ap.add_argument('--samples', type=int, default=256)
-ap.add_argument('--edge', type=float, default=2.0); a = ap.parse_args()
+ap.add_argument('--edge', type=float, default=2.0); ap.add_argument('--shell', help='build and bake a shell for this venue (football)'); a = ap.parse_args()
 
 def arr(b, dt): return np.frombuffer(base64.b64decode(b), dtype=dt)
 def mat4(e): return np.array(e, dtype=np.float64).reshape(4, 4).T          # three.js stores column-major
@@ -73,7 +73,7 @@ def add_mesh(name, V, F, mats, midx=None, smooth=True):
 # ---- receivers: everything that takes a per-vertex bake
 recv = []; Vs = []; Fs = []; Mi = []; off = 0; rmats = [diffuse(k, ALBEDO[k]) for k in sorted(RECV)]; rname = sorted(RECV)
 for e in E:
-    if e['kind'] != 'mesh' or not e.get('key') or e['mat'] not in RECV: continue
+    if e['kind'] != 'mesh' or not e.get('key') or e['mat'] not in RECV or (a.shell and e.get('old')): continue
     P, N, M = tris_of(e)
     if not len(P): continue
     P, N = subdivide(P, N, EDGE[e['mat']] * a.edge / 2.0); V, Nn, F = weld(P, N)
@@ -86,7 +86,7 @@ if len(exports) > 1:
 # ---- everything else that blocks or emits light
 groups = {}
 for e in E:
-    if e['kind'] != 'mesh' or e.get('key'): continue
+    if e['kind'] != 'mesh' or e.get('key') or (a.shell and e.get('old')): continue
     mt = e['mat']; cls = 'board' if mt == 'ShaderMaterial' else mt if mt in EMIT else 'roof' if mt == 'roof' else None
     if cls is None:
         if e['transparent'] or mt == 'glass' or mt in ('MeshBasicMaterial',): continue
@@ -97,6 +97,26 @@ for cls, parts in groups.items():
     V = np.concatenate(parts); F = np.arange(len(V)).reshape(-1, 3)
     m = emission(cls, *EMIT[cls]) if cls in EMIT else veil('roof', (0.4, 0.42, 0.44), 0.45) if cls == 'roof' else diffuse('prop', ALBEDO['prop'])
     add_mesh(cls, V, F, [m], smooth=False); print(cls, len(F), 'tris', flush=True)
+
+# ---- the shell: built here, lit with everything else, baked per vertex
+shell = []; shell_ob = None
+if a.shell:
+    import os, importlib; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); mod = importlib.import_module('shell_' + a.shell)
+    shell = mod.build(); mod.textures(os.path.dirname(os.path.abspath(a.out)))
+    SALB = {'clad': (0.07, 0.07, 0.07), 'roofm': (0.34, 0.35, 0.36), 'conc': (0.3, 0.29, 0.27), 'steel': (0.62, 0.61, 0.59)}; sk = sorted(SALB); sm_ = [diffuse('s_' + k, SALB[k]) for k in sk]
+    Vs2, Fs2, Mi2, o2 = [], [], [], 0
+    for sf in shell:
+        if sf['mat'] not in SALB: continue
+        sf['v0'] = o2; Vs2.append(sf['V']); Fs2.append(sf['F'] + o2); Mi2.append(np.full(len(sf['F']), sk.index(sf['mat']))); o2 += len(sf['V'])
+    shell_ob = add_mesh('shell', np.concatenate(Vs2), np.concatenate(Fs2), sm_, np.concatenate(Mi2))
+    me = shell_ob.data; nn = np.concatenate([sf['N'] for sf in shell if 'v0' in sf])
+    for cls, mat in (('glass', veil('sglass', (0.5, 0.52, 0.54), 0.6)), ('win', emission('swin', (1.0, 0.78, 0.52), 0.9)), ('lamp', emission('slamp', (1.0, 0.95, 0.86), 14.0))):
+        pts = [(sf['V'], sf['F']) for sf in shell if sf['mat'] == cls]
+        if not pts: continue
+        off2 = 0; VV = []; FF = []
+        for V_, F_ in pts: VV.append(V_); FF.append(F_ + off2); off2 += len(V_)
+        add_mesh('shell_' + cls, np.concatenate(VV), np.concatenate(FF), [mat], smooth=False)
+    print('shell surfaces', len(shell), 'baked verts', o2, 'tris', sum(len(sf['F']) for sf in shell), flush=True)
 
 # ---- the pitch (baked on a grid) and the ground around it
 ext = np.abs(RV[:, [0, 2]]).max(axis=0); SX, SZ, STEP = 124.0, 88.0, 0.5; nx, nz = int(SX / STEP) + 1, int(SZ / STEP) + 1
@@ -109,7 +129,7 @@ G = 600.0; add_mesh('ground', np.array([[-G, -0.06, G], [G, -0.06, G], [G, -0.06
 CELL = 0.8; cells = {}
 for ex in exports:
     for e in ex:
-        if e['kind'] != 'inst' or not e.get('bakeInst'): continue
+        if e['kind'] != 'inst' or not e.get('bakeInst') or (a.shell and e.get('old')): continue
         M = mat4(e['mw']); im = arr(e['im'], np.float32).reshape(-1, 16)[: e['count']]; p = xf(M, im[:, 12:15].astype(np.float64))
         for x, y, z in p: cells.setdefault((round(x / CELL), round(y / CELL), round(z / CELL)), (x, y, z))
 PP = np.array(list(cells.values())); up = np.array([0, 1.0, 0]); inw = -PP.copy(); inw[:, 1] = 0; inw /= np.maximum(np.linalg.norm(inw, axis=1, keepdims=True), 1e-6)
@@ -126,16 +146,17 @@ def look(ob, src, dst, upv=(0, 1, 0)):
     ob.matrix_world = Matrix(((r.x, u.x, -f.x, src[0]), (r.y, u.y, -f.y, src[1]), (r.z, u.z, -f.z, src[2]), (0, 0, 0, 1)))
 for sx in (-1, 1):
     for sz in (-1, 1):
-        L = bpy.data.lights.new('tower', 'SPOT'); L.energy = 46000.0 * 1000 / 1000; L.spot_size = math.radians(78); L.spot_blend = 0.6; L.shadow_soft_size = 3.2; L.color = (1.0, 0.95, 0.88)
+        L = bpy.data.lights.new('tower', 'SPOT'); L.energy = 30000.0 if a.shell else 46000.0; L.spot_size = math.radians(78); L.spot_blend = 0.6; L.shadow_soft_size = 3.2; L.color = (1.0, 0.95, 0.88)
         ob = bpy.data.objects.new('tower', L); sc.collection.objects.link(ob); look(ob, (sx * 81, 60, sz * 62), (sx * 81 * 0.2, 0, sz * 62 * 0.2))
 
 # ---- preview render, to check the lighting by eye before trusting the bake
 if a.preview:
-    cam = bpy.data.cameras.new('c'); cam.lens = 22; co = bpy.data.objects.new('c', cam); sc.collection.objects.link(co); look(co, (38, 22, 34), (-20, 6, -30)); sc.camera = co
+    cam = bpy.data.cameras.new('c'); cam.lens = 22; co = bpy.data.objects.new('c', cam); sc.collection.objects.link(co); look(co, (-96, 62, 96) if a.shell else (38, 22, 34), (0, 6, 0) if a.shell else (-20, 6, -30)); sc.camera = co
     sc.render.resolution_x, sc.render.resolution_y = 960, 540; sc.cycles.samples = 48; sc.cycles.use_denoising = True; sc.render.filepath = a.preview; sc.view_settings.view_transform = 'Standard'; sc.view_settings.exposure = 2.2
     try: bpy.ops.render.render(write_still=True)
     except Exception as ex: print('preview failed', ex)
     sc.cycles.samples = a.samples
+    if a.samples <= 0: sys.exit(0)   # --samples 0: preview only
 
 # ---- bake
 def bake(ob):
@@ -147,6 +168,8 @@ def bake(ob):
 import time
 t0 = time.time(); Cp = bake(pitch_ob); print('pitch baked', round(time.time() - t0), 's', flush=True)
 t0 = time.time(); Cr = bake(recv_ob); print('receivers baked', round(time.time() - t0), 's', flush=True)
+Cs = None
+if shell_ob is not None: t0 = time.time(); Cs = bake(shell_ob); print('shell baked', round(time.time() - t0), 's', flush=True)
 t0 = time.time(); Cq = bake(probe_ob).reshape(-1, 3, 3).mean(axis=1); print('probes baked', round(time.time() - t0), 's', flush=True)
 
 # ---- normalise to the light on the centre circle, pack, write
@@ -161,6 +184,12 @@ for r in recv:
     n8 = np.zeros((r['nv'], 4), dtype=np.int8); n8[:, :3] = np.round(nl * 127)
     i16 = r['nv'] < 65536
     meta['meshes'].append(dict(key=r['key'], nv=r['nv'], ni=int(r['F'].size), i16=i16, pos=put(loc), nor=put(n8), col=put(enc(Cr[r['v0']: r['v0'] + r['nv']])), idx=put(r['F'].astype(np.uint16 if i16 else np.uint32))))
+if shell:
+    meta['shell'] = []
+    for sf in shell:
+        nv = len(sf['V']); n8 = np.zeros((nv, 4), dtype=np.int8); n8[:, :3] = np.round(sf['N'] * 127); i16 = nv < 65536
+        col = enc(Cs[sf['v0']: sf['v0'] + nv]) if 'v0' in sf else np.zeros((nv, 4), dtype=np.uint8)
+        meta['shell'].append(dict(mat=sf['mat'], seg=sf['seg'], nv=nv, ni=int(sf['F'].size), i16=i16, pos=put(sf['V'].astype(np.float32)), nor=put(n8), uv=put(sf['UV'].astype(np.float32)), col=put(col), idx=put(sf['F'].astype(np.uint16 if i16 else np.uint32))))
 meta['probes'] = dict(cell=CELL, n=len(PP), pos=put(PP.astype(np.float32)), col=put(enc(Cq)))
 img = (Cp / E0).reshape(nz, nx, 3)
 k = np.array([1, 2, 1.0]); k /= k.sum()
