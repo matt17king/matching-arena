@@ -144,7 +144,8 @@ const court = (() => {
   const NS = 'http://www.w3.org/2000/svg', CX = 210, CY = 125;
   const mk = (tag, cls, parent = svg) => { const e = document.createElementNS(NS, tag); if (cls) e.setAttribute('class', cls); parent.append(e); return e; };
   svg.textContent = '';
-  const fills = [mk('rect', 'c-fill c-fa'), mk('rect', 'c-fill c-fb'), mk('rect', 'c-fill c-fa')];
+  // left half in powder blue (the grass), right half in red (the clay): the red half is the one that then shrinks
+  const fills = [mk('rect', 'c-fill c-fb'), mk('rect', 'c-fill c-fa')];
   const wall = mk('rect', 'c-wall');
   const lines = Array.from({ length: 15 }, () => mk('line'));
   const texts = [['GRASS', 120], ['CLAY', 300], ['STANDARD', 120], ['9% SMALLER', 300], ['20 × 10 M · WALLS IN PLAY · ALWAYS DOUBLES', 210]].map(([t, x]) => { const e = mk('text', 'c-t'); e.textContent = t; e.setAttribute('x', x); e.setAttribute('y', 240); e.setAttribute('text-anchor', 'middle'); return e; });
@@ -163,9 +164,8 @@ const court = (() => {
     [...half(-1, L), ...half(1, R)].forEach((c, k) => set(lines[k], { x1: c[0], y1: c[1], x2: c[2], y2: c[3] }));
     const net = Math.max(L[1], R[1]) + 9; set(lines[14], { x1: CX, y1: CY - net, x2: CX, y2: CY + net });
     const w0 = clamp(1 - Math.abs(s)), w1 = clamp(1 - Math.abs(s - 1)), w2 = clamp(1 - Math.abs(s - 2));
-    set(fills[0], { x: CX - L[0], y: CY - L[1], width: L[0], height: L[1] * 2 }); fills[0].style.opacity = (w0 * 0.92).toFixed(3);
-    set(fills[1], { x: CX, y: CY - R[1], width: R[0], height: R[1] * 2 }); fills[1].style.opacity = (w0 * 0.5).toFixed(3);
-    set(fills[2], { x: CX, y: CY - R[1], width: R[0], height: R[1] * 2 }); fills[2].style.opacity = (w1 * 0.92).toFixed(3);
+    set(fills[0], { x: CX - L[0], y: CY - L[1], width: L[0], height: L[1] * 2 }); fills[0].style.opacity = (w0 * 0.5).toFixed(3);
+    set(fills[1], { x: CX, y: CY - R[1], width: R[0], height: R[1] * 2 }); fills[1].style.opacity = (clamp(w0 + w1) * 0.92).toFixed(3);
     set(wall, { x: CX - L[0] - 7, y: CY - L[1] - 7, width: L[0] + R[0] + 14, height: L[1] * 2 + 14 }); wall.style.opacity = sstep(0.55, 1, w2).toFixed(3);
     [w0, w0, w1, w1, w2].forEach((w, k) => { texts[k].style.opacity = sstep(0.5, 1, w).toFixed(3); });
   };
@@ -247,15 +247,15 @@ function heroScene(now) {
   const px = fine && !reduced ? (mouse.sx / vw - 0.5) * -20 : 0, py = fine && !reduced ? (mouse.sy / vh - 0.5) * -12 : 0;
   place(heroPh, PH.portrait, { blur: (1 - k) * 1.4 + s * 1.1, dx: (1 - k) * vw * 0.14 + px, dy: py, alpha: k * (1 - s * 0.75), feather: 0.8, rad: 0, leak: 0.45, leakAt: [-0.05, 0.95] });
 }
-// hovering an idea in the list holds its photo up beside the cursor; it smears when the cursor moves fast
-const peek = { i: -1, on: 0, a: 0, x: 0, y: 0, vx: 0 };
+// hovering an idea in the list holds its photo up in the clear space to the right of the titles, level with the cursor
+const peek = { i: -1, on: 0, a: 0, y: 0, vy: 0 };
 if (fine) $$('[data-peek]').forEach(el => { el.addEventListener('mouseenter', () => { peek.i = +el.dataset.peek; peek.on = 1; }); el.addEventListener('mouseleave', () => { peek.on = 0; }); });
 function peekScene() {
   peek.a = lerp(peek.a, peek.on, 0.13);
-  if (!field || peek.i < 0 || peek.a < 0.01) { peek.x = mouse.x; peek.y = mouse.y; peek.vx = 0; return; }
-  const nx = lerp(peek.x, mouse.x, 0.14), ny = lerp(peek.y, mouse.y, 0.14); peek.vx = lerp(peek.vx, nx - peek.x, 0.3); peek.x = nx; peek.y = ny;
-  const w = Math.min(250, vw * 0.19), h = w / 0.74, ch = canvas.clientHeight || vh;
-  quads.push({ i: PH.frame + peek.i, x: clamp(peek.x + w * 0.85, w * 0.6, vw - w * 0.6) / vw, y: 1 - peek.y / ch, w: w / vw, h: h / ch, blur: reduced ? 0 : clamp(Math.abs(peek.vx) / 30, 0, 1) + (1 - peek.a) * 0.8, duo: 1, alpha: peek.a, rad: 14, leak: 0.5 });
+  if (!field || peek.i < 0 || peek.a < 0.01) { peek.y = mouse.y; peek.vy = 0; return; }
+  const w = Math.min(280, vw * 0.2), h = w / 0.74, ch = canvas.clientHeight || vh;
+  const ny = lerp(peek.y, clamp(mouse.y, h * 0.5 + 76, vh - h * 0.5 - 16), 0.14); peek.vy = lerp(peek.vy, ny - peek.y, 0.3); peek.y = ny;
+  quads.push({ i: PH.frame + peek.i, x: 0.81, y: 1 - peek.y / ch, w: w / vw, h: h / ch, blur: reduced ? 0 : clamp(Math.abs(peek.vy) / 30, 0, 0.8) + (1 - peek.a) * 0.8, duo: 1, alpha: peek.a, rad: 14, leak: 0.5 });
 }
 
 /* ---------- lists that focus on whatever is nearest the middle of the screen */

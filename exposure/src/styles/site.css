@@ -154,7 +154,8 @@ em.hi .w::before { content: ""; position: absolute; z-index: -1; inset: .2em -.2
 /* contact sheet */
 .sheet-list { list-style: none; margin: clamp(48px, 9vh, 110px) 0 0; padding: 0; border-bottom: 1px solid var(--line); }
 .sheet-list a { position: relative; display: grid; grid-template-columns: 3.5rem minmax(0, 1fr) 2.5rem; align-items: baseline; gap: 12px; padding: clamp(14px, 2.4vh, 28px) 0; border-top: 1px solid var(--line); text-decoration: none; color: var(--ink); transition: padding .7s var(--expo); }
-.sheet-list a::before { content: ""; position: absolute; z-index: -1; inset: 22% -1vw 16%; background: var(--hi-mark); filter: blur(16px); transform: scaleX(0); transform-origin: 0 50%; transition: transform .8s var(--expo); }
+/* the highlight stops short of the right-hand third, which is where the frame's photo is held up */
+.sheet-list a::before { content: ""; position: absolute; z-index: -1; inset: 22% 36% 16% -1vw; background: linear-gradient(90deg, var(--hi-mark) 60%, transparent); filter: blur(16px); transform: scaleX(0); transform-origin: 0 50%; transition: transform .8s var(--expo); }
 .sheet-t { font: 600 clamp(26px, 4.1vw, 74px)/1 var(--disp); letter-spacing: -.03em; }
 .sheet-list i { font-style: normal; justify-self: end; transition: transform .7s var(--expo); }
 .sheet-list a:hover, .sheet-list a:focus-visible { padding-left: 2vw; }
@@ -348,6 +349,7 @@ em.hi .w::before { content: ""; position: absolute; z-index: -1; inset: .2em -.2
 .logos li::before { content: ""; position: absolute; z-index: -1; inset: 30% 14%; background: var(--hi-mark); filter: blur(22px); opacity: 0; transform: scaleX(.3); transition: opacity .5s ease, transform .9s var(--expo); }
 .logos li:hover::before { opacity: .95; transform: none; } .logos li:hover .lg { transform: scale(1.1); }
 .logos .mono { position: absolute; left: 12px; right: 12px; bottom: 10px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.press-sec .press-list { grid-column: auto; margin-top: clamp(48px, 9vh, 110px); }
 .talent, .press { margin-top: clamp(72px, 13vh, 160px); display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px var(--gut); }
 .talent-k, .press-k { grid-column: 1 / span 3; color: var(--ink); border-top: 1px solid var(--line-strong); padding-top: 12px; }
 .talent-list { grid-column: 4 / -1; list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-strong); }
