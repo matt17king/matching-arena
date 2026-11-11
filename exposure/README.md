@@ -30,20 +30,21 @@ Two helpers are derived from those and used only for legibility: `ice` (`#f3f8fc
 | Path | What it is |
 | --- | --- |
 | `index.html` | The page shell: header, index, and the static sections |
-| `src/content.js` | Everything editable: the five frames, plays, the brief, the fan journey, eleven talent rules, formats, markets, the record, who Matt has worked with, press, booking |
+| `src/content.js` | Everything editable: the fan journey, the five frames (each with its photo), plays, the brief, eleven talent rules, formats, markets, how I work, the record, who Matt has worked with, press, booking |
 | `src/render.js` | Turns `content.js` into markup |
 | `src/main.js` | Behaviour: themes, scroll scenes, reveals, the court, the photo strip, the index |
-| `src/gl/field.js` | The WebGL layer behind the page: the cursor's light trail, the grainy red and blue fields, and the photo strip |
-| `src/pitches.js` | The five playing surfaces as line drawings |
+| `src/gl/field.js` | The WebGL layer behind the page: the cursor's light trail, the grainy red and blue fields, and every photo that arrives out of the blur |
 | `src/styles/site.css` | All styling, with the phone layout behind one breakpoint at the end |
 | `public/photos`, `public/logos` | Photos (copied from Arena) and logos converted to single-colour masks so they take the page's ink colour |
 
 ## How it behaves
 
-- **Scrolling is native.** Nothing is hijacked or snapped. Pinned scenes (the idea, each frame's title card, the fan journey, the court, the photo strip) read the scroll position and ease toward it.
+- **Scrolling is native.** Nothing is hijacked or snapped. Pinned scenes (the idea, the fan journey, each frame's title card, the court, the photo strip) read the scroll position and ease toward it.
 - **The field** is one fullscreen shader: slow red and blue light with grain. A feedback buffer keeps the last frames of the cursor (or a tap), so it leaves a trail that decays like a long exposure. Nothing else moves on its own.
-- **Each frame's title card is pinned for a moment** while its playing surface is drawn in line behind the title, boundary first, tipping back into perspective as it goes: a football pitch, a basketball court, a gridiron, a tennis court, a circuit. The same drawings appear small in the contact sheet. They live in `src/pitches.js`.
+- **Photos arrive out of the blur.** The page only marks where a photo sits; the field draws it in the black-and-blue print with a leak of the page's red light. The portrait in the opening frame resolves on arrival and smears away as you scroll. Each frame's title card is pinned for a moment while its photo streaks in and settles sharp beside the title. Hovering an idea in the list holds its photo up beside the cursor.
+- **Proof sits beside the idea it proves.** Where one of the record's numbers belongs to a frame's story, it appears there as a card (`stat` in `content.js`), as well as in the record.
 - **Focus** is the recurring device. Headlines arrive with a horizontal (panned) blur and settle. The opening statement sharpens word by word as you scroll. Lists sharpen whatever is nearest the middle of the screen. Photos sit in a black and powder blue print until you hover, focus or tap them.
+- **The fan journey and the photo strip settle.** Both follow the scroll while it moves and come to rest on the nearest stage or photo when it stops.
 - **The photo strip** in "In the stands" is drawn in WebGL with a light directional blur tied to its speed. Scroll or drag it, or click a photo to either side; when the page stops, the strip settles on the nearest photo and that photo develops into colour.
 - **Fallbacks.** Without WebGL the page runs on its CSS background and the strip becomes a normal scrolling row. With reduced motion set, reveals are instant and the field holds still.
 

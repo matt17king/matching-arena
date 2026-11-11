@@ -1,7 +1,8 @@
 // The field: one WebGL canvas behind the whole page.
 //  1. trail sim   — a feedback buffer. The cursor (or a tap) leaves light that decays: a long exposure. Nothing moves on its own.
 //  2. composite   — the base colour, two soft fields of light with panned streaks and contour lines, the trails, and film grain.
-//  3. photo pass  — the "in the stands" strip, drawn with a real directional blur tied to how fast it is moving.
+//  3. photo pass  — every photo that arrives out of the blur (the portrait, each frame's photo, the list previews, the strip),
+//                    drawn with a real directional blur, the black-and-blue print, and a leak of the page's red light.
 // Plain WebGL1, no libraries. If the context can't be created the page still works on its CSS background.
 
 const VERT = `attribute vec2 aPos; varying vec2 vUv; void main(){ vUv = aPos*0.5+0.5; gl_Position = vec4(aPos,0.,1.); }`;
@@ -89,7 +90,7 @@ void main(){
 
 const PVERT = `attribute vec2 aPos; varying vec2 vUv; uniform vec4 uRect; void main(){ vUv=aPos*0.5+0.5; vec2 c=uRect.xy+vUv*uRect.zw; gl_Position=vec4(c*2.-1.,0.,1.); }`;
 const PFRAG = `precision highp float;
-varying vec2 vUv; uniform sampler2D uTex; uniform vec2 uCover, uPx; uniform float uBlur, uPad, uDuo, uAlpha, uSeed, uGrain, uRad; uniform vec3 uLo, uHi;
+varying vec2 vUv; uniform sampler2D uTex; uniform vec2 uCover, uPx; uniform float uBlur, uPad, uDuo, uAlpha, uSeed, uGrain, uRad, uFeather, uLeak; uniform vec2 uLeakAt; uniform vec3 uLo, uHi, uAccent;
 float hash(vec2 p){ vec3 p3=fract(vec3(p.xyx)*.1031); p3+=dot(p3,p3.yzx+33.33); return fract((p3.x+p3.y)*p3.z); }
 void main(){
   // the quad is wider than the photo by uPad on each side so the blur can spill past the frame, as it does on film
@@ -113,6 +114,11 @@ void main(){
   vec2 hp=vec2(1./uPx.x/(1.+2.*uPad),1./uPx.y)*.5; vec2 dd=abs((vec2(x,vUv.y)-.5)*hp*2.)-hp+uRad;
   float rr=clamp(.5-(length(max(dd,0.))+min(max(dd.x,dd.y),0.)-uRad),0.,1.);
   al=min(al,max(rr,clamp(uBlur*10.,0.,1.)));
+  vec2 pc=vec2(x,vUv.y);
+  // the same red light that crosses the page falls across one corner of the print
+  float lk=1.-clamp(length((pc-uLeakAt)*vec2(1.,.8))/.95,0.,1.); lk=lk*lk*uLeak*uDuo; c=c+uAccent*lk*(1.-c*.6);
+  // soft-edged mode: no frame at all, the photo simply falls off into the dark
+  if(uFeather>0.){ float r=length((pc-.5)*vec2(2.,1.84)); al*=1.-smoothstep(1.-uFeather,1.,r); }
   gl_FragColor=vec4(c,al*uAlpha*f);
 }`;
 
@@ -183,7 +189,7 @@ export function createField(canvas, { reduced = false } = {}) {
 
   let seedT = 0, seed = 0, slow = 0, frames = 0;
   function frame(s) {
-    // s: { time, dt, scroll (in viewport heights), flow (page movement this frame in viewport heights), vel 0..1, theme {bg,a,b,halo,core,mix}, blob [ax,ay,bx,by], energy, strip:[{i,x,y,w,h,blur,duo,alpha}] }
+    // s: { time, dt, scroll (in viewport heights), flow (page movement this frame in viewport heights), vel 0..1, theme {bg,a,b,halo,core,mix}, blob [ax,ay,bx,by], energy, quads:[{i,x,y,w,h,blur,duo,alpha,rad,feather,leak,leakAt}], duoLo, duoHi, accent }
     resize();
     const aspect = W / H, t = s.time;
     if (!reduced) { seedT += s.dt; if (seedT > 1 / 14) { seedT = 0; seed = Math.random() * 97; } }
@@ -222,11 +228,11 @@ export function createField(canvas, { reduced = false } = {}) {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
     // ---- photo strip
-    if (s.strip && s.strip.length) {
+    if (s.quads && s.quads.length) {
       gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       gl.useProgram(photo.p); const pu = photo.u; gl.uniform1i(pu.uTex, 0); gl.uniform1f(pu.uSeed, seed); gl.uniform1f(pu.uGrain, s.grain * 0.45);
-      gl.uniform3fv(pu.uLo, s.duoLo); gl.uniform3fv(pu.uHi, s.duoHi);
-      for (const q of s.strip) {
+      gl.uniform3fv(pu.uLo, s.duoLo); gl.uniform3fv(pu.uHi, s.duoHi); gl.uniform3fv(pu.uAccent, s.accent);
+      for (const q of s.quads) {
         const ph = photos[q.i]; if (!ph || !ph.ready || q.alpha <= 0.003) continue;
         const pad = Math.min(0.9, q.blur * 0.5 + 0.002), wq = q.w * (1 + 2 * pad);
         if (q.x + q.w / 2 + q.w * pad < 0 || q.x - q.w / 2 - q.w * pad > 1) continue;
@@ -235,7 +241,7 @@ export function createField(canvas, { reduced = false } = {}) {
         // cover fit
         const qa = (q.w * W) / (q.h * H), ia = ph.aspect; const cx = qa > ia ? 1 : qa / ia, cy = qa > ia ? ia / qa : 1;
         gl.uniform2f(pu.uCover, cx, cy); gl.uniform2f(pu.uPx, 1 / (wq * W), 1 / (q.h * H));
-        gl.uniform1f(pu.uBlur, q.blur); gl.uniform1f(pu.uRad, 14 * (W / Math.max(1, canvas.clientWidth))); gl.uniform1f(pu.uPad, pad); gl.uniform1f(pu.uDuo, q.duo); gl.uniform1f(pu.uAlpha, q.alpha);
+        gl.uniform1f(pu.uBlur, q.blur); gl.uniform1f(pu.uRad, (q.rad ?? 14) * (W / Math.max(1, canvas.clientWidth))); gl.uniform1f(pu.uFeather, q.feather || 0); gl.uniform1f(pu.uLeak, q.leak || 0); gl.uniform2f(pu.uLeakAt, q.leakAt ? q.leakAt[0] : 1.05, q.leakAt ? q.leakAt[1] : 1.05); gl.uniform1f(pu.uPad, pad); gl.uniform1f(pu.uDuo, q.duo); gl.uniform1f(pu.uAlpha, q.alpha);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       }
       gl.disable(gl.BLEND);

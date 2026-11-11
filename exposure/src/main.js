@@ -105,7 +105,7 @@ function measure() {
   themes = $$('[data-theme]').map(el => ({ ...box(el), name: el.dataset.theme }));
   scenes = $$('[data-scene]').map(el => ({ ...box(el), blob: el.dataset.blob.split(',').map(Number), energy: +el.dataset.energy }));
   labels = $$('[data-label]').map(el => ({ ...box(el), label: el.dataset.label }));
-  cards = $$('.fr-pin').map(el => ({ ...box(el), len: Math.max(1, el.offsetHeight - vh), svg: $('.fr-pitch', el), paths: $$('.fr-pitch path', el) }));
+  cards = $$('.fr-pin').map((el, i) => ({ ...box(el), i, len: Math.max(1, el.offsetHeight - vh), fig: $('[data-fr-ph]', el), ph: $('[data-fr-ph] img', el) }));
   $$('[data-pin]').forEach(el => { const b = box(el); pins[el.dataset.pin] = { ...b, len: Math.max(1, el.offsetHeight - vh), stage: $('.pin-in', el) }; });
 }
 const progress = (pin, y) => clamp((y - pin.top) / pin.len);
@@ -126,8 +126,11 @@ function thesis(p) {
 const jrTrack = $('[data-jr-track]'), jrCards = $$('.jr-card'), jrBar = $('[data-jr-bar]'), jrDots = $$('.jr-line b'), jrN = $('[data-jr-n]');
 let jrGeo = null, jrAt = -1;
 function measureJourney() { const c = jrCards[0]; if (!c) return; const gap = parseFloat(getComputedStyle(jrTrack).columnGap) || 0; jrGeo = { w: c.offsetWidth, step: c.offsetWidth + gap }; }
-function journey(p) {
-  if (!jrGeo) return; const n = jrCards.length, f = p * (n - 1);
+let jrF = 0;
+function journey(p, dt = 1, idle = true) {
+  if (!jrGeo) return; const n = jrCards.length, raw = p * (n - 1);
+  // like the photo strip: follow the scroll while it moves, settle on the nearest stage when it stops
+  jrF = lerp(jrF, idle || reduced ? Math.round(raw) : raw, reduced || dt >= 1 ? 1 : 1 - Math.exp(-dt * (idle ? 6 : 14))); const f = jrF;
   jrTrack.style.transform = `translate3d(${(vw * 0.5 - jrGeo.w * 0.5 - f * jrGeo.step).toFixed(1)}px,0,0)`;
   jrCards.forEach((c, i) => { const d = Math.abs(i - f), t = clamp(d - 0.12); c.style.opacity = (1 - Math.min(0.82, t * 0.9)).toFixed(3); c.style.filter = t < 0.01 || reduced ? 'none' : `blur(${Math.min(14, t * 12).toFixed(1)}px)`; });
   jrBar.style.transform = `scaleX(${p.toFixed(4)})`;
@@ -175,10 +178,10 @@ function courtScene(p) {
 ctTabs.forEach((b, i) => b.addEventListener('click', () => { const pin = pins.court; if (pin) scrollTo({ top: pin.top + pin.len * [0.08, 0.5, 0.92][i], behavior: reduced ? 'auto' : 'smooth' }); }));
 
 /* ---------- in the stands: the strip. Scroll or drag it; it only comes into focus when it stops. */
-const strip = { f: 0, last: 0, speed: 0, at: -1, quads: [], loaded: false };
+const strip = { f: 0, last: 0, speed: 0, at: -1, loaded: false };
 const stripCap = $('.strip-cap'), stripN = $('[data-strip-n]'), stripT = $('[data-strip-t]'), stripL = $('[data-strip-l]');
 function stripScene(sy, ssy, dt, idle) {
-  const pin = pins.strip; strip.quads.length = 0; if (!pin || !field) return;
+  const pin = pins.strip; if (!pin || !field) return;
   if (!strip.loaded && sy > pin.top - vh * 2.5) { strip.loaded = true; data.stands.forEach((u, i) => field.loadPhoto(i, u)); }
   if (sy < pin.top - vh * 1.2 || sy > pin.bottom + vh * 0.2) return;
   // while the page is moving the strip follows it exactly; the moment it stops, the strip settles on the nearest photo
@@ -193,7 +196,7 @@ function stripScene(sy, ssy, dt, idle) {
     const dx = i - strip.f; if (Math.abs(dx) * step > vw * 0.5 + cellW * 1.6) continue;
     const focus = smooth(clamp(1 - Math.abs(dx))), sc = 0.84 + 0.26 * focus;
     const x = vw * 0.5 + dx * step + Math.sign(dx) * Math.min(1, Math.abs(dx)) * cellW * 0.1, y = topPx + vh * 0.475 + (i % 2 ? 1 : -1) * vh * 0.028 * (1 - focus);
-    strip.quads.push({ i, x: x / vw, y: 1 - y / ch, w: (cellW * sc) / vw, h: (cellH * sc) / ch, blur, duo: 1 - focus * still, alpha: 1 });
+    quads.push({ i, x: x / vw, y: 1 - y / ch, w: (cellW * sc) / vw, h: (cellH * sc) / ch, blur, duo: 1 - focus * still, alpha: 1, rad: 16, leak: 0.4 });
   }
   const at = clamp(Math.round(strip.f), 0, n - 1);
   if (at !== strip.at) {
@@ -221,13 +224,38 @@ function stripScene(sy, ssy, dt, idle) {
   addEventListener('pointerup', up); addEventListener('pointercancel', up);
 })();
 
-/* ---------- frame cards: the playing surface is drawn in line behind the title while the card is pinned */
+/* ---------- photos that arrive out of the blur. The page only says where each one sits; the field draws it. */
+const PH = { frame: 20, portrait: 30 }; // texture slots (the strip uses 0 upward)
+const quads = [];
+const mouse = { x: innerWidth * 0.7, y: innerHeight * 0.4, sx: innerWidth * 0.7, sy: innerHeight * 0.4 };
+function place(el, i, o = {}) {
+  const r = el.getBoundingClientRect(), ch = canvas.clientHeight || vh; if (r.width < 2 || r.bottom < -vh * 0.4 || r.top > vh * 1.4) return;
+  quads.push({ i, x: (r.left + r.width / 2 + (o.dx || 0)) / vw, y: 1 - (r.top + r.height / 2 + (o.dy || 0)) / ch, w: r.width / vw, h: r.height / ch, blur: o.blur || 0, duo: o.duo ?? 1, alpha: o.alpha ?? 1, rad: o.rad ?? 16, feather: o.feather || 0, leak: o.leak ?? 0.5, leakAt: o.leakAt });
+}
+// each frame's photo streaks in from the side and settles sharp while its title card is pinned
 function cardScene(c, y) {
-  if (!c.svg) return;
-  const p = reduced ? 1 : clamp((y - (c.top - vh * 0.55)) / (vh * 0.55 + c.len * 0.9)), n = c.paths.length, t = p * (n + 2.5);
-  c.paths.forEach((el, k) => { el.style.strokeDashoffset = (1 - smooth(clamp((t - k) / 3.5))).toFixed(3); });
-  const q = smooth(p);
-  c.svg.style.transform = `perspective(1500px) rotateX(${lerp(30, 61, q).toFixed(2)}deg) rotateZ(${lerp(-4, -23, q).toFixed(2)}deg) scale(${lerp(0.92, 1.05, q).toFixed(3)})`;
+  const p = reduced ? 1 : clamp((y - (c.top - vh * 0.6)) / (vh * 0.6 + c.len * 0.5)), e = smooth(p);
+  c.fig.classList.toggle('on', p > 0.9);
+  if (field && c.ph) place(c.ph, PH.frame + c.i, { blur: (1 - e) * 1.3, dx: (1 - e) * vw * 0.24, alpha: clamp(p * 3.2) });
+}
+// the portrait: out of the blur on arrival, back into it as you scroll away, leaning a little against the cursor
+const heroPh = $('[data-hero-ph] img'); let heroT0 = 0;
+function heroScene(now) {
+  if (!field || !heroPh || sy > vh * 1.3) return;
+  const k = reduced ? 1 : heroT0 ? outExpo(clamp((now - heroT0) / 2400)) : 0, s = reduced ? 0 : clamp(ssy / (vh * 0.9));
+  mouse.sx = lerp(mouse.sx, mouse.x, 0.06); mouse.sy = lerp(mouse.sy, mouse.y, 0.06);
+  const px = fine && !reduced ? (mouse.sx / vw - 0.5) * -20 : 0, py = fine && !reduced ? (mouse.sy / vh - 0.5) * -12 : 0;
+  place(heroPh, PH.portrait, { blur: (1 - k) * 1.4 + s * 1.1, dx: (1 - k) * vw * 0.14 + px, dy: py, alpha: k * (1 - s * 0.75), feather: 0.8, rad: 0, leak: 0.45, leakAt: [-0.05, 0.95] });
+}
+// hovering an idea in the list holds its photo up beside the cursor; it smears when the cursor moves fast
+const peek = { i: -1, on: 0, a: 0, x: 0, y: 0, vx: 0 };
+if (fine) $$('[data-peek]').forEach(el => { el.addEventListener('mouseenter', () => { peek.i = +el.dataset.peek; peek.on = 1; }); el.addEventListener('mouseleave', () => { peek.on = 0; }); });
+function peekScene() {
+  peek.a = lerp(peek.a, peek.on, 0.13);
+  if (!field || peek.i < 0 || peek.a < 0.01) { peek.x = mouse.x; peek.y = mouse.y; peek.vx = 0; return; }
+  const nx = lerp(peek.x, mouse.x, 0.14), ny = lerp(peek.y, mouse.y, 0.14); peek.vx = lerp(peek.vx, nx - peek.x, 0.3); peek.x = nx; peek.y = ny;
+  const w = Math.min(250, vw * 0.19), h = w / 0.74, ch = canvas.clientHeight || vh;
+  quads.push({ i: PH.frame + peek.i, x: clamp(peek.x + w * 0.85, w * 0.6, vw - w * 0.6) / vw, y: 1 - peek.y / ch, w: w / vw, h: h / ch, blur: reduced ? 0 : clamp(Math.abs(peek.vx) / 30, 0, 1) + (1 - peek.a) * 0.8, duo: 1, alpha: peek.a, rad: 14, leak: 0.5 });
 }
 
 /* ---------- lists that focus on whatever is nearest the middle of the screen */
@@ -297,7 +325,7 @@ function go(id, viaIndex) {
 document.addEventListener('click', e => { const link = e.target.closest('a[href^="#"]'); if (!link) return; const id = link.getAttribute('href').slice(1); if (!document.getElementById(id)) return; e.preventDefault(); go(id, !!link.closest('[data-index]')); });
 
 /* ---------- pointer leaves a trail */
-addEventListener('pointermove', e => { if (field && e.pointerType !== 'touch') field.point(e.clientX / vw, 1 - e.clientY / (canvas.clientHeight || vh)); }, { passive: true });
+addEventListener('pointermove', e => { if (e.pointerType !== 'touch') { mouse.x = e.clientX; mouse.y = e.clientY; } if (field && e.pointerType !== 'touch') field.point(e.clientX / vw, 1 - e.clientY / (canvas.clientHeight || vh)); }, { passive: true });
 addEventListener('pointerdown', e => { if (field) field.burst(e.clientX / vw, 1 - e.clientY / (canvas.clientHeight || vh), e.pointerType === 'touch' ? 1 : 0.7); }, { passive: true });
 
 /* ---------- the loop */
@@ -320,31 +348,36 @@ function tick(now) {
   if (li !== labelAt && lb) { labelAt = li; hdLabel.textContent = lb.label; hdCount.textContent = `${pad2(li)} / ${pad2(labels.length - 1)}`; }
   bar.style.transform = `scaleX(${clamp(sy / docH).toFixed(4)})`;
 
+  quads.length = 0; heroScene(now);
   if (pins.thesis && sy > pins.thesis.top - vh && sy < pins.thesis.bottom) thesis(progress(pins.thesis, ssy));
-  if (pins.journey && sy > pins.journey.top - vh && sy < pins.journey.bottom) journey(progress(pins.journey, ssy));
+  if (pins.journey && sy > pins.journey.top - vh && sy < pins.journey.bottom) journey(progress(pins.journey, ssy), dt, time - movedAt > 0.16);
   if (pins.court && sy > pins.court.top - vh && sy < pins.court.bottom) courtScene(progress(pins.court, ssy));
   stripScene(sy, ssy, dt, time - movedAt > 0.16);
   focusPull();
   for (const c of cards) if (sy > c.top - vh * 1.2 && sy < c.bottom + vh * 0.2) cardScene(c, ssy);
+  peekScene();
 
-  if (field) field.frame({ time, dt, scroll: ssy / vh, flow: d / (canvas.clientHeight || vh), vel, grain: 0.05, theme: theme.gl, blob: scene.blob, energy: scene.energy, strip: strip.quads, duoLo: C.raven, duoHi: C.sky });
+  if (field) field.frame({ time, dt, scroll: ssy / vh, flow: d / (canvas.clientHeight || vh), vel, grain: 0.05, theme: theme.gl, blob: scene.blob, energy: scene.energy, quads, duoLo: C.raven, duoHi: C.sky, accent: C.poppy });
   requestAnimationFrame(tick);
 }
 
 /* ---------- start */
-function layout() { measure(); measureJourney(); cards.forEach(c => cardScene(c, scrollY)); thesis(pins.thesis ? progress(pins.thesis, scrollY) : 0); journey(pins.journey ? progress(pins.journey, scrollY) : 0); courtScene(pins.court ? progress(pins.court, scrollY) : 0); }
+function layout() { measure(); measureJourney(); thesis(pins.thesis ? progress(pins.thesis, scrollY) : 0); journey(pins.journey ? progress(pins.journey, scrollY) : 0); courtScene(pins.court ? progress(pins.court, scrollY) : 0); }
 let lastW = innerWidth, rz;
 addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (innerWidth !== lastW || Math.abs(innerHeight - vh) > 120) { lastW = innerWidth; layout(); } else { vh = innerHeight; } }, 120); });
 new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(layout, 150); }).observe(document.body);
 
 layout();
 { const th = pick(themes, scrollY + innerHeight * 0.55); if (th) themeName = th.name; theme = clone(THEMES[themeName]); writeTheme(); }
+if (field) field.loadPhoto(PH.portrait, data.portrait);
 requestAnimationFrame(tick);
 Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 1600))]).then(() => {
   layout();
   if (location.hash && document.getElementById(location.hash.slice(1))) scrollTo(0, pageTop(document.getElementById(location.hash.slice(1))));
   requestAnimationFrame(() => {
-    root.classList.add('ready');
+    root.classList.add('ready'); heroT0 = performance.now();
+    // the frame photos are not needed for a few screens yet
+    if (field) setTimeout(() => data.frames.forEach((u, i) => field && field.loadPhoto(PH.frame + i, u)), 700);
     // the opening frame arrives whole, whatever the window height; everything else waits to be scrolled to
     $$('.hero [data-r]').forEach(el => { el.classList.add('in'); if (el.dataset.r === 'smear') smear(el); });
     $$('[data-r]:not(.in)').forEach(el => revealIO.observe(el));

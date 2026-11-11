@@ -5,24 +5,26 @@ export const EMAIL = 'Matt17King@gmail.com';
 export const LINKEDIN = 'https://linkedin.com/in/mattking17';
 export const INSTAGRAM = 'https://instagram.com/mattking.17';
 
-// The five frames. Each one is an idea first; the sport is where it was learned.
-// Each frame's playing surface is drawn in line behind its title (see src/pitches.js, keyed by `id`).
+// The five frames: five ideas. Each opens on one photo, which comes into focus as the title lands.
+// photo: [file in public/photos, title, line, alt text]
 export const FRAMES = [
-  { id: 'runway', n: '01', sport: 'Football', title: ['The tunnel is', 'the new <em>runway.</em>'], intro: 'Fashion is everywhere in sport. Nobody falls for 90 minutes. They fall for the story.' },
-  { id: 'side-door', n: '02', sport: 'Basketball', title: ['Culture is', 'the <em>side door.</em>'], intro: 'Reach people through what they already love. Then put the sport in that world.' },
-  { id: 'fit', n: '03', sport: 'NFL', title: ['Fit beats', '<em>size.</em>'], intro: 'How a fan is made, one stage at a time. Then the eleven rules I cast talent by.' },
-  { id: 'format', n: '04', sport: 'Tennis', title: ['The format is', 'the <em>product.</em>'], intro: 'Change the format and you change who turns up. Split surfaces, handicapped courts, smaller courts with walls, one-point shoot-outs: the sport stays, the door gets wider.' },
-  { id: 'story', n: '05', sport: 'Motorsport', title: ['Story before', '<em>sport.</em>'], intro: 'Drive to Survive turned box-set watchers into F1 fans. They came for the people and stayed for the racing.' },
+  { id: 'runway', n: '01', title: ['The tunnel is', 'the new <em>runway.</em>'], intro: 'Fashion is everywhere in sport. NBA tunnel fits, the F1 paddock, the walk into training: every arrival is a runway.',
+    photo: ['foden-couture.jpg', 'Phil Foden × The Couture Club', 'The menswear moved when footballers wore it.', 'Phil Foden in The Couture Club store'] },
+  { id: 'side-door', n: '02', title: ['Culture is', 'the <em>side door.</em>'], intro: 'Reach people through what they already love. Then put the sport in that world.',
+    photo: ['super-bowl.jpg', 'Super Bowl LV', 'I was in the building. The halftime show is part of the product.', 'Matt at Super Bowl LV, in the stands above the field'] },
+    { id: 'fit', n: '03', title: ['Fit beats', '<em>size.</em>'], intro: "The right voice for the idea beats the biggest name that doesn't fit it. These are the eleven rules I cast talent by.",
+    photo: ['man-city-couture.jpg', 'The Couture Club × Man City', 'Fashion meets football.', 'Matt carrying Couture Club bags into the Manchester City training ground'] },
+  { id: 'format', n: '04', title: ['The format is', 'the <em>product.</em>'], intro: 'Change the format and you change who turns up. Split surfaces, handicapped courts, smaller courts with walls, one-point shoot-outs: the sport stays, the door gets wider.',
+    photo: ['padel.jpg', 'On court — padel', "I play it too. Four players, one small court, walls in play: it's built to be social.", 'Matt playing padel'] },
+  { id: 'story', n: '05', title: ['Story before', '<em>sport.</em>'], intro: 'Drive to Survive turned box-set watchers into F1 fans. They came for the people and stayed for the racing.',
+    photo: ['f1-miami.jpg', 'F1 Miami', 'Represent tee, race weekend in a new market. Fashion is everywhere in sport.', 'Matt at F1 Miami in a Represent tee'] },
 ];
 
-// Frame 01
+// Frame 01: the story, and the number it produced. stat: [value, what, where]
 export const RUNWAY = {
   h: 'Every arrival is a fit check.',
-  p: "At The Couture Club, influencers sold the womenswear. The menswear didn't move until footballers posted it. Then it sold out. NBA tunnel fits, the F1 paddock, the walk into training: every arrival is a runway.",
-  photos: [
-    ['foden-couture.jpg', 'Phil Foden × The Couture Club', 'The menswear moved when footballers wore it.', 'Phil Foden in The Couture Club store'],
-    ['barcelona.jpg', 'In the stands — FC Barcelona', 'Fan first. Every story I tell starts from a seat like this one.', 'The view from the stands at an FC Barcelona match'],
-  ],
+  p: "At The Couture Club, influencers sold the womenswear. The menswear didn't move until footballers posted it. Then it sold out.",
+  stat: ['+600%', 'Reach, with Molly-Mae Hague & Phil Foden', 'The Couture Club'],
 };
 
 // Frame 02
@@ -41,10 +43,9 @@ export const BRIEF = {
     ['03', 'What we have', ['Sport', 'Athletes', 'Stories']],
     ['04', 'What it becomes', ['Tunnel fits', 'Drops & collabs', 'Creator series', 'New formats', 'Music moments', 'Local heroes', 'New fans'], true],
   ],
-  photo: ['super-bowl.jpg', 'Super Bowl LV', 'I was in the building. The halftime show is part of the product.', 'Matt at Super Bowl LV, in the stands above the field'],
 };
 
-// Frame 03 — how a fan is made, then the eleven rules for working with talent
+// How a fan is made (its own section), then frame 03's eleven rules for working with talent
 export const JOURNEY = [
   { name: 'Discovery', role: 'They meet it somewhere else', detail: "Nobody discovers a sport on its own channel. They find it in a feed, a song, a fit or a friend's story. That's where I start." },
   { name: 'Curiosity', role: 'A person, not a fixture', detail: 'Curiosity attaches to people: a personality, a rivalry, a look in the tunnel. The fixtures come later.' },
@@ -74,21 +75,16 @@ export const FORMATS = [
   { h: 'Battle of the sexes', stat: '9%', unit: 'smaller on her side of the net', p: 'Kyrgios v Sabalenka, Dubai, December 2025. Her half of the court was made about 9% smaller to even it up. Bend one rule and you hand a whole new audience a reason to tune in.' },
   { h: 'Padel', stat: '20×10', unit: 'metres · walls in play · always doubles', p: 'Padel took tennis, shrank the court, put the walls in play and made it doubles only. Easier to pick up, better with friends, and it brings people to a racket who never joined a tennis club.' },
 ];
-export const FORMAT_PHOTOS = [
-  ['padel.jpg', 'On court — padel', "I play it too. Four players, one small court, walls in play: it's built to be social.", 'Matt playing padel'],
-  ['tennis.jpg', 'On court', 'I play it too. New formats are how a sport finds its next players.', 'Matt playing tennis'],
-];
 
-// Frame 05
+// Frame 05: one idea, seven markets
 export const MARKETS = {
   h: 'One idea, seven markets',
   p: "Sneakers are a global language. Culture travels, execution has to be local. Lead with who each market already loves, like Ohtani in Japan, and don't hide from what the rights already are.",
   list: ['UK', 'North America', 'LATAM', 'MENA', 'South East Asia', 'Australia & NZ', 'Rest of world'],
-  photos: [
-    ['f1-miami.jpg', 'F1 Miami', 'Represent tee, race weekend in a new market. Fashion is everywhere in sport.', 'Matt at F1 Miami in a Represent tee'],
-    ['goodwood.jpg', 'Goodwood Festival of Speed', "Everyone filming. That's the story spreading before the race starts.", 'A phone held up to film a car at Goodwood Festival of Speed'],
-  ],
+  stat: ['7', 'Market zones, one go-to-market plan', 'DAZN'],
+  photo: ['goodwood.jpg', 'Goodwood Festival of Speed', "Everyone filming. That's the story spreading before the race starts.", 'A phone held up to film a car at Goodwood Festival of Speed'],
 };
+// How I work
 export const KIT = [
   { tag: 'Pit crew', title: 'AI is the pit crew', tools: 'Claude · ChatGPT · Gemini · Make.com', detail: "AI saves time on research, versions, reporting and automations. It changes the tyres fast. It doesn't drive the car." },
   { tag: 'Driver', title: 'Taste is the driver', tools: 'The brief · the casting · the creative call', detail: "AI isn't a creative strategist yet. Taking what worked in one place and landing it in another is still a human job." },
@@ -116,7 +112,7 @@ export const ROUTE = [['2021', 'Gym King', 'gym-king.png'], ['2022', 'American G
 // In the stands: [file in public/photos, title, label]
 export const STANDS = [
   ['man-city-match.jpg', 'Manchester City', 'Matchday'],
-  ['man-city-couture.jpg', 'The Couture Club × Man City', 'Fashion meets football'],
+  ['barcelona.jpg', 'FC Barcelona', 'In the stands'],
   ['national-league-awards.jpg', 'National League Awards', 'Red carpet'],
   ['goodwood.jpg', 'Goodwood Festival of Speed', 'Paddock'],
   ['boxing.jpg', 'Fight night', 'In the crowd'],
