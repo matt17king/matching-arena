@@ -29,10 +29,13 @@ Two helpers are derived from those and used only for legibility: `ice` (`#f3f8fc
 
 | Path | What it is |
 | --- | --- |
-| `index.html` | The page shell: header, index, and the static sections |
+| `index.html` | The story: header, index, and the static sections |
+| `book/index.html` | The booking page |
+| `src/kit.js` | Shared by both pages: fonts and styles, helpers, the three colour themes, word splitting, the panned-blur headline, grain |
+| `src/book.js` | The booking page: the four questions, the pass, the written brief, the email hand-off |
 | `src/content.js` | Everything editable: the fan journey, the five frames (each with its photo), plays, the brief, eleven talent rules, formats, markets, how I work, the record, who Matt has worked with, press, booking |
 | `src/render.js` | Turns `content.js` into markup |
-| `src/main.js` | Behaviour: themes, scroll scenes, reveals, the court, the photo strip, the index |
+| `src/main.js` | The story's behaviour: scroll scenes, reveals, the court, the photo strip, the index |
 | `src/gl/field.js` | The WebGL layer behind the page: the cursor's light trail, the grainy red and blue fields, and every photo that arrives out of the blur |
 | `src/styles/site.css` | All styling, with the phone layout behind one breakpoint at the end |
 | `public/photos`, `public/logos` | Photos (copied from Arena) and logos converted to single-colour masks so they take the page's ink colour |
@@ -48,6 +51,16 @@ Two helpers are derived from those and used only for legibility: `ice` (`#f3f8fc
 - **The fan journey and the photo strip settle.** Both follow the scroll while it moves and come to rest on the nearest stage or photo when it stops.
 - **The photo strip** in "In the stands" is drawn in WebGL with a light directional blur tied to its speed. Scroll or drag it, or click a photo to either side; when the page stops, the strip settles on the nearest photo and that photo develops into colour.
 - **Fallbacks.** Without WebGL the page runs on its CSS background and the strip becomes a normal scrolling row. With reduced motion set, reveals are instant and the field holds still.
+
+## The booking page
+
+`book/` is a second page in the same build. Instead of a contact form it asks four questions (what, about what, where and when, who) and does three things with the answers:
+
+- **The pass.** A booking pass hangs from a strap beside the form and prints each answer as it is given. It is a damped pendulum: scrolling shoves it, brushing past it with the cursor pushes it, and it leans toward the pointer. When all four questions have an answer it is stamped "Ready to send".
+- **The brief.** The answers are written out as one sentence. Parts not yet answered stay in the sentence, soft and out of focus, until they are.
+- **The hand-off.** "Send it to Matt" is a `mailto:` link with the subject and the brief filled in, so it opens the visitor's own email app. There is no server and nothing is stored. "Copy the brief" puts the same text on the clipboard.
+
+The six routes and six topics come from `SEATS` and `TOPICS` in `content.js`; `BOOK` holds how each route reads on the pass and in the sentence. The questions on the home page link to `book/?for=<key>`, which arrives with that route already chosen. The line under the header fills as the brief does.
 
 ## Notes
 

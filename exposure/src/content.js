@@ -137,13 +137,22 @@ export const PRESS = [
   { img: 'press-bdaily-photo.jpg', pos: 'center 40%', alt: 'The three 80 Four founders', source: 'Bdaily Business News', date: '21 Oct 2025', headline: 'Trio launch new marketing agency', line: '80 Four, founded by Matt King, James Parker-Aiken and Emily Martin, specialises in sport, health and lifestyle branding and brand strategy.' },
 ];
 
-// Book Matt: [what, line, email subject, the question]
+// Book Matt: [what, line, email subject, the question, key]. The key is what the booking page uses (book/?for=key).
 export const SEATS = [
-  ['Podcasts', 'Sport, fashion and culture, and why fans fall for stories, not fixtures.', 'Podcast invite', 'Can you come on the pod?'],
-  ['Keynotes & talks', 'Culture is the side door into sport. For conferences, brands and teams.', 'Speaking enquiry', 'Will you speak at our event?'],
-  ['Panels', 'Rights, talent, formats, and where the next fans come from.', 'Panel invite', 'Can you join our panel?'],
-  ['Brand collaborations', 'Sport × fashion × culture partnerships built on fit, not just reach.', 'Brand collaboration', 'Can we build something together?'],
-  ['Press comment', 'Quick, clear takes on sports marketing and culture.', 'Press comment', 'Can we get a quote from you?'],
-  ["Let's talk", 'Rights holders, founders, agencies, or anyone with an idea worth chasing.', 'Hello', 'Got five minutes?'],
+  ['Podcasts', 'Sport, fashion and culture, and why fans fall for stories, not fixtures.', 'Podcast invite', 'Can you come on the pod?', 'podcast'],
+  ['Keynotes & talks', 'Culture is the side door into sport. For conferences, brands and teams.', 'Speaking enquiry', 'Will you speak at our event?', 'talk'],
+  ['Panels', 'Rights, talent, formats, and where the next fans come from.', 'Panel invite', 'Can you join our panel?', 'panel'],
+  ['Brand collaborations', 'Sport × fashion × culture partnerships built on fit, not just reach.', 'Brand collaboration', 'Can we build something together?', 'brand'],
+  ['Press comment', 'Quick, clear takes on sports marketing and culture.', 'Press comment', 'Can we get a quote from you?', 'press'],
+  ["Let's talk", 'Rights holders, founders, agencies, or anyone with an idea worth chasing.', 'Hello', 'Got five minutes?', 'hello'],
 ];
+// How each route reads on the booking pass, and in the sentence the booking page writes
+export const BOOK = {
+  podcast: { pass: 'Podcast', phrase: 'a podcast' },
+  talk: { pass: 'Keynote / talk', phrase: 'a keynote or talk' },
+  panel: { pass: 'Panel', phrase: 'a panel' },
+  brand: { pass: 'Brand collaboration', phrase: 'a brand collaboration' },
+  press: { pass: 'Press comment', phrase: 'a press comment' },
+  hello: { pass: 'A conversation', phrase: 'a conversation' },
+};
 export const TOPICS = ['Culture is the side door', 'The tunnel is the new runway', 'Fit beats size: casting talent', 'The format is the product', 'Story before sport', 'AI is the pit crew, not the driver'];

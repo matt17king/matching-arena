@@ -1,98 +1,26 @@
 // Long Exposure — behaviour.
 // Native scroll throughout (nothing is hijacked or snapped). Everything that moves is eased toward the scroll position
 // in one requestAnimationFrame loop, and the same loop drives the WebGL field behind the page.
-import '@fontsource-variable/inter-tight';
-import '@fontsource-variable/inter-tight/wght-italic.css';
-import '@fontsource-variable/geist';
-import '@fontsource-variable/geist-mono';
-import './styles/site.css';
+import { root, $, $$, clamp, lerp, smooth, sstep, outExpo, pad2, params, reduced, fine, split, smear, C, createTheme, grainURL } from './kit.js';
 import { createField } from './gl/field.js';
 import { renderAll } from './render.js';
 import { RULES } from './content.js';
 
-const root = document.documentElement;
-const $ = (s, el = document) => el.querySelector(s);
-const $$ = (s, el = document) => [...el.querySelectorAll(s)];
-const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
-const lerp = (a, b, t) => a + (b - a) * t;
-const smooth = t => t * t * (3 - 2 * t);
-const sstep = (a, b, x) => smooth(clamp((x - a) / (b - a)));
-const outExpo = t => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
-const pad2 = n => String(n).padStart(2, '0');
-const params = new URLSearchParams(location.search);
-
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches || params.has('still');
-const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const safari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
-// The directional (panned) blur on headlines is an SVG filter. Where that is slow or unproven, fall back to a soft CSS blur.
-const canSmear = fine && !reduced && !safari;
-if (!canSmear) root.classList.add('no-smear');
-
 const data = renderAll();
 
 /* ---------- words */
-function split(el) {
-  let i = 0;
-  const walk = node => [...node.childNodes].forEach(c => {
-    if (c.nodeType === 3) {
-      const frag = document.createDocumentFragment();
-      c.textContent.split(/([ \n\t]+)/).forEach(t => {
-        if (!t) return;
-        if (/^[ \n\t]+$/.test(t)) { frag.append(' '); return; }
-        const s = document.createElement('span'); s.className = 'w'; s.style.setProperty('--i', i++); s.textContent = t; frag.append(s);
-      });
-      c.replaceWith(frag);
-    } else if (c.nodeType === 1) walk(c);
-  });
-  walk(el);
-}
 $$('[data-split], [data-words]').forEach(split);
 $$('.ix-list li').forEach((li, i) => li.style.setProperty('--n', i));
 
-/* ---------- colour: three themes, eased between as sections pass the middle of the screen */
-const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
-const C = { raven: hex('#090303'), sky: hex('#b6dff8'), poppy: hex('#e20b21'), ice: hex('#f3f8fc'), ember: hex('#7a0611'), glow: hex('#57b3ee') };
-// glow is powder blue's own hue with the white taken out: what that light looks like as it falls off into black
-const a = (c, al = 1) => [...c, al];
-const THEMES = {
-  // raven: the room with the lights off. Red and blue light bleed across it; type is ice white.
-  raven: {
-    css: { bg: a(C.raven), ink: a(C.ice), body: a(C.ice, 0.86), mute: a(C.sky, 0.7), line: a(C.sky, 0.18), 'line-strong': a(C.sky, 0.44), 'hi-ink': a(C.ice), 'hi-mark': a(C.poppy), 'btn-bg': a(C.poppy), 'btn-ink': a(C.ice) },
-    gl: { bg: C.raven, a: C.poppy, b: C.glow, halo: C.poppy, core: C.ice, mix: [0.96, 0.62, 0.8, 0.92] },
-  },
-  // sky: powder blue daylight, black type, red for the words that matter
-  sky: {
-    css: { bg: a(C.sky), ink: a(C.raven), body: a(C.raven, 0.88), mute: a(C.raven, 0.62), line: a(C.raven, 0.16), 'line-strong': a(C.raven, 0.46), 'hi-ink': a(C.poppy), 'hi-mark': a(C.poppy, 0), 'btn-bg': a(C.raven), 'btn-ink': a(C.sky) },
-    gl: { bg: C.sky, a: C.ice, b: C.poppy, halo: C.poppy, core: C.raven, mix: [0.9, 0.8, 0.6, 0.6] },
-  },
-  // poppy: the accent at full strength, used once, at the end
-  poppy: {
-    css: { bg: a(C.poppy), ink: a(C.ice), body: a(C.ice, 0.94), mute: a(C.ice, 0.8), line: a(C.ice, 0.3), 'line-strong': a(C.ice, 0.62), 'hi-ink': a(C.ice), 'hi-mark': a(C.raven), 'btn-bg': a(C.raven), 'btn-ink': a(C.ice) },
-    gl: { bg: C.poppy, a: C.raven, b: C.ember, halo: C.raven, core: C.ice, mix: [0.6, 0.7, 0.5, 0.9] },
-  },
-};
-const clone = t => ({ css: Object.fromEntries(Object.entries(t.css).map(([k, v]) => [k, [...v]])), gl: Object.fromEntries(Object.entries(t.gl).map(([k, v]) => [k, [...v]])) });
-let themeName = 'raven', theme = clone(THEMES.raven), themeMoving = true;
-function writeTheme() {
-  for (const [k, v] of Object.entries(theme.css)) root.style.setProperty(`--${k}`, `rgba(${Math.round(v[0] * 255)},${Math.round(v[1] * 255)},${Math.round(v[2] * 255)},${v[3].toFixed(3)})`);
-}
-function easeTheme(k) {
-  const to = THEMES[themeName]; let d = 0;
-  for (const g of ['css', 'gl']) for (const key in to[g]) { const cur = theme[g][key], tgt = to[g][key]; for (let i = 0; i < cur.length; i++) { const n = lerp(cur[i], tgt[i], k); d = Math.max(d, Math.abs(tgt[i] - n)); cur[i] = d < 0.002 ? tgt[i] : n; } }
-  writeTheme(); themeMoving = d >= 0.002;
-}
+/* ---------- colour: three themes, eased between as sections pass the middle of the screen (see kit.js) */
+const theme = createTheme();
 
 /* ---------- the field */
 const canvas = $('[data-field]');
 let field = params.has('nogl') ? null : createField(canvas, { reduced });
 if (!field) root.classList.add('no-gl'); else field.lost(() => { field = null; root.classList.add('no-gl'); });
 
-// film grain over the DOM as well, so type and photos sit in the same print as the field
-(() => {
-  const c = document.createElement('canvas'); c.width = c.height = 240; const g = c.getContext('2d'), im = g.createImageData(240, 240);
-  for (let i = 0; i < im.data.length; i += 4) { const v = 128 + (Math.random() - 0.5) * 150; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; }
-  g.putImageData(im, 0, 0); $('[data-grain]').style.backgroundImage = `url(${c.toDataURL()})`;
-})();
+$('[data-grain]').style.backgroundImage = grainURL();
 
 /* ---------- measuring */
 let vw = innerWidth, vh = innerHeight, docH = 1;
@@ -268,17 +196,6 @@ function focusPull() {
 }
 
 /* ---------- reveals */
-const defs = $('[data-defs]'); let fid = 0;
-function smear(el) {
-  if (!canSmear) return;
-  const from = +(el.dataset.smear || 34), dur = +(el.dataset.dur || 1300), delay = (parseFloat(getComputedStyle(el).getPropertyValue('--d')) || 0) * 1000;
-  const NS = 'http://www.w3.org/2000/svg', f = document.createElementNS(NS, 'filter'), b = document.createElementNS(NS, 'feGaussianBlur');
-  f.id = `sm${fid++}`; f.setAttribute('x', '-25%'); f.setAttribute('width', '150%'); f.setAttribute('y', '-10%'); f.setAttribute('height', '120%'); f.setAttribute('color-interpolation-filters', 'sRGB');
-  b.setAttribute('stdDeviation', `${from} 0`); f.append(b); defs.append(f); el.style.filter = `url(#${f.id})`;
-  const t0 = performance.now() + delay;
-  const step = now => { const t = clamp((now - t0) / dur), sd = from * (1 - outExpo(t)); if (t >= 1 || sd < 0.25) { el.style.filter = ''; f.remove(); return; } b.setAttribute('stdDeviation', `${sd.toFixed(2)} 0`); requestAnimationFrame(step); };
-  requestAnimationFrame(step);
-}
 function count(el) {
   const m = el.dataset.count.match(/^(\D*)(\d+)(.*)$/); if (!m || reduced) return; const [, pre, num, post] = m, to = +num, t0 = performance.now();
   const step = now => { const t = clamp((now - t0) / 1500); el.textContent = pre + Math.round(to * outExpo(t)) + post; if (t < 1) requestAnimationFrame(step); };
@@ -365,8 +282,8 @@ function tick(now) {
   vel = lerp(vel, clamp(Math.abs(d) / (vh * 0.07)), 0.18);
   const mid = sy + vh * 0.55;
 
-  const th = pick(themes, mid); if (th && th.name !== themeName) { themeName = th.name; themeMoving = true; }
-  if (themeMoving) easeTheme(reduced ? 1 : 1 - Math.exp(-dt * 5.5));
+  const th = pick(themes, mid); if (th) theme.to(th.name);
+  theme.ease(reduced ? 1 : 1 - Math.exp(-dt * 5.5));
   const sc = pick(scenes, sy + vh * 0.5);
   if (sc) { const k = 1 - Math.exp(-dt * 2.2); for (let i = 0; i < 4; i++) scene.blob[i] = lerp(scene.blob[i], sc.blob[i], k); scene.energy = lerp(scene.energy, sc.energy, k); }
   const lb = pick(labels, mid), li = lb ? labels.indexOf(lb) : -1;
@@ -394,7 +311,7 @@ addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if 
 new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(layout, 150); }).observe(document.body);
 
 layout();
-{ const th = pick(themes, scrollY + innerHeight * 0.55); if (th) themeName = th.name; theme = clone(THEMES[themeName]); writeTheme(); }
+{ const th = pick(themes, scrollY + innerHeight * 0.55); theme.snap(th && th.name); }
 if (field) field.loadPhoto(PH.portrait, data.portrait);
 requestAnimationFrame(tick);
 Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 1600))]).then(() => {
