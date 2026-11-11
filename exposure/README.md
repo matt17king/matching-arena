@@ -39,9 +39,10 @@ Two helpers are derived from those and used only for legibility: `ice` (`#f3f8fc
 
 ## How it behaves
 
-- **Scrolling is native.** Nothing is hijacked or snapped. Pinned scenes (the idea, the fan journey, each frame's title card, the court, the photo strip) read the scroll position and ease toward it.
+- **Scrolling is native.** Nothing is hijacked or snapped. Pinned scenes (the idea, the fan journey, each frame's title card, the three plays, the brief, the eleven rules, the court, the photo strip) read the scroll position and ease toward it.
 - **The field** is one fullscreen shader: slow red and blue light with grain. A feedback buffer keeps the last frames of the cursor (or a tap), so it leaves a trail that decays like a long exposure. Nothing else moves on its own.
 - **Photos arrive out of the blur.** The page only marks where a photo sits; the field draws it in the black-and-blue print with a leak of the page's red light. The portrait in the opening frame resolves on arrival and smears away as you scroll. Each frame's title card is pinned for a moment while its photo streaks in and settles sharp beside the title. Hovering an idea in the list holds its photo up beside the cursor.
+- **Hold and reveal.** The three plays resolve one per scroll step (two names start as a double exposure, slide apart into focus, then the outcome lands). The brief builds itself a question at a time. The eleven rules turn over with the scroll; clicking one moves the page to it.
 - **Proof sits beside the idea it proves.** Where one of the record's numbers belongs to a frame's story, it appears there as a card (`stat` in `content.js`), as well as in the record.
 - **Focus** is the recurring device. Headlines arrive with a horizontal (panned) blur and settle. The opening statement sharpens word by word as you scroll. Lists sharpen whatever is nearest the middle of the screen. Photos sit in a black and powder blue print until you hover, focus or tap them.
 - **The fan journey and the photo strip settle.** Both follow the scroll while it moves and come to rest on the nearest stage or photo when it stops.

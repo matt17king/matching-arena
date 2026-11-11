@@ -294,14 +294,37 @@ $$('[data-dev]').forEach(el => (reduced ? el.classList.add('dev') : devIO.observ
 $$('.ph-in').forEach(el => el.addEventListener('click', () => el.classList.toggle('dev')));
 
 /* ---------- small interactions */
-const rulesSide = $('[data-rules-side]'), ruleEls = $$('.rule'); let ruleAt = 0, ruleT;
-function setRule(i, toggle) {
-  if (i === ruleAt && !toggle) return; const wasOn = ruleEls[i].classList.contains('on');
-  ruleEls.forEach((r, k) => { const on = k === i && !(toggle && wasOn && vw < 900); r.classList.toggle('on', on); $('.rule-b', r).setAttribute('aria-expanded', on); });
-  ruleAt = i; if (!rulesSide) return; rulesSide.classList.add('sw'); clearTimeout(ruleT);
+const rulesSide = $('[data-rules-side]'), ruleEls = $$('.rule'), ruleDots = $$('.rl-dots i'); let ruleAt = -1, ruleT;
+function setRule(i) {
+  if (i === ruleAt) return; ruleAt = i;
+  ruleEls.forEach((r, k) => r.classList.toggle('on', k === i)); ruleDots.forEach((d, k) => d.classList.toggle('on', k <= i));
+  if (!rulesSide) return; rulesSide.classList.add('sw'); clearTimeout(ruleT);
   ruleT = setTimeout(() => { rulesSide.firstElementChild.innerHTML = `<b>${pad2(i + 1)}</b><h4></h4><p></p>`; $('h4', rulesSide).textContent = RULES[i][0]; $('p', rulesSide).textContent = RULES[i][1]; rulesSide.classList.remove('sw'); }, 170);
 }
-ruleEls.forEach((r, i) => { const b = $('.rule-b', r); b.addEventListener('click', () => setRule(i, true)); b.addEventListener('focus', () => setRule(i)); if (fine) b.addEventListener('mouseenter', () => { if (vw >= 900) setRule(i); }); });
+// the eleven rules turn over with the scroll; clicking one moves the page to it
+function rulesScene(p) { const n = ruleEls.length; if (n) setRule(clamp(Math.floor(p * n), 0, n - 1)); }
+ruleEls.forEach((r, i) => $('.rule-b', r).addEventListener('click', () => { const pin = pins.rules; if (pin) scrollTo({ top: pin.top + ((i + 0.5) / ruleEls.length) * pin.len, behavior: reduced ? 'auto' : 'smooth' }); }));
+
+// the three plays: each pair of names starts as a double exposure, slides apart into focus, then the outcome lands
+const pxPlays = $$('[data-px]').map(el => ({ el, names: $$('.dx-names span', el), xs: $$('.dx-names i', el), out: $('.dx-out', el) })), pxN = $('[data-px-n]'), pxSteps = $$('.px .steps span'); let pxAt = -1;
+function playsScene(p) {
+  const n = pxPlays.length; if (!n) return; const x = clamp(p, 0, 0.9999) * n, at = Math.floor(x);
+  pxPlays.forEach((pl, i) => {
+    const u = x - i, vis = reduced ? +(i === at) : (i === 0 ? 1 : sstep(0, 0.1, u)) * (i === n - 1 ? 1 : 1 - sstep(0.9, 1, u));
+    pl.el.style.opacity = vis.toFixed(3); pl.el.style.visibility = vis < 0.01 ? 'hidden' : 'visible';
+    const r = reduced ? 1 : sstep(0.08, 0.5, u), o = reduced ? 1 : sstep(0.44, 0.62, u), m = pl.names.length;
+    pl.names.forEach((sp, k) => { sp.style.transform = `translateX(${((k - (m - 1) / 2) * -0.85 * (1 - r)).toFixed(3)}em)`; sp.style.filter = r > 0.995 ? 'none' : `blur(${((1 - r) * 0.075).toFixed(3)}em)`; sp.style.opacity = (0.4 + 0.6 * r).toFixed(3); });
+    pl.xs.forEach(e => { e.style.opacity = r.toFixed(3); });
+    pl.out.style.opacity = o.toFixed(3); pl.out.style.transform = `translateY(${((1 - o) * 20).toFixed(1)}px)`; pl.out.style.filter = o > 0.995 ? 'none' : `blur(${((1 - o) * 10).toFixed(1)}px)`;
+  });
+  pxSteps.forEach((st, i) => { st.style.setProperty('--f', clamp(x - i).toFixed(3)); st.classList.toggle('on', i === at); });
+  if (at !== pxAt) { pxAt = at; pxN.textContent = `Play ${pad2(at + 1)} / ${pad2(n)}`; }
+}
+// the brief builds itself, one question at a time
+const bfRows = $$('.bf .brief-row');
+function briefScene(p) {
+  bfRows.forEach((row, i) => { const t = reduced ? 1 : sstep(0.05 + i * 0.2, 0.2 + i * 0.2, p); row.style.opacity = t.toFixed(3); row.style.transform = `translateY(${((1 - t) * 26).toFixed(1)}px)`; row.style.filter = t > 0.995 ? 'none' : `blur(${((1 - t) * 10).toFixed(1)}px)`; });
+}
 $$('.fm').forEach(f => $('.fm-b', f).addEventListener('click', () => { const on = !f.classList.contains('on'); $$('.fm').forEach(x => { x.classList.toggle('on', x === f && on); $('.fm-b', x).setAttribute('aria-expanded', x === f && on); }); }));
 
 /* ---------- index + in-page links */
@@ -328,6 +351,8 @@ document.addEventListener('click', e => { const link = e.target.closest('a[href^
 addEventListener('pointermove', e => { if (e.pointerType !== 'touch') { mouse.x = e.clientX; mouse.y = e.clientY; } if (field && e.pointerType !== 'touch') field.point(e.clientX / vw, 1 - e.clientY / (canvas.clientHeight || vh)); }, { passive: true });
 addEventListener('pointerdown', e => { if (field) field.burst(e.clientX / vw, 1 - e.clientY / (canvas.clientHeight || vh), e.pointerType === 'touch' ? 1 : 0.7); }, { passive: true });
 
+const SCENES = [['plays', playsScene], ['brief', briefScene], ['rules', rulesScene]];
+
 /* ---------- the loop */
 const bar = $('[data-bar]'), hdLabel = $('[data-hd-label]'), hdCount = $('[data-hd-count]');
 let sy = scrollY, ssy = sy, lastSy = sy, vel = 0, last = performance.now(), time = 0, labelAt = -1, movedAt = 0;
@@ -352,6 +377,7 @@ function tick(now) {
   if (pins.thesis && sy > pins.thesis.top - vh && sy < pins.thesis.bottom) thesis(progress(pins.thesis, ssy));
   if (pins.journey && sy > pins.journey.top - vh && sy < pins.journey.bottom) journey(progress(pins.journey, ssy), dt, time - movedAt > 0.16);
   if (pins.court && sy > pins.court.top - vh && sy < pins.court.bottom) courtScene(progress(pins.court, ssy));
+  for (const [name, fn] of SCENES) { const pin = pins[name]; if (pin && sy > pin.top - vh && sy < pin.bottom) fn(progress(pin, ssy)); }
   stripScene(sy, ssy, dt, time - movedAt > 0.16);
   focusPull();
   for (const c of cards) if (sy > c.top - vh * 1.2 && sy < c.bottom + vh * 0.2) cardScene(c, ssy);
@@ -362,7 +388,7 @@ function tick(now) {
 }
 
 /* ---------- start */
-function layout() { measure(); measureJourney(); thesis(pins.thesis ? progress(pins.thesis, scrollY) : 0); journey(pins.journey ? progress(pins.journey, scrollY) : 0); courtScene(pins.court ? progress(pins.court, scrollY) : 0); }
+function layout() { measure(); measureJourney(); for (const [name, fn] of SCENES) fn(pins[name] ? progress(pins[name], scrollY) : 0); thesis(pins.thesis ? progress(pins.thesis, scrollY) : 0); journey(pins.journey ? progress(pins.journey, scrollY) : 0); courtScene(pins.court ? progress(pins.court, scrollY) : 0); }
 let lastW = innerWidth, rz;
 addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (innerWidth !== lastW || Math.abs(innerHeight - vh) > 120) { lastW = innerWidth; layout(); } else { vh = innerHeight; } }, 120); });
 new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(layout, 150); }).observe(document.body);

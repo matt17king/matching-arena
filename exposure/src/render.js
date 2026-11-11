@@ -36,30 +36,37 @@ const BODY = {
   </div>`,
 
   'side-door': () => `
-  <div class="blk">
-    <div class="blk-h" data-r="fade"><p class="mono">Double exposures</p><h3 class="h3">Three plays I keep coming back to</h3></div>
-    <div class="dxs">${PLAYS.map(p => `<article class="dx" data-dev>
-      <div class="dx-meta mono"><span>Play ${p.n}</span><span class="dx-x">${esc(p.x)}</span></div>
-      <p class="dx-names" aria-label="${esc(p.rows.join(' × '))}">${p.rows.map((r, i) => `${i ? '<i aria-hidden="true">×</i>' : ''}<span aria-hidden="true" style="--k:${i - (p.rows.length - 1) / 2}">${esc(r)}</span>`).join('')}</p>
-      <div class="dx-t"><h4>${esc(p.h)}</h4><p>${esc(p.s)}</p></div>
-    </article>`).join('')}</div>
+  <div class="pin px" style="--len:2.3" data-pin="plays">
+    <div class="pin-in">
+      <div class="px-head"><p class="mono">Three plays I keep coming back to</p><p class="mono" data-px-n>Play 01 / 03</p></div>
+      <div class="px-stage">${PLAYS.map((p, i) => `<article class="dx" data-px="${i}">
+        <p class="dx-names" aria-label="${esc(p.rows.join(' × '))}">${p.rows.map((r, k) => `${k ? '<i aria-hidden="true">×</i>' : ''}<span aria-hidden="true">${esc(r)}</span>`).join('')}</p>
+        <div class="dx-out"><p class="mono dx-x">${esc(p.x)}</p><h4>${esc(p.h)}</h4><p>${esc(p.s)}</p></div>
+      </article>`).join('')}</div>
+      <div class="steps" aria-hidden="true">${PLAYS.map(p => `<span><i></i><b class="mono">${p.n} — ${esc(p.h)}</b></span>`).join('')}</div>
+    </div>
   </div>
-  <div class="blk brief-blk">
-    <div class="blk-h" data-r="fade"><p class="mono">The brief</p><h3 class="h3">${esc(BRIEF.h)}</h3><p class="lead">${esc(BRIEF.p)}</p></div>
-  </div>
-  <ol class="brief">${BRIEF.steps.map(([n, h, chips, hot], i) => `<li class="brief-row${hot ? ' hot' : ''}" data-r="fade">
-      <div class="brief-k"><span class="mono">${n}</span><b>${esc(h)}</b></div>
-      <div class="brief-run${chips.length > 4 ? ' run' : ''}" style="--ad:${i % 2 ? 'reverse' : 'normal'}"><div class="brief-chips">${(chips.length > 4 ? [...chips, ...chips] : chips).map((c, k) => `<span${k >= chips.length ? ' aria-hidden="true"' : ''}>${esc(c)}</span>`).join('')}</div></div>
-    </li>`).join('')}</ol>`,
+  <div class="pin bf" style="--len:1.9" data-pin="brief">
+    <div class="pin-in">
+      <div class="bf-head"><p class="mono">The brief</p><h3 class="h3">${esc(BRIEF.h)}</h3><p class="lead">${esc(BRIEF.p)}</p></div>
+      <ol class="brief">${BRIEF.steps.map(([n, h, chips, hot], i) => `<li class="brief-row${hot ? ' hot' : ''}">
+        <div class="brief-k"><span class="mono">${n}</span><b>${esc(h)}</b></div>
+        <div class="brief-run${chips.length > 4 ? ' run' : ''}" style="--ad:${i % 2 ? 'reverse' : 'normal'}"><div class="brief-chips">${(chips.length > 4 ? [...chips, ...chips] : chips).map((c, k) => `<span${k >= chips.length ? ' aria-hidden="true"' : ''}>${esc(c)}</span>`).join('')}</div></div>
+      </li>`).join('')}</ol>
+    </div>
+  </div>`,
 
   fit: () => `
-  <div class="blk rules-blk">
-    <div class="blk-h" data-r="fade"><p class="mono">Casting</p><h3 class="h3">Eleven rules for working with talent</h3></div>
-    <ol class="rules">${RULES.map(([h, why], i) => `<li class="rule${i ? '' : ' on'}" data-r="fade" style="--d:${Math.min(i, 5) * 0.04}s">
-      <button class="rule-b" aria-expanded="${!i}" aria-controls="rule-${i}"><span class="mono">${pad2(i + 1)}</span><span class="rule-h">${esc(h)}</span><i aria-hidden="true"></i></button>
-      <div class="rule-w" id="rule-${i}"><div><p>${esc(why)}</p></div></div>
-    </li>`).join('')}</ol>
-    <aside class="rules-side" data-rules-side aria-hidden="true"><div><b>01</b><h4>${esc(RULES[0][0])}</h4><p>${esc(RULES[0][1])}</p></div></aside>
+  <div class="pin rl" style="--len:3.6" data-pin="rules">
+    <div class="pin-in">
+      <div class="blk-h"><p class="mono">Casting</p><h3 class="h3">Eleven rules for working with talent</h3></div>
+      <ol class="rules">${RULES.map(([h, why], i) => `<li class="rule${i ? '' : ' on'}">
+        <button class="rule-b" aria-controls="rule-${i}"><span class="mono">${pad2(i + 1)}</span><span class="rule-h">${esc(h)}</span><i aria-hidden="true"></i></button>
+        <div class="rule-w" id="rule-${i}"><p>${esc(why)}</p></div>
+      </li>`).join('')}</ol>
+      <aside class="rules-side" data-rules-side aria-hidden="true"><div><b>01</b><h4>${esc(RULES[0][0])}</h4><p>${esc(RULES[0][1])}</p></div></aside>
+      <div class="rl-dots" aria-hidden="true">${RULES.map(() => '<i></i>').join('')}</div>
+    </div>
   </div>`,
 
   format: () => `
