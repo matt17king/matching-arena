@@ -132,21 +132,20 @@ export function renderAll() {
 
   fill('logos', WORKED_WITH.map(([n, f], i) => `<li data-r="fade" style="--d:${(i % 6) * 0.04}s">${logo(f, n)}<span class="mono">${esc(n)}</span></li>`).join(''));
   fill('talent', TALENT.map(([n, w], i) => `<li><span class="mono">${pad2(i + 1)}</span><b>${esc(n)}</b><span class="mono">${esc(w)}</span></li>`).join(''));
-  // Press: a strip, like "In the stands". The field draws the photos in the space the track leaves; each story's words sit beneath.
-  fill('press', `<div class="pin ps" style="--len:${((PRESS.length - 1) * 0.9 + 0.5).toFixed(2)}" data-pin="press">
+  // Press: one story per screen, pinned. The headline is set in words so the ones that matter (`key`) can come into focus first.
+  const pfWords = (t, k) => t.trim().split(/\s+/).filter(Boolean).map(w => `<span class="w${k ? ' k' : ''}">${esc(w)}</span>`).join(' ');
+  const pfHead = p => { const at = p.key ? p.headline.indexOf(p.key) : -1; if (at < 0) return pfWords(p.headline); const a = p.headline.slice(0, at), b = p.headline.slice(at + p.key.length); return `${a.trim() ? pfWords(a) + ' ' : ''}<em class="pf-key">${pfWords(p.key, true)}</em>${b.trim() ? ' ' + pfWords(b) : ''}`; };
+  fill('press', `<div class="pin pf" style="--len:${(PRESS.length * 0.95).toFixed(2)}" data-pin="press">
     <div class="pin-in">
-      <div class="ps-head">
-        <div class="sec-k mono"><span>In the press</span><span>On the record</span></div>
-        <h2 class="ps-title" data-r="smear" data-split>In the <em class="hi">press.</em></h2>
-      </div>
-      <div class="ps-track" data-ps-track aria-hidden="true"></div>
-      <div class="ps-caps">${PRESS.map((p, i) => `<article class="ps-cap${i ? '' : ' on'}" data-ps-cap>
-        <img class="ps-img" src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="aspect-ratio:${p.ar};object-position:${p.pos}">
-        <p class="ps-meta mono"><span>${esc(p.source)}</span><span>${esc(p.date)}</span></p>
-        <h3 class="ps-h">${esc(p.headline).replace(esc(p.key), `<em>${esc(p.key)}</em>`)}</h3>
-        <p class="ps-line">${esc(p.line)}</p>
+      <div class="pf-stage">${PRESS.map((p, i) => `<article class="pf-item" data-pf="${i}">
+        <header class="pf-meta mono"><span>${esc(p.source)}</span><span>Story ${pad2(i + 1)} / ${pad2(PRESS.length)}</span><span>${esc(p.date)}</span></header>
+        <h3 class="pf-head">${pfHead(p)}</h3>
+        <div class="pf-foot">
+          <p class="pf-line">${esc(p.line)}</p>
+          <figure class="pf-ph" data-pf-ph><img src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="aspect-ratio:${p.ar};object-position:${p.pos}"></figure>
+        </div>
       </article>`).join('')}</div>
-      <div class="ps-foot mono"><span><span class="only-fine">Scroll or drag</span><span class="only-touch">Scroll or swipe</span></span><span class="ps-count" aria-hidden="true">${PRESS.map(() => '<i></i>').join('')}<b data-ps-n>01 / ${pad2(PRESS.length)}</b></span></div>
+      <div class="steps" aria-hidden="true">${PRESS.map((p, i) => `<span><i></i><b class="mono">${pad2(i + 1)} — ${esc(p.source)}</b></span>`).join('')}</div>
     </div>
   </div>`);
   const idx = [['top', 'The opening frame'], ['idea', 'The idea'], ['journey', 'How a fan is made'], ['company', 'The company'], ...FRAMES.map(f => [f.id, plain(f.title)]), ['plays', 'Plays worth stealing'], ['kit', 'How I work'], ['record', 'The record'], ['stands', 'In the stands'], ['press', 'In the press'], ['book', 'Book Matt']];
@@ -154,6 +153,6 @@ export function renderAll() {
   return {
     stands: STANDS.map(([f]) => `${B}photos/${f}`), standsMeta: STANDS,
     frames: FRAMES.map(f => `${B}photos/${f.photo[0]}`), portrait: `${B}photos/portrait.jpg`,
-    press: PRESS.map(p => `${B}photos/${p.img}`), pressAr: PRESS.map(p => p.ar),
+    press: PRESS.map(p => `${B}photos/${p.img}`),
   };
 }

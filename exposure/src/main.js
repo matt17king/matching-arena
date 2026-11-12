@@ -277,53 +277,25 @@ function marketsScene(p) {
   mkItems.forEach((li, i) => { const d = Math.abs(i - mkF), t = clamp(d - 0.15); li.style.opacity = (1 - Math.min(0.8, t * 0.5)).toFixed(3); li.style.filter = t < 0.01 || reduced ? 'none' : `blur(${Math.min(12, t * 6).toFixed(1)}px)`; });
   const at = clamp(Math.round(mkF), 0, n - 1); if (at !== mkAt) { mkAt = at; mkItems.forEach((li, i) => li.classList.toggle('on', i === at)); mkN.textContent = `Market ${pad2(at + 1)} / ${pad2(n)}`; }
 }
-// press: the same idea as the strip in "In the stands", one photo per story. It follows the scroll, settles on the nearest
-// story when the page stops, and that story's words sit beneath it. The stories either side wait out of focus.
-const ps = { f: 0, last: 0, speed: 0, at: -1, track: $('[data-ps-track]'), caps: $$('[data-ps-cap]'), dots: $$('.ps-count i'), n: $('[data-ps-n]') };
-const psGeo = () => { // photos share a height where they can; each one's width follows its own shape
-  // a wide photo is as wide as the words beneath it, and gives up height rather than be cropped
-  const r = ps.track.getBoundingClientRect(), mob = vw <= 820, top = Math.min(r.height, mob ? vh * 0.34 : 460), gap = mob ? 14 : 30, max = ps.caps[0].offsetWidth || vw * 0.56;
-  const w = data.pressAr.map(a => Math.min(top * a, max)), h = data.pressAr.map((a, i) => Math.min(top, w[i] / (a * 0.85))), c = [0];
-  for (let i = 1; i < w.length; i++) c[i] = c[i - 1] + w[i - 1] / 2 + gap + w[i] / 2;
-  return { r, h, w, c };
-};
-const psOff = (g, f) => { const a = clamp(Math.floor(f), 0, g.c.length - 1), b = Math.min(a + 1, g.c.length - 1); return lerp(g.c[a], g.c[b], clamp(f - a)); };
-const PS_HOLD = 0.1; // the first and last tenth of the scroll hold on the first and last story
+// press: one story per screen. Each headline arrives out of focus; the words that matter come sharp first, then the rest,
+// then the line that was written about it, while the photo streaks in and settles beside it.
+const pfItems = $$('[data-pf]').map(el => ({ el, key: $$('.pf-head .w.k', el), rest: $$('.pf-head .w:not(.k)', el), head: $('.pf-head', el), line: $('.pf-line', el), ph: $('[data-pf-ph] img', el) })), pfSteps = $$('.pf .steps span');
+const pfFocus = (ws, t, soft) => ws.forEach(w => { w.style.opacity = (0.4 + 0.6 * t).toFixed(3); w.style.filter = t > 0.995 ? 'none' : `blur(${((1 - t) * soft).toFixed(3)}em)`; });
 function pressScene(p) {
-  const n = ps.caps.length; if (!n || !ps.track) return;
-  const raw = (n > 1 ? clamp((p - PS_HOLD) / (1 - PS_HOLD * 2)) : 0) * (n - 1), target = fidle || reduced ? Math.round(raw) : raw;
-  ps.f = lerp(ps.f, target, reduced ? 1 : 1 - Math.exp(-fdt * (fidle ? 7 : 11)));
-  const sp = (ps.f - ps.last) / Math.max(fdt, 1 / 240); ps.last = ps.f; ps.speed = lerp(ps.speed, sp, 0.35);
-  const at = clamp(Math.round(ps.f), 0, n - 1);
-  if (at !== ps.at) { ps.at = at; ps.caps.forEach((c, i) => c.classList.toggle('on', i === at)); ps.dots.forEach((d, i) => d.classList.toggle('on', i === at)); if (ps.n) ps.n.textContent = `${pad2(at + 1)} / ${pad2(n)}`; }
-  if (!field) return;
-  const g = psGeo(); if (g.r.height < 2 || g.r.bottom < -vh * 0.4 || g.r.top > vh * 1.4) return;
-  const ch = canvas.clientHeight || vh, off = psOff(g, ps.f), cy = g.r.top + g.r.height / 2, move = reduced ? 0 : clamp((Math.abs(ps.speed) - 0.25) * 0.06, 0, 0.2);
-  for (let i = 0; i < n; i++) {
-    const focus = smooth(clamp(1 - Math.abs(i - ps.f))), sc = 0.86 + 0.14 * focus, x = vw / 2 + g.c[i] - off;
-    if (Math.abs(x - vw / 2) - g.w[i] / 2 > vw * 0.6) continue;
-    quads.push({ i: PH.press + i, x: x / vw, y: 1 - cy / ch, w: (g.w[i] * sc) / vw, h: (g.h[i] * sc) / ch, blur: reduced ? 0 : (1 - focus) * 0.07 + move, duo: 1, alpha: 0.4 + 0.6 * focus, rad: 14, leak: 0.35 });
-  }
+  const n = pfItems.length, pin = pins.press; if (!n || !pin) return; const x = clamp(p, 0, 0.9999) * n, at = Math.floor(x);
+  // the first story starts pulling focus as the section arrives, so its key words are already sharp when it pins
+  const lead = clamp((ssy - (pin.top - vh * 0.75)) / (vh * 0.75)) * 0.3;
+  pfItems.forEach((it, i) => {
+    const raw = x - i, u = i === 0 ? Math.max(raw, lead) : raw;
+    const vis = reduced ? +(i === at) : (i === 0 ? 1 : sstep(0, 0.1, raw)) * (i === n - 1 ? 1 : 1 - sstep(0.9, 1, raw));
+    it.el.style.opacity = vis.toFixed(3); it.el.style.visibility = vis < 0.01 ? 'hidden' : 'visible';
+    pfFocus(it.key, reduced ? 1 : sstep(0.04, 0.3, u), 0.12); pfFocus(it.rest, reduced ? 1 : sstep(0.28, 0.6, u), 0.075);
+    it.head.classList.toggle('lit', reduced || u > 0.6);
+    const c = reduced ? 1 : sstep(0.42, 0.64, u); it.line.style.opacity = c.toFixed(3); it.line.style.transform = `translateY(${((1 - c) * 20).toFixed(1)}px)`;
+    if (field && it.ph && vis > 0.01) { const e = reduced ? 1 : sstep(0.08, 0.5, u); place(it.ph, PH.press + i, { blur: (1 - e) * 1.2, dx: (1 - e) * vw * 0.2, alpha: vis * clamp(u * 5), rad: 14, leak: 0.35 }); }
+  });
+  pfSteps.forEach((st, i) => { st.style.setProperty('--f', clamp(x - i).toFixed(3)); st.classList.toggle('on', i === at); });
 }
-(() => { // drag the press strip sideways; like the other strip, it simply moves the page
-  const pin = $('[data-pin="press"]'), stage = pin && $('.pin-in', pin); if (!stage || ps.caps.length < 2) return; let down = null;
-  const n = ps.caps.length, span = () => pins.press.len * (1 - PS_HOLD * 2);
-  stage.addEventListener('pointerdown', e => { if (!field || (e.pointerType === 'mouse' && e.button)) return; down = { x: e.clientX, x0: e.clientX, id: e.pointerId }; stage.classList.add('drag'); });
-  addEventListener('pointermove', e => {
-    if (!down || e.pointerId !== down.id || !pins.press) return; const dx = e.clientX - down.x; down.x = e.clientX;
-    const g = psGeo(), pin = pins.press, y = scrollY + (-dx / (g.c[n - 1] / (n - 1))) * (span() / (n - 1));
-    scrollTo(0, clamp(y, Math.min(scrollY, pin.top), Math.max(scrollY, pin.top + pin.len))); // a drag never carries the page out of the strip
-  }, { passive: true });
-  const up = e => {
-    // a click (not a drag) on the story to either side brings it to the middle
-    if (down && e && e.type === 'pointerup' && Math.abs(e.clientX - down.x0) < 6 && pins.press) {
-      const g = psGeo(), x = e.clientX - vw / 2 + psOff(g, ps.f); let i = 0, best = Infinity; g.c.forEach((c, k) => { const d = Math.abs(c - x); if (d < best) { best = d; i = k; } });
-      if (i !== Math.round(ps.f) && e.clientY > g.r.top && e.clientY < g.r.bottom) scrollTo({ top: pins.press.top + pins.press.len * PS_HOLD + (i / (n - 1)) * span(), behavior: reduced ? 'auto' : 'smooth' });
-    }
-    down = null; stage.classList.remove('drag');
-  };
-  addEventListener('pointerup', up); addEventListener('pointercancel', up);
-})();
 
 let fdt = 1, fidle = true; // this frame's time step and whether the page has stopped moving, for scenes that settle
 // "Pull up a chair": a booking pass hangs beside the list of things you can book. Point at one and the pass prints it;
