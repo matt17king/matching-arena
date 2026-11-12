@@ -20,7 +20,7 @@ const canvas = $('[data-field]');
 let field = params.has('nogl') ? null : createField(canvas, { reduced });
 if (!field) root.classList.add('no-gl'); else field.lost(() => { field = null; root.classList.add('no-gl'); });
 
-$('[data-grain]').style.backgroundImage = grainURL();
+{ const g = grainURL(); $('[data-grain]').style.backgroundImage = g; root.style.setProperty('--grain', g); }
 
 /* ---------- measuring */
 let vw = innerWidth, vh = innerHeight, docH = 1;
@@ -268,7 +268,29 @@ document.addEventListener('click', e => { const link = e.target.closest('a[href^
 addEventListener('pointermove', e => { if (e.pointerType !== 'touch') { mouse.x = e.clientX; mouse.y = e.clientY; } if (field && e.pointerType !== 'touch') field.point(e.clientX / vw, 1 - e.clientY / (canvas.clientHeight || vh)); }, { passive: true });
 addEventListener('pointerdown', e => { if (field) field.burst(e.clientX / vw, 1 - e.clientY / (canvas.clientHeight || vh), e.pointerType === 'touch' ? 1 : 0.7); }, { passive: true });
 
-const SCENES = [['plays', playsScene], ['brief', briefScene], ['rules', rulesScene]];
+// seven markets: the tickets start as one stack and fan out; then each is lifted in turn (or whichever one is hovered)
+const fan = $$('[data-tk]').map(el => ({ el, lift: 0 })), mkNow = $('[data-mk-now]'), mkN = $('[data-mk-n]'), mkName = $('[data-mk-name]'); let mkAt = -1, mkHover = -1, mkT;
+fan.forEach((t, i) => { t.el.addEventListener('mouseenter', () => { mkHover = i; }); t.el.addEventListener('mouseleave', () => { mkHover = -1; }); });
+function marketsScene(p) {
+  const n = fan.length; if (!n) return; const step = vw <= 820 ? 3.6 : 8.6, open = reduced ? 1 : sstep(0, 0.4, p);
+  const at = mkHover >= 0 ? mkHover : clamp(Math.floor(clamp((p - 0.3) / 0.66) * n), 0, n - 1), live = reduced || p > 0.3 || mkHover >= 0;
+  fan.forEach((t, i) => {
+    t.lift = lerp(t.lift, live && i === at ? 1 : 0, reduced ? 1 : 0.16);
+    t.el.style.setProperty('--a', `${((i - (n - 1) / 2) * step * open).toFixed(2)}deg`); t.el.style.setProperty('--lift', `${(-t.lift * 30).toFixed(1)}px`);
+    t.el.style.zIndex = i === at && live ? 30 : 10 - i;
+  });
+  if (at !== mkAt) { mkAt = at; mkNow.classList.add('sw'); clearTimeout(mkT); mkT = setTimeout(() => { mkN.textContent = `Market ${pad2(at + 1)} / ${pad2(n)}`; mkName.textContent = $('.tk-name', fan[at].el).textContent; mkNow.classList.remove('sw'); }, 130); }
+}
+// anything on a lanyard sways when the page moves, each with its own weight
+const hangs = $$('[data-hang]').map((el, i) => ({ el, a: 0, v: 0, k: 36 + i * 11, on: false }));
+const hangIO = new IntersectionObserver(es => es.forEach(e => { const h = hangs.find(x => x.el === e.target); if (h) h.on = e.isIntersecting; }), { rootMargin: '25% 0px' });
+hangs.forEach(h => hangIO.observe(h.el));
+function hangScene(d, dt) {
+  if (reduced) return;
+  for (const h of hangs) { if (!h.on && Math.abs(h.a) < 0.05) continue; h.v += clamp(d, -90, 90) * 0.045; h.v += (-h.a * h.k - h.v * 4.4) * dt; h.a = clamp(h.a + h.v * dt, -28, 28); h.el.style.transform = `rotateZ(${h.a.toFixed(2)}deg)`; }
+}
+
+const SCENES = [['plays', playsScene], ['brief', briefScene], ['rules', rulesScene], ['markets', marketsScene]];
 
 /* ---------- the loop */
 const bar = $('[data-bar]'), hdLabel = $('[data-hd-label]'), hdCount = $('[data-hd-count]');
@@ -296,7 +318,7 @@ function tick(now) {
   if (pins.court && sy > pins.court.top - vh && sy < pins.court.bottom) courtScene(progress(pins.court, ssy));
   for (const [name, fn] of SCENES) { const pin = pins[name]; if (pin && sy > pin.top - vh && sy < pin.bottom) fn(progress(pin, ssy)); }
   stripScene(sy, ssy, dt, time - movedAt > 0.16);
-  focusPull();
+  focusPull(); hangScene(d, dt);
   for (const c of cards) if (sy > c.top - vh * 1.2 && sy < c.bottom + vh * 0.2) cardScene(c, ssy);
   peekScene();
 

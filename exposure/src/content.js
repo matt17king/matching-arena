@@ -80,7 +80,8 @@ export const FORMATS = [
 export const MARKETS = {
   h: 'One idea, seven markets',
   p: "Sneakers are a global language. Culture travels, execution has to be local. Lead with who each market already loves, like Ohtani in Japan, and don't hide from what the rights already are.",
-  list: ['UK', 'North America', 'LATAM', 'MENA', 'South East Asia', 'Australia & NZ', 'Rest of world'],
+  // [code on the ticket, name]
+  list: [['UK', 'United Kingdom'], ['NA', 'North America'], ['LATAM', 'Latin America'], ['MENA', 'Middle East & North Africa'], ['SEA', 'South East Asia'], ['ANZ', 'Australia & NZ'], ['ROW', 'Rest of world']],
   stat: ['7', 'Market zones, one go-to-market plan', 'DAZN'],
   photo: ['goodwood.jpg', 'Goodwood Festival of Speed', "Everyone filming. That's the story spreading before the race starts.", 'A phone held up to film a car at Goodwood Festival of Speed'],
 };
