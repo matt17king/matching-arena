@@ -152,7 +152,6 @@ function tick(now) {
     swing.style.transform = `rotateZ(${phys.a.toFixed(2)}deg)`;
     pass.style.transform = `rotateX(${phys.rx.toFixed(2)}deg) rotateY(${(phys.ry + phys.a * 0.5).toFixed(2)}deg)`;
     pass.style.setProperty('--gx', `${(50 + phys.ry * 3.2).toFixed(1)}%`); pass.style.setProperty('--gy', `${(22 - phys.rx * 3).toFixed(1)}%`);
-    pass.style.setProperty('--holo', `${(50 + (phys.ry + phys.a) * 3.4 + phys.rx * 2).toFixed(1)}%`);
   }
   if (field) field.frame({ time, dt, scroll: sy / vh, flow: d / (canvas.clientHeight || vh), vel, grain: 0.05, theme: theme.gl, blob: scene.blob, energy: scene.energy, quads: [], duoLo: C.raven, duoHi: C.sky, accent: C.poppy });
   requestAnimationFrame(tick);

@@ -80,8 +80,7 @@ export const FORMATS = [
 export const MARKETS = {
   h: 'One idea, seven markets',
   p: "Sneakers are a global language. Culture travels, execution has to be local. Lead with who each market already loves, like Ohtani in Japan, and don't hide from what the rights already are.",
-  // [code on the ticket, name]
-  list: [['UK', 'United Kingdom'], ['NA', 'North America'], ['LATAM', 'Latin America'], ['MENA', 'Middle East & North Africa'], ['SEA', 'South East Asia'], ['ANZ', 'Australia & NZ'], ['ROW', 'Rest of world']],
+  list: ['UK', 'North America', 'LATAM', 'MENA', 'South East Asia', 'Australia & NZ', 'Rest of world'],
   stat: ['7', 'Market zones, one go-to-market plan', 'DAZN'],
   photo: ['goodwood.jpg', 'Goodwood Festival of Speed', "Everyone filming. That's the story spreading before the race starts.", 'A phone held up to film a car at Goodwood Festival of Speed'],
 };
@@ -134,8 +133,8 @@ export const WORKED_WITH = [
 // [name, where]
 export const TALENT = [['Phil Foden', 'The Couture Club'], ['Molly-Mae Hague', 'The Couture Club'], ['Kyle Walker', 'Talent partnership'], ['Conor McGregor', 'Talent partnership'], ['Tom Aspinall', 'Gym King'], ['Ash Cain', 'Gym King'], ['Alex Bowen', 'Gym King'], ['Niall Horan', 'American Golf'], ['Judy Murray', 'American Golf'], ['Madeline Argy', 'Talent partnership']];
 export const PRESS = [
-  { img: 'press-circle.jpg', pos: 'center 30%', alt: 'The 80 Four founders at the Circle Networks awards', source: 'Circle Networks', date: '2025', headline: 'Start Up of the Year: finalist', line: '80 Four was named a finalist for Circle Networks Start Up of the Year 2025.' },
-  { img: 'press-bdaily-photo.jpg', pos: 'center 40%', alt: 'The three 80 Four founders', source: 'Bdaily Business News', date: '21 Oct 2025', headline: 'Trio launch new marketing agency', line: '80 Four, founded by Matt King, James Parker-Aiken and Emily Martin, specialises in sport, health and lifestyle branding and brand strategy.' },
+  { img: 'press-circle.jpg', pos: 'center 30%', alt: 'The 80 Four founders at the Circle Networks awards', source: 'Circle Networks', date: '2025', headline: 'Start Up of the Year: finalist', ring: 'finalist', line: '80 Four was named a finalist for Circle Networks Start Up of the Year 2025.' },
+  { img: 'press-bdaily-photo.jpg', pos: 'center 40%', alt: 'The three 80 Four founders', source: 'Bdaily Business News', date: '21 Oct 2025', headline: 'Trio launch new marketing agency', ring: 'marketing agency', line: '80 Four, founded by Matt King, James Parker-Aiken and Emily Martin, specialises in sport, health and lifestyle branding and brand strategy.' },
 ];
 
 // Book Matt: [what, line, email subject, the question, key]. The key is what the booking page uses (book/?for=key).

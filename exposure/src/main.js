@@ -268,28 +268,24 @@ document.addEventListener('click', e => { const link = e.target.closest('a[href^
 addEventListener('pointermove', e => { if (e.pointerType !== 'touch') { mouse.x = e.clientX; mouse.y = e.clientY; } if (field && e.pointerType !== 'touch') field.point(e.clientX / vw, 1 - e.clientY / (canvas.clientHeight || vh)); }, { passive: true });
 addEventListener('pointerdown', e => { if (field) field.burst(e.clientX / vw, 1 - e.clientY / (canvas.clientHeight || vh), e.pointerType === 'touch' ? 1 : 0.7); }, { passive: true });
 
-// seven markets: the tickets start as one stack and fan out; then each is lifted in turn (or whichever one is hovered)
-const fan = $$('[data-tk]').map(el => ({ el, lift: 0 })), mkNow = $('[data-mk-now]'), mkN = $('[data-mk-n]'), mkName = $('[data-mk-name]'); let mkAt = -1, mkHover = -1, mkT;
-fan.forEach((t, i) => { t.el.addEventListener('mouseenter', () => { mkHover = i; }); t.el.addEventListener('mouseleave', () => { mkHover = -1; }); });
+// seven markets: a wheel of names. It follows the scroll and settles on one market, which comes into focus.
+const mkList = $('[data-mk-list]'), mkItems = mkList ? [...mkList.children] : [], mkN = $('[data-mk-n]'); let mkF = 0, mkAt = -1, mkH = 0;
 function marketsScene(p) {
-  const n = fan.length; if (!n) return; const step = vw <= 820 ? 3.6 : 8.6, open = reduced ? 1 : sstep(0, 0.4, p);
-  const at = mkHover >= 0 ? mkHover : clamp(Math.floor(clamp((p - 0.3) / 0.66) * n), 0, n - 1), live = reduced || p > 0.3 || mkHover >= 0;
-  fan.forEach((t, i) => {
-    t.lift = lerp(t.lift, live && i === at ? 1 : 0, reduced ? 1 : 0.16);
-    t.el.style.setProperty('--a', `${((i - (n - 1) / 2) * step * open).toFixed(2)}deg`); t.el.style.setProperty('--lift', `${(-t.lift * 30).toFixed(1)}px`);
-    t.el.style.zIndex = i === at && live ? 30 : 10 - i;
-  });
-  if (at !== mkAt) { mkAt = at; mkNow.classList.add('sw'); clearTimeout(mkT); mkT = setTimeout(() => { mkN.textContent = `Market ${pad2(at + 1)} / ${pad2(n)}`; mkName.textContent = $('.tk-name', fan[at].el).textContent; mkNow.classList.remove('sw'); }, 130); }
+  const n = mkItems.length; if (!n) return; if (!mkH) mkH = mkItems[0].offsetHeight || 1;
+  const raw = p * (n - 1); mkF = lerp(mkF, fidle || reduced ? Math.round(raw) : raw, reduced || fdt >= 1 ? 1 : 1 - Math.exp(-fdt * (fidle ? 6 : 14)));
+  mkList.style.transform = `translate3d(0,${(mkList.parentElement.clientHeight / 2 - (mkF + 0.5) * mkH).toFixed(1)}px,0)`;
+  mkItems.forEach((li, i) => { const d = Math.abs(i - mkF), t = clamp(d - 0.15); li.style.opacity = (1 - Math.min(0.8, t * 0.5)).toFixed(3); li.style.filter = t < 0.01 || reduced ? 'none' : `blur(${Math.min(12, t * 6).toFixed(1)}px)`; });
+  const at = clamp(Math.round(mkF), 0, n - 1); if (at !== mkAt) { mkAt = at; mkItems.forEach((li, i) => li.classList.toggle('on', i === at)); mkN.textContent = `Market ${pad2(at + 1)} / ${pad2(n)}`; }
 }
-// anything on a lanyard sways when the page moves, each with its own weight
-const hangs = $$('[data-hang]').map((el, i) => ({ el, a: 0, v: 0, k: 36 + i * 11, on: false }));
-const hangIO = new IntersectionObserver(es => es.forEach(e => { const h = hangs.find(x => x.el === e.target); if (h) h.on = e.isIntersecting; }), { rootMargin: '25% 0px' });
-hangs.forEach(h => hangIO.observe(h.el));
-function hangScene(d, dt) {
-  if (reduced) return;
-  for (const h of hangs) { if (!h.on && Math.abs(h.a) < 0.05) continue; h.v += clamp(d, -90, 90) * 0.045; h.v += (-h.a * h.k - h.v * 4.4) * dt; h.a = clamp(h.a + h.v * dt, -28, 28); h.el.style.transform = `rotateZ(${h.a.toFixed(2)}deg)`; }
-}
+// press cuttings are torn out, not cut: each gets its own ragged bottom edge
+$$('[data-paper]').forEach((el, k) => {
+  let seed = 17 + k * 101; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const pts = ['0% 0%', '100% 0%']; let x = 100; pts.push(`100% ${(97 - rnd() * 1.5).toFixed(2)}%`);
+  while (x > 0) { x = Math.max(0, x - (1.2 + rnd() * 2.6)); pts.push(`${x.toFixed(2)}% ${(96.2 + rnd() * 3.8).toFixed(2)}%`); }
+  el.style.clipPath = `polygon(${pts.join(',')})`;
+});
 
+let fdt = 1, fidle = true; // this frame's time step and whether the page has stopped moving, for scenes that settle
 const SCENES = [['plays', playsScene], ['brief', briefScene], ['rules', rulesScene], ['markets', marketsScene]];
 
 /* ---------- the loop */
@@ -316,9 +312,10 @@ function tick(now) {
   if (pins.thesis && sy > pins.thesis.top - vh && sy < pins.thesis.bottom) thesis(progress(pins.thesis, ssy));
   if (pins.journey && sy > pins.journey.top - vh && sy < pins.journey.bottom) journey(progress(pins.journey, ssy), dt, time - movedAt > 0.16);
   if (pins.court && sy > pins.court.top - vh && sy < pins.court.bottom) courtScene(progress(pins.court, ssy));
+  fdt = dt; fidle = time - movedAt > 0.16;
   for (const [name, fn] of SCENES) { const pin = pins[name]; if (pin && sy > pin.top - vh && sy < pin.bottom) fn(progress(pin, ssy)); }
   stripScene(sy, ssy, dt, time - movedAt > 0.16);
-  focusPull(); hangScene(d, dt);
+  focusPull();
   for (const c of cards) if (sy > c.top - vh * 1.2 && sy < c.bottom + vh * 0.2) cardScene(c, ssy);
   peekScene();
 
@@ -327,7 +324,7 @@ function tick(now) {
 }
 
 /* ---------- start */
-function layout() { measure(); measureJourney(); for (const [name, fn] of SCENES) fn(pins[name] ? progress(pins[name], scrollY) : 0); thesis(pins.thesis ? progress(pins.thesis, scrollY) : 0); journey(pins.journey ? progress(pins.journey, scrollY) : 0); courtScene(pins.court ? progress(pins.court, scrollY) : 0); }
+function layout() { measure(); measureJourney(); mkH = 0; fdt = 1; for (const [name, fn] of SCENES) fn(pins[name] ? progress(pins[name], scrollY) : 0); thesis(pins.thesis ? progress(pins.thesis, scrollY) : 0); journey(pins.journey ? progress(pins.journey, scrollY) : 0); courtScene(pins.court ? progress(pins.court, scrollY) : 0); }
 let lastW = innerWidth, rz;
 addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (innerWidth !== lastW || Math.abs(innerHeight - vh) > 120) { lastW = innerWidth; layout(); } else { vh = innerHeight; } }, 120); });
 new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(layout, 150); }).observe(document.body);

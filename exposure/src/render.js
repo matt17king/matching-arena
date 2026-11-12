@@ -85,12 +85,9 @@ const BODY = {
     <div class="pin-in">
       <div class="mkx-text">
         <p class="mono">One idea, local execution</p><h3 class="h3">${esc(MARKETS.h)}</h3><p class="lead">${esc(MARKETS.p)}</p>
-        <p class="mkx-now" data-mk-now><span class="mono" data-mk-n>Market 01 / ${pad2(MARKETS.list.length)}</span><b data-mk-name>${esc(MARKETS.list[0][1])}</b></p>
+        <p class="mono mkx-n" data-mk-n>Market 01 / ${pad2(MARKETS.list.length)}</p>
       </div>
-      <ol class="mkx-fan" aria-label="The seven markets">${MARKETS.list.map(([code, name], i) => `<li class="tix tix-h tk tk-${i % 3}" data-tk="${i}" style="z-index:${10 - i}">
-        <div class="tix-body"><div class="tix-grain"></div><span class="mono">Market ${pad2(i + 1)} / ${pad2(MARKETS.list.length)}</span><b>${esc(code)}</b><span class="tk-name">${esc(name)}</span></div>
-        <div class="tix-stub" aria-hidden="true"><span class="mono">One idea</span><div class="bars"></div><span class="mono">Local</span></div>
-      </li>`).join('')}</ol>
+      <div class="mkx-wheel"><ol class="mkx-list" data-mk-list>${MARKETS.list.map((m, i) => `<li><span class="mono">${pad2(i + 1)}</span><b>${esc(m)}</b></li>`).join('')}</ol></div>
     </div>
   </div>
   <div class="blk bento">
@@ -135,18 +132,17 @@ export function renderAll() {
 
   fill('logos', WORKED_WITH.map(([n, f], i) => `<li data-r="fade" style="--d:${(i % 6) * 0.04}s">${logo(f, n)}<span class="mono">${esc(n)}</span></li>`).join(''));
   fill('talent', TALENT.map(([n, w], i) => `<li><span class="mono">${pad2(i + 1)}</span><b>${esc(n)}</b><span class="mono">${esc(w)}</span></li>`).join(''));
-  fill('press', PRESS.map((p, i) => `<article class="pr-pass" data-hang>
-    <div class="strap" aria-hidden="true"><span>Press · Press · Press · Press · Press · </span></div><div class="clip" aria-hidden="true"><i></i></div>
-    <div class="tix tix-v tix-dark prx">
-      <div class="tix-body">
-        <div class="tix-grain"></div><div class="pass-hole"></div>
-        <header class="pass-top"><b>Press</b><span class="mono">${esc(p.source)}</span></header>
-        <div class="pass-holo"></div>
-        <div class="prx-ph"><img src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="object-position:${p.pos}"></div>
-        <div class="prx-main"><h3>${esc(p.headline)}</h3><div class="pass-date"><span class="mono">Published</span><b>${esc(p.date)}</b></div></div>
-        <p class="prx-line">${esc(p.line)}</p>
+  // Press cuttings: paper, masthead, a halftone photo, the one real line of copy sharp and the rest of the column out of focus
+  fill('press', PRESS.map((p, i) => `<article class="cut" data-r="fade" style="--d:${i * 0.12}s;--rot:${[-2.6, 1.9][i % 2]}deg">
+    <i class="tape" aria-hidden="true"></i>
+    <div class="paper" data-paper>
+      <header class="np-mast"><b>${esc(p.source)}</b><span class="mono">${esc(p.date)}</span></header>
+      <h3 class="np-head">${esc(p.headline).replace(esc(p.ring), `<mark>${esc(p.ring)}</mark>`)}</h3>
+      <div class="np-cols">
+        <figure class="np-photo"><img src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="object-position:${p.pos}"></figure>
+        <div class="np-text"><p>${esc(p.line)}</p><div class="np-greek" aria-hidden="true">${'<i></i>'.repeat(9)}</div></div>
       </div>
-      <footer class="tix-stub"><div class="bars" aria-hidden="true"></div><div class="pass-no"><span class="mono">Clipping N° ${pad2(i + 1)}</span></div></footer>
+      <footer class="np-foot mono"><span>Cutting N° ${pad2(i + 1)}</span><span>${esc(p.source)}</span></footer>
     </div>
   </article>`).join(''));
 
