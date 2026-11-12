@@ -153,12 +153,12 @@ function stripScene(sy, ssy, dt, idle) {
 })();
 
 /* ---------- photos that arrive out of the blur. The page only says where each one sits; the field draws it. */
-const PH = { frame: 20, portrait: 30 }; // texture slots (the strip uses 0 upward)
+const PH = { frame: 20, portrait: 30, press: 40 }; // texture slots (the strip uses 0 upward)
 const quads = [];
 const mouse = { x: innerWidth * 0.7, y: innerHeight * 0.4, sx: innerWidth * 0.7, sy: innerHeight * 0.4 };
 function place(el, i, o = {}) {
   const r = el.getBoundingClientRect(), ch = canvas.clientHeight || vh; if (r.width < 2 || r.bottom < -vh * 0.4 || r.top > vh * 1.4) return;
-  quads.push({ i, x: (r.left + r.width / 2 + (o.dx || 0)) / vw, y: 1 - (r.top + r.height / 2 + (o.dy || 0)) / ch, w: r.width / vw, h: r.height / ch, blur: o.blur || 0, duo: o.duo ?? 1, alpha: o.alpha ?? 1, rad: o.rad ?? 16, feather: o.feather || 0, leak: o.leak ?? 0.5, leakAt: o.leakAt });
+  quads.push({ i, x: (r.left + r.width / 2 + (o.dx || 0)) / vw, y: 1 - (r.top + r.height / 2 + (o.dy || 0)) / ch, w: r.width / vw, h: r.height / ch, blur: o.blur || 0, duo: o.duo ?? 1, alpha: o.alpha ?? 1, rad: o.rad ?? 16, dots: o.dots || 0, feather: o.feather || 0, leak: o.leak ?? 0.5, leakAt: o.leakAt });
 }
 // each frame's photo streaks in from the side and settles sharp while its title card is pinned
 function cardScene(c, y) {
@@ -277,16 +277,27 @@ function marketsScene(p) {
   mkItems.forEach((li, i) => { const d = Math.abs(i - mkF), t = clamp(d - 0.15); li.style.opacity = (1 - Math.min(0.8, t * 0.5)).toFixed(3); li.style.filter = t < 0.01 || reduced ? 'none' : `blur(${Math.min(12, t * 6).toFixed(1)}px)`; });
   const at = clamp(Math.round(mkF), 0, n - 1); if (at !== mkAt) { mkAt = at; mkItems.forEach((li, i) => li.classList.toggle('on', i === at)); mkN.textContent = `Market ${pad2(at + 1)} / ${pad2(n)}`; }
 }
-// press cuttings are torn out, not cut: each gets its own ragged bottom edge
-$$('[data-paper]').forEach((el, k) => {
-  let seed = 17 + k * 101; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  const pts = ['0% 0%', '100% 0%']; let x = 100; pts.push(`100% ${(97 - rnd() * 1.5).toFixed(2)}%`);
-  while (x > 0) { x = Math.max(0, x - (1.2 + rnd() * 2.6)); pts.push(`${x.toFixed(2)}% ${(96.2 + rnd() * 3.8).toFixed(2)}%`); }
-  el.style.clipPath = `polygon(${pts.join(',')})`;
-});
+// press: one front page per piece of coverage. The headline sets itself a word at a time, the editor's ring goes round
+// the part that matters, and the photo arrives as coarse newsprint dots that tighten until it is a photograph.
+const pgItems = $$('[data-pg]').map(el => ({ el, words: $$('.pg-head .w', el), head: $('.pg-head', el), cols: $('.pg-cols', el), ph: $('[data-pg-ph] img', el) })), pgSteps = $$('.pg .steps span');
+function pressScene(p) {
+  const n = pgItems.length, pin = pins.press; if (!n || !pin) return; const x = clamp(p, 0, 0.9999) * n, at = Math.floor(x);
+  // the first page starts setting as the section arrives, so it is never an empty screen
+  const lead = clamp((ssy - (pin.top - vh * 0.75)) / (vh * 0.75)) * 0.62;
+  pgItems.forEach((it, i) => {
+    const raw = x - i, u = i === 0 ? Math.max(raw, lead) : raw;
+    const vis = reduced ? +(i === at) : (i === 0 ? 1 : sstep(0, 0.1, raw)) * (i === n - 1 ? 1 : 1 - sstep(0.9, 1, raw));
+    it.el.style.opacity = vis.toFixed(3); it.el.style.visibility = vis < 0.01 ? 'hidden' : 'visible';
+    it.words.forEach((w, k) => { const t = reduced ? 1 : sstep(0.03 + k * 0.035, 0.24 + k * 0.035, u); w.style.opacity = t.toFixed(3); w.style.transform = `translateX(${((1 - t) * 0.55).toFixed(3)}em)`; w.style.filter = t > 0.995 ? 'none' : `blur(${((1 - t) * 0.12).toFixed(3)}em)`; });
+    it.head.classList.toggle('ring', reduced || u > 0.46);
+    const c = reduced ? 1 : sstep(0.3, 0.52, u); it.cols.style.opacity = c.toFixed(3); it.cols.style.transform = `translateY(${((1 - c) * 22).toFixed(1)}px)`;
+    if (field && it.ph && vis > 0.01) { const e = reduced ? 1 : sstep(0.02, 0.36, u); place(it.ph, PH.press + i, { blur: (1 - e) * 1.2, dx: (1 - e) * vw * 0.2, alpha: vis * clamp(u * 5), dots: reduced ? 0.25 : lerp(1, 0.22, sstep(0.38, 0.82, u)), rad: 10, leak: 0.35 }); }
+  });
+  pgSteps.forEach((st, i) => { st.style.setProperty('--f', clamp(x - i).toFixed(3)); st.classList.toggle('on', i === at); });
+}
 
 let fdt = 1, fidle = true; // this frame's time step and whether the page has stopped moving, for scenes that settle
-const SCENES = [['plays', playsScene], ['brief', briefScene], ['rules', rulesScene], ['markets', marketsScene]];
+const SCENES = [['plays', playsScene], ['brief', briefScene], ['rules', rulesScene], ['markets', marketsScene], ['press', pressScene]];
 
 /* ---------- the loop */
 const bar = $('[data-bar]'), hdLabel = $('[data-hd-label]'), hdCount = $('[data-hd-count]');
@@ -339,7 +350,7 @@ Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Pro
   requestAnimationFrame(() => {
     root.classList.add('ready'); heroT0 = performance.now();
     // the frame photos are not needed for a few screens yet
-    if (field) setTimeout(() => data.frames.forEach((u, i) => field && field.loadPhoto(PH.frame + i, u)), 700);
+    if (field) setTimeout(() => { if (!field) return; data.frames.forEach((u, i) => field.loadPhoto(PH.frame + i, u)); data.press.forEach((u, i) => field.loadPhoto(PH.press + i, u)); }, 700);
     // the opening frame arrives whole, whatever the window height; everything else waits to be scrolled to
     $$('.hero [data-r]').forEach(el => { el.classList.add('in'); if (el.dataset.r === 'smear') smear(el); });
     $$('[data-r]:not(.in)').forEach(el => revealIO.observe(el));

@@ -132,19 +132,22 @@ export function renderAll() {
 
   fill('logos', WORKED_WITH.map(([n, f], i) => `<li data-r="fade" style="--d:${(i % 6) * 0.04}s">${logo(f, n)}<span class="mono">${esc(n)}</span></li>`).join(''));
   fill('talent', TALENT.map(([n, w], i) => `<li><span class="mono">${pad2(i + 1)}</span><b>${esc(n)}</b><span class="mono">${esc(w)}</span></li>`).join(''));
-  // Press cuttings: paper, masthead, a halftone photo, the one real line of copy sharp and the rest of the column out of focus
-  fill('press', PRESS.map((p, i) => `<article class="cut" data-r="fade" style="--d:${i * 0.12}s;--rot:${[-2.6, 1.9][i % 2]}deg">
-    <i class="tape" aria-hidden="true"></i>
-    <div class="paper" data-paper>
-      <header class="np-mast"><b>${esc(p.source)}</b><span class="mono">${esc(p.date)}</span></header>
-      <h3 class="np-head">${esc(p.headline).replace(esc(p.ring), `<mark>${esc(p.ring)}</mark>`)}</h3>
-      <div class="np-cols">
-        <figure class="np-photo"><img src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="object-position:${p.pos}"></figure>
-        <div class="np-text"><p>${esc(p.line)}</p><div class="np-greek" aria-hidden="true">${'<i></i>'.repeat(9)}</div></div>
-      </div>
-      <footer class="np-foot mono"><span>Cutting N° ${pad2(i + 1)}</span><span>${esc(p.source)}</span></footer>
+  // Press: one front page per piece of coverage. The <img> marks where the photo sits; the field prints it (dots first, then sharp).
+  fill('press', `<div class="pin pg" style="--len:${(PRESS.length * 0.95).toFixed(2)}" data-pin="press">
+    <div class="pin-in">
+      <div class="pg-stage">${PRESS.map((p, i) => `<article class="pg-item" data-pg="${i}">
+        <header class="pg-mast"><b>${esc(p.source)}</b><span class="mono">Cutting ${pad2(i + 1)} / ${pad2(PRESS.length)}</span><span class="mono">${esc(p.date)}</span></header>
+        <div class="pg-grid">
+          <div class="pg-copy">
+            <h3 class="pg-head" data-words>${esc(p.headline).replace(esc(p.ring), `<mark>${esc(p.ring)}</mark>`)}</h3>
+            <div class="pg-cols"><p>${esc(p.line)}</p><div class="np-greek" aria-hidden="true">${'<i></i>'.repeat(7)}</div><div class="np-greek" aria-hidden="true">${'<i></i>'.repeat(7)}</div></div>
+          </div>
+          <figure class="pg-ph" data-pg-ph><img src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="aspect-ratio:${p.ar};object-position:${p.pos}"></figure>
+        </div>
+      </article>`).join('')}</div>
+      <div class="steps" aria-hidden="true">${PRESS.map((p, i) => `<span><i></i><b class="mono">${pad2(i + 1)} — ${esc(p.source)}</b></span>`).join('')}</div>
     </div>
-  </article>`).join(''));
+  </div>`);
 
   fill('topics', TOPICS.map(t => `<li>${esc(t)}</li>`).join(''));
   fill('seats', SEATS.map(([what, line, , q, key], i) => `<li data-r="fade" style="--d:${i * 0.04}s"><a href="${B}book/?for=${key}"><span class="mono">${esc(what)}</span><span class="seat-q">${esc(q)}</span><span class="seat-l">${esc(line)}</span><i aria-hidden="true">→</i></a></li>`).join(''));
@@ -154,5 +157,6 @@ export function renderAll() {
   return {
     stands: STANDS.map(([f]) => `${B}photos/${f}`), standsMeta: STANDS,
     frames: FRAMES.map(f => `${B}photos/${f.photo[0]}`), portrait: `${B}photos/portrait.jpg`,
+    press: PRESS.map(p => `${B}photos/${p.img}`),
   };
 }

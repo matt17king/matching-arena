@@ -133,8 +133,8 @@ export const WORKED_WITH = [
 // [name, where]
 export const TALENT = [['Phil Foden', 'The Couture Club'], ['Molly-Mae Hague', 'The Couture Club'], ['Kyle Walker', 'Talent partnership'], ['Conor McGregor', 'Talent partnership'], ['Tom Aspinall', 'Gym King'], ['Ash Cain', 'Gym King'], ['Alex Bowen', 'Gym King'], ['Niall Horan', 'American Golf'], ['Judy Murray', 'American Golf'], ['Madeline Argy', 'Talent partnership']];
 export const PRESS = [
-  { img: 'press-circle.jpg', pos: 'center 30%', alt: 'The 80 Four founders at the Circle Networks awards', source: 'Circle Networks', date: '2025', headline: 'Start Up of the Year: finalist', ring: 'finalist', line: '80 Four was named a finalist for Circle Networks Start Up of the Year 2025.' },
-  { img: 'press-bdaily-photo.jpg', pos: 'center 40%', alt: 'The three 80 Four founders', source: 'Bdaily Business News', date: '21 Oct 2025', headline: 'Trio launch new marketing agency', ring: 'marketing agency', line: '80 Four, founded by Matt King, James Parker-Aiken and Emily Martin, specialises in sport, health and lifestyle branding and brand strategy.' },
+  { img: 'press-circle.jpg', ar: '4 / 5', pos: 'center 30%', alt: 'The 80 Four founders at the Circle Networks awards', source: 'Circle Networks', date: '2025', headline: 'Start Up of the Year: finalist', ring: 'finalist', line: '80 Four was named a finalist for Circle Networks Start Up of the Year 2025.' },
+  { img: 'press-bdaily-photo.jpg', ar: '4 / 3', pos: 'center 40%', alt: 'The three 80 Four founders', source: 'Bdaily Business News', date: '21 Oct 2025', headline: 'Trio launch new marketing agency', ring: 'marketing agency', line: '80 Four, founded by Matt King, James Parker-Aiken and Emily Martin, specialises in sport, health and lifestyle branding and brand strategy.' },
 ];
 
 // Book Matt: [what, line, email subject, the question, key]. The key is what the booking page uses (book/?for=key).
