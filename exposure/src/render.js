@@ -132,33 +132,28 @@ export function renderAll() {
 
   fill('logos', WORKED_WITH.map(([n, f], i) => `<li data-r="fade" style="--d:${(i % 6) * 0.04}s">${logo(f, n)}<span class="mono">${esc(n)}</span></li>`).join(''));
   fill('talent', TALENT.map(([n, w], i) => `<li><span class="mono">${pad2(i + 1)}</span><b>${esc(n)}</b><span class="mono">${esc(w)}</span></li>`).join(''));
-  // Press: one front page per piece of coverage. The <img> marks where the photo sits; the field prints it (dots first, then sharp).
-  fill('press', `<div class="pin pg" style="--len:${(PRESS.length * 0.95).toFixed(2)}" data-pin="press">
+  // Press: a strip, like "In the stands". The field draws the photos in the space the track leaves; each story's words sit beneath.
+  fill('press', `<div class="pin ps" style="--len:${((PRESS.length - 1) * 0.9 + 0.5).toFixed(2)}" data-pin="press">
     <div class="pin-in">
-      <div class="pg-stage">${PRESS.map((p, i) => `<article class="pg-item" data-pg="${i}">
-        <header class="pg-mast"><b>${esc(p.source)}</b><span class="mono">Cutting ${pad2(i + 1)} / ${pad2(PRESS.length)}</span><span class="mono">${esc(p.date)}</span></header>
-        <div class="pg-grid">
-          <div class="pg-copy">
-            <h3 class="pg-head" data-words>${esc(p.headline).replace(esc(p.ring), `<mark>${esc(p.ring)}</mark>`)}</h3>
-            <div class="pg-cols"><p>${esc(p.line)}</p><div class="np-greek" aria-hidden="true">${'<i></i>'.repeat(7)}</div><div class="np-greek" aria-hidden="true">${'<i></i>'.repeat(7)}</div></div>
-          </div>
-          <figure class="pg-ph" data-pg-ph><img src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="aspect-ratio:${p.ar};object-position:${p.pos}"></figure>
-        </div>
+      <div class="ps-head">
+        <div class="sec-k mono"><span>In the press</span><span>On the record</span></div>
+        <h2 class="ps-title" data-r="smear" data-split>In the <em class="hi">press.</em></h2>
+      </div>
+      <div class="ps-track" data-ps-track aria-hidden="true"></div>
+      <div class="ps-caps">${PRESS.map((p, i) => `<article class="ps-cap${i ? '' : ' on'}" data-ps-cap>
+        <img class="ps-img" src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="aspect-ratio:${p.ar};object-position:${p.pos}">
+        <p class="ps-meta mono"><span>${esc(p.source)}</span><span>${esc(p.date)}</span></p>
+        <h3 class="ps-h">${esc(p.headline).replace(esc(p.key), `<em>${esc(p.key)}</em>`)}</h3>
+        <p class="ps-line">${esc(p.line)}</p>
       </article>`).join('')}</div>
-      <div class="steps" aria-hidden="true">${PRESS.map((p, i) => `<span><i></i><b class="mono">${pad2(i + 1)} — ${esc(p.source)}</b></span>`).join('')}</div>
+      <div class="ps-foot mono"><span><span class="only-fine">Scroll or drag</span><span class="only-touch">Scroll or swipe</span></span><span class="ps-count" aria-hidden="true">${PRESS.map(() => '<i></i>').join('')}<b data-ps-n>01 / ${pad2(PRESS.length)}</b></span></div>
     </div>
   </div>`);
-
-  // What I talk about: the topic in plain words first, my line for it second. Each opens the booking page with that topic chosen.
-  fill('topics', TOPICS.map(([t, hook], i) => `<li data-r="fade" style="--d:${(i % 3) * 0.06}s"><a href="${B}book/?topic=${i}"><span class="mono">${pad2(i + 1)}</span><b>${esc(t)}</b><em>${esc(hook)}</em></a></li>`).join(''));
-  // What you can book: the plain name large, what it covers beneath. Each opens the booking page with that route chosen.
-  fill('seats', SEATS.map(([what, line, , , key], i) => `<li data-r="fade" style="--d:${i * 0.04}s"><a href="${B}book/?for=${key}" data-seat data-code="${BOOK[key].code}" data-pass="${esc(BOOK[key].pass)}"><span class="mono">${pad2(i + 1)}</span><span class="seat-q">${esc(what)}</span><span class="seat-l">${esc(line)}</span><i aria-hidden="true">→</i></a></li>`).join(''));
-
   const idx = [['top', 'The opening frame'], ['idea', 'The idea'], ['journey', 'How a fan is made'], ['company', 'The company'], ...FRAMES.map(f => [f.id, plain(f.title)]), ['plays', 'Plays worth stealing'], ['kit', 'How I work'], ['record', 'The record'], ['stands', 'In the stands'], ['press', 'In the press'], ['book', 'Book Matt']];
   fill('index', idx.map(([id, t], i) => `<li><a href="#${id}"><span class="mono">${pad2(i)}</span><span class="ix-t">${esc(t)}</span></a></li>`).join(''));
   return {
     stands: STANDS.map(([f]) => `${B}photos/${f}`), standsMeta: STANDS,
     frames: FRAMES.map(f => `${B}photos/${f.photo[0]}`), portrait: `${B}photos/portrait.jpg`,
-    press: PRESS.map(p => `${B}photos/${p.img}`),
+    press: PRESS.map(p => `${B}photos/${p.img}`), pressAr: PRESS.map(p => p.ar),
   };
 }
