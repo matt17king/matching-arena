@@ -9,7 +9,7 @@ const fill = (name, html) => { const el = $(`[data-list="${name}"]`); if (el) el
 
 /* ---------- the choices, from the same content the home page uses */
 fill('formats', SEATS.map(([what, line, , q, key]) => `<label class="bk-opt" data-opt="${key}"><input type="radio" name="for" value="${key}"><span class="mono">${esc(what)}</span><span class="bk-opt-q">${esc(q)}</span><span class="bk-opt-l">${esc(line)}</span><i aria-hidden="true"></i></label>`).join(''));
-fill('topics', TOPICS.map(t => `<label class="bk-chip"><input type="checkbox" name="topic" value="${esc(t)}"><span>${esc(t)}</span></label>`).join(''));
+fill('topics', TOPICS.map(([t]) => `<label class="bk-chip"><input type="checkbox" name="topic" value="${esc(t)}"><span>${esc(t)}</span></label>`).join(''));
 $$('[data-split]').forEach(split);
 const grain = grainURL(); $('[data-grain]').style.backgroundImage = grain; root.style.setProperty('--grain', grain);
 
@@ -91,6 +91,7 @@ copyBtn.addEventListener('click', async () => {
 });
 // arriving from one of the questions on the home page: that route is already chosen
 { const k = params.get('for'); const r = k && $(`input[name="for"][value="${CSS.escape(k)}"]`, form); if (r) r.checked = true; }
+{ const t = $$('input[name="topic"]', form)[+params.get('topic')]; if (params.has('topic') && t) t.checked = true; }
 update();
 
 /* ---------- the field, the themes, the reveals: the same world as the home page */
@@ -168,6 +169,6 @@ Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Pro
     $$('.bk-hero [data-r]').forEach(el => { el.classList.add('in'); if (el.dataset.r === 'smear') smear(el); });
     $$('[data-r]:not(.in)').forEach(el => revealIO.observe(el));
     // someone who arrived with a route already chosen is taken past the opening to the questions, with theirs already answered
-    if (params.get('for') && val('for')) setTimeout(() => { const next = $$('.bk-step')[0]; if (next) scrollTo({ top: next.getBoundingClientRect().top + scrollY - vh * 0.16, behavior: reduced ? 'auto' : 'smooth' }); }, 900);
+    if ((params.get('for') && val('for')) || params.has('topic')) setTimeout(() => { const next = $$('.bk-step')[0]; if (next) scrollTo({ top: next.getBoundingClientRect().top + scrollY - vh * 0.16, behavior: reduced ? 'auto' : 'smooth' }); }, 900);
   });
 });

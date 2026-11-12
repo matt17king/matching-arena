@@ -158,7 +158,7 @@ const quads = [];
 const mouse = { x: innerWidth * 0.7, y: innerHeight * 0.4, sx: innerWidth * 0.7, sy: innerHeight * 0.4 };
 function place(el, i, o = {}) {
   const r = el.getBoundingClientRect(), ch = canvas.clientHeight || vh; if (r.width < 2 || r.bottom < -vh * 0.4 || r.top > vh * 1.4) return;
-  quads.push({ i, x: (r.left + r.width / 2 + (o.dx || 0)) / vw, y: 1 - (r.top + r.height / 2 + (o.dy || 0)) / ch, w: r.width / vw, h: r.height / ch, blur: o.blur || 0, duo: o.duo ?? 1, alpha: o.alpha ?? 1, rad: o.rad ?? 16, dots: o.dots || 0, feather: o.feather || 0, leak: o.leak ?? 0.5, leakAt: o.leakAt });
+  quads.push({ i, x: (r.left + r.width / 2 + (o.dx || 0)) / vw, y: 1 - (r.top + r.height / 2 + (o.dy || 0)) / ch, w: r.width / vw, h: r.height / ch, blur: o.blur || 0, duo: o.duo ?? 1, alpha: o.alpha ?? 1, rad: o.rad ?? 16, feather: o.feather || 0, leak: o.leak ?? 0.5, leakAt: o.leakAt });
 }
 // each frame's photo streaks in from the side and settles sharp while its title card is pinned
 function cardScene(c, y) {
@@ -278,7 +278,7 @@ function marketsScene(p) {
   const at = clamp(Math.round(mkF), 0, n - 1); if (at !== mkAt) { mkAt = at; mkItems.forEach((li, i) => li.classList.toggle('on', i === at)); mkN.textContent = `Market ${pad2(at + 1)} / ${pad2(n)}`; }
 }
 // press: one front page per piece of coverage. The headline sets itself a word at a time, the editor's ring goes round
-// the part that matters, and the photo arrives as coarse newsprint dots that tighten until it is a photograph.
+// the part that matters, and the photo streaks in and settles sharp beside it.
 const pgItems = $$('[data-pg]').map(el => ({ el, words: $$('.pg-head .w', el), head: $('.pg-head', el), cols: $('.pg-cols', el), ph: $('[data-pg-ph] img', el) })), pgSteps = $$('.pg .steps span');
 function pressScene(p) {
   const n = pgItems.length, pin = pins.press; if (!n || !pin) return; const x = clamp(p, 0, 0.9999) * n, at = Math.floor(x);
@@ -291,12 +291,36 @@ function pressScene(p) {
     it.words.forEach((w, k) => { const t = reduced ? 1 : sstep(0.03 + k * 0.035, 0.24 + k * 0.035, u); w.style.opacity = t.toFixed(3); w.style.transform = `translateX(${((1 - t) * 0.55).toFixed(3)}em)`; w.style.filter = t > 0.995 ? 'none' : `blur(${((1 - t) * 0.12).toFixed(3)}em)`; });
     it.head.classList.toggle('ring', reduced || u > 0.46);
     const c = reduced ? 1 : sstep(0.3, 0.52, u); it.cols.style.opacity = c.toFixed(3); it.cols.style.transform = `translateY(${((1 - c) * 22).toFixed(1)}px)`;
-    if (field && it.ph && vis > 0.01) { const e = reduced ? 1 : sstep(0.02, 0.36, u); place(it.ph, PH.press + i, { blur: (1 - e) * 1.2, dx: (1 - e) * vw * 0.2, alpha: vis * clamp(u * 5), dots: reduced ? 0.25 : lerp(1, 0.22, sstep(0.38, 0.82, u)), rad: 10, leak: 0.35 }); }
+    if (field && it.ph && vis > 0.01) { const e = reduced ? 1 : sstep(0.02, 0.36, u); place(it.ph, PH.press + i, { blur: (1 - e) * 1.2, dx: (1 - e) * vw * 0.2, alpha: vis * clamp(u * 5), rad: 10, leak: 0.35 }); }
   });
   pgSteps.forEach((st, i) => { st.style.setProperty('--f', clamp(x - i).toFixed(3)); st.classList.toggle('on', i === at); });
 }
 
 let fdt = 1, fidle = true; // this frame's time step and whether the page has stopped moving, for scenes that settle
+// "Pull up a chair": a booking pass hangs beside the list of things you can book. Point at one and the pass prints it;
+// left alone, it runs through them. It sways when the page moves and leans toward the cursor, like the one on the booking page.
+const hp = { rig: $('[data-home-pass]'), swing: $('[data-home-swing]'), card: $('[data-home-card]'), code: $('[data-hp="code"]'), name: $('[data-hp="for"]'), seats: $$('[data-seat]'), at: -1, held: false, a: 0, v: 0, rx: 0, ry: 0, on: false, t: 0 };
+function hpPrint(i) {
+  if (!hp.card || i === hp.at || !hp.seats[i]) return; hp.at = i; const el = hp.seats[i];
+  for (const [node, text] of [[hp.code, el.dataset.code], [hp.name, el.dataset.pass]]) { node.textContent = text; node.classList.remove('empty'); if (!reduced) { node.classList.remove('pop'); void node.offsetWidth; node.classList.add('pop'); } }
+  hp.seats.forEach((sEl, k) => sEl.classList.toggle('on', k === i)); hp.card.href = el.href;
+}
+if (hp.card) {
+  hp.seats.forEach((el, i) => { el.addEventListener('mouseenter', () => { hp.held = true; hpPrint(i); }); el.addEventListener('focus', () => { hp.held = true; hpPrint(i); }); el.addEventListener('mouseleave', () => { hp.held = false; hp.t = 0; }); });
+  new IntersectionObserver(es => es.forEach(e => { hp.on = e.isIntersecting; }), { rootMargin: '10% 0px' }).observe(hp.rig);
+  if (reduced) hpPrint(0);
+}
+function homePass(d, dt) {
+  if (!hp.card || reduced || (!hp.on && Math.abs(hp.a) < 0.05)) return;
+  if (hp.on && !hp.held) { hp.t += dt; if (hp.at < 0 || hp.t > 1.9) { hp.t = 0; hpPrint((hp.at + 1) % hp.seats.length); hp.v += 10; } }
+  hp.v += clamp(d, -90, 90) * 0.05; hp.v += (-hp.a * 46 - hp.v * 5.2) * dt; hp.a = clamp(hp.a + hp.v * dt, -40, 40);
+  const r = hp.card.getBoundingClientRect();
+  const tx = fine ? clamp(((mouse.x - (r.left + r.width / 2)) / vw) * 30, -12, 12) : 0, ty = fine ? clamp(((mouse.y - (r.top + r.height / 2)) / vh) * -20, -8, 8) : 0;
+  hp.ry = lerp(hp.ry, tx, 0.08); hp.rx = lerp(hp.rx, ty, 0.08);
+  hp.swing.style.transform = `rotateZ(${hp.a.toFixed(2)}deg)`; hp.card.style.transform = `rotateX(${hp.rx.toFixed(2)}deg) rotateY(${(hp.ry + hp.a * 0.5).toFixed(2)}deg)`;
+  hp.card.style.setProperty('--gx', `${(50 + hp.ry * 3.2).toFixed(1)}%`); hp.card.style.setProperty('--gy', `${(22 - hp.rx * 3).toFixed(1)}%`);
+}
+
 const SCENES = [['plays', playsScene], ['brief', briefScene], ['rules', rulesScene], ['markets', marketsScene], ['press', pressScene]];
 
 /* ---------- the loop */
@@ -326,7 +350,7 @@ function tick(now) {
   fdt = dt; fidle = time - movedAt > 0.16;
   for (const [name, fn] of SCENES) { const pin = pins[name]; if (pin && sy > pin.top - vh && sy < pin.bottom) fn(progress(pin, ssy)); }
   stripScene(sy, ssy, dt, time - movedAt > 0.16);
-  focusPull();
+  focusPull(); homePass(d, dt);
   for (const c of cards) if (sy > c.top - vh * 1.2 && sy < c.bottom + vh * 0.2) cardScene(c, ssy);
   peekScene();
 

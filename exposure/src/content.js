@@ -122,6 +122,7 @@ export const STANDS = [
   ['paris-marathon.jpg', 'Paris Marathon', 'Race day'],
   ['track.jpg', 'The track', 'Training'],
   ['working.jpg', 'The desk', 'Where the ideas get built'],
+  ['radio.jpg', 'On air', 'Radio'],
 ];
 
 // The company I keep: [name, logo file in public/logos]
@@ -155,4 +156,12 @@ export const BOOK = {
   press: { code: 'PRS', pass: 'Press comment', phrase: 'a press comment' },
   hello: { code: 'TLK', pass: 'A conversation', phrase: 'a conversation' },
 };
-export const TOPICS = ['Culture is the side door', 'The tunnel is the new runway', 'Fit beats size: casting talent', 'The format is the product', 'Story before sport', 'AI is the pit crew, not the driver'];
+// What I talk about: [the topic in plain words, my line for it]
+export const TOPICS = [
+  ['Culture as a way into sport', 'Culture is the side door'],
+  ['Fashion and sport', 'The tunnel is the new runway'],
+  ['Casting talent', 'Fit beats size'],
+  ['New formats, new fans', 'The format is the product'],
+  ['Storytelling in sport', 'Story before sport'],
+  ['AI in marketing', 'AI is the pit crew, not the driver'],
+];

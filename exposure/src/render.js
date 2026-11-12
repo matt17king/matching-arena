@@ -1,5 +1,5 @@
 // Turns content.js into markup. No behaviour here; main.js wires it up afterwards.
-import { FRAMES, RUNWAY, PLAYS, BRIEF, JOURNEY, RULES, FORMATS, MARKETS, KIT, FILM, RECORD, RIGHTS, ROUTE, STANDS, WORKED_WITH, TALENT, PRESS, SEATS, TOPICS } from './content.js';
+import { FRAMES, RUNWAY, PLAYS, BRIEF, JOURNEY, RULES, FORMATS, MARKETS, KIT, FILM, RECORD, RIGHTS, ROUTE, STANDS, WORKED_WITH, TALENT, PRESS, SEATS, TOPICS, BOOK } from './content.js';
 
 const B = import.meta.env.BASE_URL;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -149,8 +149,10 @@ export function renderAll() {
     </div>
   </div>`);
 
-  fill('topics', TOPICS.map(t => `<li>${esc(t)}</li>`).join(''));
-  fill('seats', SEATS.map(([what, line, , q, key], i) => `<li data-r="fade" style="--d:${i * 0.04}s"><a href="${B}book/?for=${key}"><span class="mono">${esc(what)}</span><span class="seat-q">${esc(q)}</span><span class="seat-l">${esc(line)}</span><i aria-hidden="true">→</i></a></li>`).join(''));
+  // What I talk about: the topic in plain words first, my line for it second. Each opens the booking page with that topic chosen.
+  fill('topics', TOPICS.map(([t, hook], i) => `<li data-r="fade" style="--d:${(i % 3) * 0.06}s"><a href="${B}book/?topic=${i}"><span class="mono">${pad2(i + 1)}</span><b>${esc(t)}</b><em>${esc(hook)}</em></a></li>`).join(''));
+  // What you can book: the plain name large, what it covers beneath. Each opens the booking page with that route chosen.
+  fill('seats', SEATS.map(([what, line, , , key], i) => `<li data-r="fade" style="--d:${i * 0.04}s"><a href="${B}book/?for=${key}" data-seat data-code="${BOOK[key].code}" data-pass="${esc(BOOK[key].pass)}"><span class="mono">${pad2(i + 1)}</span><span class="seat-q">${esc(what)}</span><span class="seat-l">${esc(line)}</span><i aria-hidden="true">→</i></a></li>`).join(''));
 
   const idx = [['top', 'The opening frame'], ['idea', 'The idea'], ['journey', 'How a fan is made'], ['company', 'The company'], ...FRAMES.map(f => [f.id, plain(f.title)]), ['plays', 'Plays worth stealing'], ['kit', 'How I work'], ['record', 'The record'], ['stands', 'In the stands'], ['press', 'In the press'], ['book', 'Book Matt']];
   fill('index', idx.map(([id, t], i) => `<li><a href="#${id}"><span class="mono">${pad2(i)}</span><span class="ix-t">${esc(t)}</span></a></li>`).join(''));
