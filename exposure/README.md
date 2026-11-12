@@ -31,6 +31,8 @@ Two helpers are derived from those and used only for legibility: `ice` (`#f3f8fc
 | --- | --- |
 | `index.html` | The story: header, index, and the static sections |
 | `book/index.html` | The booking page |
+| `world/index.html` | The virtual world: a penthouse above London, drawn in 3D |
+| `src/world/` | The virtual world's code: `apartment.js` builds the room, `textures.js` draws its materials, `main.js` is the camera, light switch and markers |
 | `src/kit.js` | Shared by both pages: fonts and styles, helpers, the three colour themes, word splitting, the panned-blur headline, grain |
 | `src/book.js` | The booking page: the four questions, the pass, the written brief, the email hand-off |
 | `src/content.js` | Everything editable: the fan journey, the five frames (each with its photo), plays, the brief, eleven talent rules, formats, markets, how I work, the record, who Matt has worked with, press, booking |
@@ -64,9 +66,22 @@ Two helpers are derived from those and used only for legibility: `ice` (`#f3f8fc
 
 The six routes and six topics come from `SEATS` and `TOPICS` in `content.js` (each topic is a plain-words title plus the line that goes with it); `BOOK` holds how each route reads on the pass and in the sentence. On the home page, "Pull up a chair" lists what can be booked beside a copy of the pass, which prints whichever one is pointed at (and runs through them when left alone). Those rows link to `book/?for=<key>` and the topic cards to `book/?topic=<n>`, so the booking page opens with that choice already made. The line under the header fills as the brief does.
 
+## The virtual world
+
+`world/` is a third page: a penthouse above London, seen from the corner like an architect's model. It is drawn live with three.js (only this page loads it) from code alone: `src/world/apartment.js` builds every wall and piece of furniture out of simple shapes, measured in metres, and `src/world/textures.js` draws the marble, the herringbone oak and the rest on canvases at load. No models or images are downloaded.
+
+- **The way in.** The room waits in the dark behind the title; "Enter" fades the title away and switches the lights on.
+- **The camera** never changes angle. Dragging slides the room under it, and the wheel or a pinch moves closer, toward wherever the pointer is. Arrow keys and `+` / `-` do the same.
+- **The light switch** (or the `L` key) eases between two states. On: a bright, even interior with soft shadows. Off: the room is lit only by strips of the site's blue and red (under the island and the wall units, along the terrace, behind the sofa, under the desk shelf), with the same colours leaking in from the corners of the screen.
+- **Things from Matt's world** are the `items` list at the end of `apartment.js`: each has a position in the room, a name, and a link, and appears as a marker that opens it. The MacBook on the desk (the booking page) and the magazines on the coffee table (the press section) are the first two. To add one, build the object in `apartment.js` and add a line to `items`.
+- **London** is a small model skyline set below and behind the terrace, and the top of the building the floor sits on, both fading into the dark.
+- **Without WebGL** the page shows its title, a short explanation and a way back.
+
+The story links to it from the footer and the index. Review switches: `?in` skips the title, `?in&dark` starts with the lights off, `?noao` turns off the contact shading, `?debug` exposes `__wd`.
+
 ## Notes
 
-- Fonts (Inter Tight, Geist, Geist Mono) ship in the bundle via Fontsource; nothing loads from a third party at runtime.
+- Fonts (Inter Tight, Geist, Geist Mono) ship in the bundle via Fontsource; nothing loads from a third party at runtime. The only other dependency is three.js, bundled into the virtual world page alone.
 - Review switches: `?nogl` forces the no-WebGL fallback, `?still` forces reduced motion, `?debug` exposes `__mk` (pins, `go(id)`).
 - `og:image` points at `./og.jpg`. Once this has its own domain, make that an absolute URL and add `og:url` and a canonical link.
 - The logo masks were made from the Arena logo files; to add one, drop a transparent PNG whose alpha is the mark into `public/logos` and reference it in `content.js`.

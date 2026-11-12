@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" class="wd">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#090303">
+<title>Matt King — The virtual world</title>
+<meta name="description" content="A penthouse above London, built to hold pieces of Matt King's world. Look around, and switch the lights off.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Matt King — The virtual world">
+<meta property="og:description" content="A penthouse above London. Look around, and switch the lights off.">
+<meta property="og:site_name" content="Matt King">
+<meta property="og:image" content="../og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+
+<!-- the room: drawn in WebGL from the corner, like an architect's model -->
+<canvas class="wd-canvas" data-world aria-label="A penthouse apartment above London, seen from above at an angle"></canvas>
+<!-- the site's red and blue light, laid over the room when its own lights are off -->
+<div class="wd-glow" data-glow aria-hidden="true"></div>
+<div class="grain" data-grain aria-hidden="true"></div>
+<svg class="defs" width="0" height="0" aria-hidden="true"><defs data-defs></defs></svg>
+
+<header class="hd">
+  <a class="hd-name" href="../" aria-label="Matt King — back to the story">Matt King</a>
+  <p class="hd-label mono" aria-hidden="true">The penthouse · London</p>
+  <div class="hd-right">
+    <a class="hd-cta" href="../">← The story</a>
+  </div>
+  <div class="hd-bar" aria-hidden="true"><i></i></div>
+</header>
+
+<main>
+
+<!-- the way in -->
+<section class="wd-gate" data-gate>
+  <div class="wd-gate-in">
+    <p class="mono" data-r="fade" style="--d:.1s">Matt King — The penthouse, London</p>
+    <h1 class="wd-h1" data-r="smear" data-split data-smear="70" style="--d:.15s">Enter the <em class="hi">virtual world.</em></h1>
+    <p class="lead wd-lead" data-r="fade" style="--d:.5s">A penthouse above London, built to hold pieces of my world. Look around, switch the lights off, and open what's been left out.</p>
+    <div class="wd-gate-go" data-r="fade" style="--d:.65s">
+      <button class="btn" data-enter disabled><span data-enter-label>Building the room</span><i aria-hidden="true">→</i></button>
+      <a class="btn btn-line" href="../"><span>Back to the story</span><i aria-hidden="true">←</i></a>
+    </div>
+    <p class="mono wd-gate-note" data-gate-note data-r="fade" style="--d:.8s" hidden>This room needs WebGL, which this browser isn't offering. The story and the booking page work without it.</p>
+  </div>
+</section>
+
+<!-- things in the room that open something. Placed over the canvas each frame. -->
+<nav class="wd-dots" data-dots aria-label="In the room"></nav>
+
+<div class="wd-ui" data-ui>
+  <p class="mono wd-hint"><span class="only-fine">Drag to look around · Scroll to zoom</span><span class="only-touch">Drag to look around · Pinch to zoom</span></p>
+  <button class="wd-switch" data-lights aria-pressed="true" aria-label="Lights">
+    <span class="mono">Lights</span>
+    <span class="wd-track" aria-hidden="true"><i></i></span>
+    <span class="mono wd-state" data-lights-state>On</span>
+  </button>
+  <p class="mono wd-where">51.5072° N, 0.1276° W</p>
+</div>
+
+</main>
+
+<script type="module" src="/src/world/main.js"></script>
+</body>
+</html>
