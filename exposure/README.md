@@ -56,7 +56,7 @@ Two helpers are derived from those and used only for legibility: `ice` (`#f3f8fc
 
 `book/` is a second page in the same build. Instead of a contact form it asks four questions (what, about what, where and when, who) and does three things with the answers:
 
-- **The pass.** A booking pass hangs from a strap beside the form and prints each answer as it is given. It is a damped pendulum: scrolling shoves it, brushing past it with the cursor pushes it, and it leans toward the pointer. When all four questions have an answer it is stamped "Ready to send".
+- **The pass.** A booking pass in a clear holder hangs from a woven lanyard beside the form and prints each answer as it is given: a three-letter code for the booking type, a date block, topics stuck on as stickers, a photo ID panel with the asker's initials, and a tear-off stub with a barcode drawn from the answers. A holographic strip shifts as it tilts. It is a damped pendulum: scrolling shoves it, it leans toward the pointer, and it can be grabbed and flung (on a phone, tilting the device moves the light). When all four questions have an answer it is stamped "Ready to send". Everything inside is sized from one variable, `--pw`.
 - **The brief.** The answers are written out as one sentence. Parts not yet answered stay in the sentence, soft and out of focus, until they are.
 - **The hand-off.** "Send it to Matt" is a `mailto:` link with the subject and the brief filled in, so it opens the visitor's own email app. There is no server and nothing is stored. "Copy the brief" puts the same text on the clipboard.
 

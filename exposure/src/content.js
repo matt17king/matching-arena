@@ -146,13 +146,13 @@ export const SEATS = [
   ['Press comment', 'Quick, clear takes on sports marketing and culture.', 'Press comment', 'Can we get a quote from you?', 'press'],
   ["Let's talk", 'Rights holders, founders, agencies, or anyone with an idea worth chasing.', 'Hello', 'Got five minutes?', 'hello'],
 ];
-// How each route reads on the booking pass, and in the sentence the booking page writes
+// How each route reads on the booking pass (a three-letter code and a name), and in the sentence the booking page writes
 export const BOOK = {
-  podcast: { pass: 'Podcast', phrase: 'a podcast' },
-  talk: { pass: 'Keynote / talk', phrase: 'a keynote or talk' },
-  panel: { pass: 'Panel', phrase: 'a panel' },
-  brand: { pass: 'Brand collaboration', phrase: 'a brand collaboration' },
-  press: { pass: 'Press comment', phrase: 'a press comment' },
-  hello: { pass: 'A conversation', phrase: 'a conversation' },
+  podcast: { code: 'POD', pass: 'Podcast', phrase: 'a podcast' },
+  talk: { code: 'KEY', pass: 'Keynote / talk', phrase: 'a keynote or talk' },
+  panel: { code: 'PNL', pass: 'Panel', phrase: 'a panel' },
+  brand: { code: 'BRD', pass: 'Brand collaboration', phrase: 'a brand collaboration' },
+  press: { code: 'PRS', pass: 'Press comment', phrase: 'a press comment' },
+  hello: { code: 'TLK', pass: 'A conversation', phrase: 'a conversation' },
 };
 export const TOPICS = ['Culture is the side door', 'The tunnel is the new runway', 'Fit beats size: casting talent', 'The format is the product', 'Story before sport', 'AI is the pit crew, not the driver'];

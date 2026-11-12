@@ -55,16 +55,28 @@ function print(el, text) {
   if ((el.dataset.v || '') === text) return; el.dataset.v = text; el.textContent = text; el.classList.toggle('empty', !text);
   if (text && !reduced) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
 }
+// topics are stuck onto the pass like stickers: each lands at its own slight angle and stays there
+const stickers = $('[data-stickers]'), stuck = new Map();
+function stick(topics) {
+  for (const [t, el] of stuck) if (!topics.includes(t)) { el.remove(); stuck.delete(t); }
+  for (const t of topics) {
+    if (stuck.has(t)) continue; let h = 7; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0;
+    const el = document.createElement('span'); el.className = reduced ? 'stk' : 'stk slap'; el.textContent = t; el.style.setProperty('--r', `${((Math.abs(h) % 140) / 10 - 7).toFixed(1)}deg`);
+    stickers.append(el); stuck.set(t, el);
+  }
+}
+{ const el = $('[data-issued]'); if (el) el.textContent = `Issued ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`; }
 let doneWas = -1;
 function update() {
   const s = read();
   $$('.bk-opt', form).forEach(l => l.classList.toggle('on', $('input', l).checked));
   $$('.bk-chip, .bk-seg label', form).forEach(l => l.classList.toggle('on', $('input', l).checked));
-  print(pv.for, s.key ? BOOK[s.key].pass : '');
-  print(pv.topic, s.topics.join(' · '));
+  print(pv.code, s.key ? BOOK[s.key].code : ''); print(pv.for, s.key ? BOOK[s.key].pass : '');
   print(pv.where, [MODE_PASS[s.mode], s.city].filter(Boolean).join(' — '));
   print(pv.when, s.when);
   print(pv.who, [s.name, s.org].filter(Boolean).join(', '));
+  print(pv.mono, (s.name || s.org).split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join(''));
+  stick(s.topics);
   const done = [!!s.key, s.topics.length > 0, !!(s.mode || s.city || s.when), !!(s.name || s.org)].filter(Boolean).length;
   if (done !== doneWas) { doneWas = done; count.textContent = `Brief ${done} / 4`; bar.style.transform = `scaleX(${done / 4})`; stamp.classList.toggle('on', done === 4); root.classList.toggle('bk-ready', done === 4); }
   brief.innerHTML = sentence(s).map(([t, on]) => (on === null ? esc(t) : `<mark class="${on ? 'on' : ''}">${esc(t)}</mark>`)).join('');
@@ -103,6 +115,21 @@ addEventListener('pointermove', e => {
   if (!reduced) { const r = pass.getBoundingClientRect(); if (e.clientX > r.left - 40 && e.clientX < r.right + 40 && e.clientY > r.top - 40 && e.clientY < r.bottom + 40) phys.v += clamp(dx, -40, 40) * 0.16; }
 }, { passive: true });
 addEventListener('pointerdown', e => { if (field) field.burst(e.clientX / vw, 1 - e.clientY / (canvas.clientHeight || vh), e.pointerType === 'touch' ? 1 : 0.7); }, { passive: true });
+// grab it and let go: while held, the pass hangs from wherever the pointer is; released, it keeps the speed it had
+let drag = null;
+pass.addEventListener('pointerdown', e => { if (reduced || (e.pointerType === 'mouse' && e.button)) return; drag = { id: e.pointerId, to: phys.a }; try { pass.setPointerCapture(e.pointerId); } catch { /* not capturable */ } rig.classList.add('grab'); });
+pass.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.id) return; const r = rig.getBoundingClientRect();
+  drag.to = clamp((-Math.atan2(e.clientX - (r.left + r.width / 2), Math.max(80, e.clientY - r.top)) * 180) / Math.PI, -62, 62);
+});
+const drop = e => { if (drag && (!e || e.pointerId === drag.id)) { drag = null; rig.classList.remove('grab'); } };
+pass.addEventListener('pointerup', drop); pass.addEventListener('pointercancel', drop);
+// on a phone, tilting the device moves the light across the pass (iOS asks permission the first time the pass is touched)
+let gyro = null; const onTilt = e => { if (e.gamma != null) gyro = { x: clamp(e.gamma / 30, -1, 1), y: clamp(((e.beta || 45) - 45) / 30, -1, 1) }; };
+if (!fine && !reduced && 'DeviceOrientationEvent' in window) {
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') pass.addEventListener('pointerdown', () => DeviceOrientationEvent.requestPermission().then(st => { if (st === 'granted') addEventListener('deviceorientation', onTilt); }).catch(() => {}), { once: true });
+  else addEventListener('deviceorientation', onTilt);
+}
 // each answer gives the pass a small knock, as if something was just printed on it
 form.addEventListener('change', () => { if (!reduced) phys.v += (Math.random() > 0.5 ? 1 : -1) * 16; });
 
@@ -115,14 +142,17 @@ function tick(now) {
   theme.ease(reduced ? 1 : 1 - Math.exp(-dt * 5.5));
 
   if (!reduced && rig) {
-    // a damped pendulum: scrolling shoves it, gravity brings it back
-    phys.v += clamp(d, -90, 90) * 0.05; phys.v += (-phys.a * 46 - phys.v * 5.2) * dt; phys.a = clamp(phys.a + phys.v * dt, -24, 24);
-    const r = pass.getBoundingClientRect(), on = fine && r.bottom > 0 && r.top < vh;
-    const tx = on ? clamp(((mouse.x - (r.left + r.width / 2)) / vw) * 34, -13, 13) : 0, ty = on ? clamp(((mouse.y - (r.top + r.height / 2)) / vh) * -22, -9, 9) : 0;
+    // a damped pendulum: scrolling shoves it, gravity brings it back; while held, it follows the hand
+    if (drag) { const was = phys.a; phys.a = lerp(phys.a, drag.to, 0.3); phys.v = clamp((phys.a - was) / dt, -420, 420); }
+    else { phys.v += clamp(d, -90, 90) * 0.05; phys.v += (-phys.a * 46 - phys.v * 5.2) * dt; phys.a = clamp(phys.a + phys.v * dt, -70, 70); }
+    const r = pass.getBoundingClientRect(), on = r.bottom > 0 && r.top < vh;
+    const tx = !on ? 0 : gyro ? gyro.x * 13 : fine ? clamp(((mouse.x - (r.left + r.width / 2)) / vw) * 34, -13, 13) : 0;
+    const ty = !on ? 0 : gyro ? gyro.y * -9 : fine ? clamp(((mouse.y - (r.top + r.height / 2)) / vh) * -22, -9, 9) : 0;
     phys.ry = lerp(phys.ry, tx, 0.08); phys.rx = lerp(phys.rx, ty, 0.08);
     swing.style.transform = `rotateZ(${phys.a.toFixed(2)}deg)`;
     pass.style.transform = `rotateX(${phys.rx.toFixed(2)}deg) rotateY(${(phys.ry + phys.a * 0.5).toFixed(2)}deg)`;
     pass.style.setProperty('--gx', `${(50 + phys.ry * 3.2).toFixed(1)}%`); pass.style.setProperty('--gy', `${(22 - phys.rx * 3).toFixed(1)}%`);
+    pass.style.setProperty('--holo', `${(50 + (phys.ry + phys.a) * 3.4 + phys.rx * 2).toFixed(1)}%`);
   }
   if (field) field.frame({ time, dt, scroll: sy / vh, flow: d / (canvas.clientHeight || vh), vel, grain: 0.05, theme: theme.gl, blob: scene.blob, energy: scene.energy, quads: [], duoLo: C.raven, duoHi: C.sky, accent: C.poppy });
   requestAnimationFrame(tick);
