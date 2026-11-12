@@ -162,3 +162,37 @@ export const SEATS = [
   ["Let's talk", 'Rights holders, founders, agencies, or anyone with an idea worth chasing.', 'Hello', 'Got five minutes?'],
 ];
 export const TOPICS = ['Culture is the side door', 'The tunnel is the new runway', 'Fit beats size: casting talent', 'The format is the product', 'Story before sport', 'AI is the pit crew, not the driver'];
+
+// ---------- The Playbook (this site's own structure)
+// The hero: one ball, five skins, five ideas. `bg`/`fg` colour the studio while that sport is up.
+export const IDEAS = [
+  { skin: 0, sport: 'Football', line: ['The tunnel is', 'the new <em>runway.</em>'], note: 'Fashion is everywhere in sport. Every arrival is a fit check.', bg: '#0f7a45', fg: '#f4f2ea' },
+  { skin: 1, sport: 'Basketball', line: ['Culture is', 'the <em>side door.</em>'], note: 'Reach people through what they already love. Then put the sport in that world.', bg: '#e9552b', fg: '#141412' },
+  { skin: 2, sport: 'NFL', line: ['Fit beats', '<em>size.</em>'], note: "The right voice for the idea beats the biggest name that doesn't fit it.", bg: '#ece8df', fg: '#141412' },
+  { skin: 3, sport: 'Tennis', line: ['The format is', 'the <em>product.</em>'], note: 'Change the format and you change who turns up.', bg: '#2257f5', fg: '#f4f2ea' },
+  { skin: 4, sport: 'Motorsport', line: ['Story before', '<em>sport.</em>'], note: 'They came for the people and stayed for the racing.', bg: '#dcf23d', fg: '#141412' },
+];
+
+// The brief machine. Three reels; the play is assembled from the pieces below.
+// These lines are starting points written in Matt's vocabulary. Edit freely.
+export const MACHINE = {
+  sports: [
+    { name: 'Football', have: 'Ninety minutes, and everything around them: the tunnel, the walk into training, the away end.' },
+    { name: 'Basketball', have: 'A tunnel walk that already works like a fashion week, and players who are culture figures first.' },
+    { name: 'NFL', have: 'A halftime show that is part of the product, and a calendar built around one day a week.' },
+    { name: 'Tennis', have: 'A format that can bend: split surfaces, smaller courts, walls in play, one-point shoot-outs.' },
+    { name: 'Motorsport', have: 'A paddock full of characters, and a weekend that starts long before lights out.' },
+  ],
+  loves: [
+    { name: 'Music', door: 'Start with who they already listen to.', move: 'Walk-out tracks, a halftime moment, the playlist in the tunnel. The artist is the kick-off.', becomes: 'Music moments', rule: 6, film: 1 },
+    { name: 'Fashion', door: 'Dress the arrival before you sell the fixture.', move: 'Tunnel fits, matchday looks, a capsule worth queuing for. Idols sell it; influencers explain it.', becomes: 'Tunnel fits', rule: 3, film: 2 },
+    { name: 'Sneakers', door: 'A drop travels further than a match report.', move: 'Put the athlete in the sneaker world on that world’s terms. The release date is the fixture.', becomes: 'Drops & collabs', rule: 5, film: 2 },
+    { name: 'Creators', door: 'Hand over the brief, not the script.', move: 'Pick creators for the people who follow them, then let them tell it their way.', becomes: 'Creator series', rule: 0, film: 3 },
+    { name: 'Gaming', door: 'Meet them in the formats they already play.', move: 'Shorter, faster, built for streams and clips. Change the format and you change who turns up.', becomes: 'New formats', rule: 9, film: 3 },
+    { name: 'Film & TV', door: 'Characters first, fixtures second.', move: 'Find the rivalries and the people off the pitch. Tell that story where they already spend their evenings.', becomes: 'The off-pitch story', rule: 8, film: 0 },
+    { name: 'Nightlife', door: 'Make the event the night out.', move: 'Doors, a line-up, a reason to dress up. The sport is the headline act, not the only act.', becomes: 'A night worth leaving the house for', rule: 1, film: 1 },
+    { name: 'Food', door: 'Ritual is a reason to come back.', move: 'The same table, the same people, every week. Build the habit around the fixture and the fixture becomes the habit.', becomes: 'A weekly ritual', rule: 7, film: 3 },
+  ],
+  markets: ['UK', 'North America', 'LATAM', 'MENA', 'South East Asia', 'Australia & NZ', 'Rest of world'],
+  local: 'Lead with who {market} already loves. Culture travels; execution has to be local.',
+};
