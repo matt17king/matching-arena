@@ -77,7 +77,7 @@ The six routes and six topics come from `SEATS` and `TOPICS` in `content.js` (ea
 - **Photos in cards** are shown whole, at their own shape: an upright photo stands beside the words, a wide one sits above them.
 - **Small screens** show the picture at full height and let it be dragged sideways; each room's `focus` is where it starts.
 
-The story links to it from the footer and the index. Review switches: `?in` skips the title.
+The story links to it from the footer and the index. The page opens straight into the living room; there is no title screen.
 
 ## Notes
 

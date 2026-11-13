@@ -1,15 +1,13 @@
 // The virtual world: Matt's penthouse, one picture per room. Arrows (or the room names) walk between rooms; markers on
 // the things in each room open a card about the work they stand for. The rooms and everything in them are listed in rooms.js.
-import { root, $, $$, clamp, params, reduced, split, smear, grainURL } from '../kit.js';
+import { root, $, $$, clamp, reduced, grainURL } from '../kit.js';
 import '../styles/world.css';
 import { ROOMS } from './rooms.js';
 
 { const g = grainURL(); $('[data-grain]').style.backgroundImage = g; root.style.setProperty('--grain', g); }
-$$('[data-split]').forEach(split);
-requestAnimationFrame(() => $$('.wd-gate [data-r]').forEach(el => { el.classList.add('in'); if (el.dataset.r === 'smear') smear(el); }));
 
 const IW = 2000, IH = 1116; // every room picture is this shape
-const stage = $('[data-stage]'), gate = $('[data-gate]'), enter = $('[data-enter]'), enterLabel = $('[data-enter-label]');
+const stage = $('[data-stage]');
 const tabs = $('[data-tabs]'), card = $('[data-card]');
 const prevBtn = $('[data-prev]'), nextBtn = $('[data-next]'), where = $('[data-where]');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -38,7 +36,7 @@ function place(r) {
 function fit() {
   W = stage.clientWidth; H = stage.clientHeight; const s = Math.max(W / IW, H / IH); pw = IW * s; ph = IH * s;
   rooms.forEach(r => { r.plate.style.width = pw.toFixed(1) + 'px'; r.plate.style.height = ph.toFixed(1) + 'px'; place(r); });
-  root.classList.toggle('wd-pan', pw - W > 24 || ph - H > 24);
+  root.classList.toggle('wd-pan', pw - W > 24 || ph - H > 24); root.classList.toggle('wd-far', pw > W * 1.3);
 }
 addEventListener('resize', fit);
 
@@ -109,15 +107,14 @@ addEventListener('keydown', e => {
   if (e.key === 'Escape') closeCard(true); else if (e.key === 'ArrowLeft') show(cur - 1, -1); else if (e.key === 'ArrowRight') show(cur + 1, 1);;
 });
 
-/* ---------- the way in: the first room waits, dimmed, behind the title */
+/* ---------- the way in: the page opens straight into the first room, which comes up out of the dark once its picture has loaded */
 function go() {
-  if (entered) return; entered = true; root.classList.add('wd-in'); gate.setAttribute('aria-hidden', 'true'); gate.inert = true;
+  if (entered) return; entered = true; root.classList.add('wd-in');
   rooms[cur].el.inert = false; history.replaceState(null, '', '#' + rooms[cur].id);
   load(rooms[wrap(cur + 1)]); load(rooms[wrap(cur - 1)]);
 }
-enter.addEventListener('click', go);
 
 fit();
 { const start = Math.max(0, rooms.findIndex(r => r.id === location.hash.slice(1))); cur = start; const r = rooms[start];
   r.el.classList.add('on'); label(); warm(r);
-  load(r).then(() => { enter.disabled = false; enterLabel.textContent = 'Enter'; root.classList.add('wd-ready'); if (params.has('in')) go(); }); }
+  load(r).then(go); }
