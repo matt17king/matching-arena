@@ -14,7 +14,6 @@ const data = renderAll();
 
 /* ---------- words */
 $$('[data-split], [data-words]').forEach(split);
-$$('.ix-list li').forEach((li, i) => li.style.setProperty('--n', i));
 
 /* ---------- colour: three themes, eased between as sections pass the middle of the screen (see kit.js) */
 const theme = createTheme();
@@ -250,9 +249,25 @@ $$('.fm').forEach(f => $('.fm-b', f).addEventListener('click', () => { const on 
 
 /* ---------- index + in-page links */
 const ix = $('[data-index]'), ixBtn = $('[data-index-open]'); let ixT;
+// the preview beside the list: the photo and line of whichever section is pointed at; at rest, of the section you are in
+const ixItems = $$('.ix-i', ix), ixPv = $('[data-ix-pv]'), ixImgs = [$('[data-ix-a]'), $('[data-ix-b]')]; let ixFront = 0, ixShown = null, ixHere = null;
+function ixShow(a) {
+  if (!a || a === ixShown) return; ixShown = a;
+  $('[data-ix-n]').textContent = $('.mono', a).textContent; $('[data-ix-t]').textContent = $('.ix-t', a).textContent; $('[data-ix-l]').textContent = a.dataset.line;
+  const next = ixImgs[1 - ixFront], src = `./photos/${a.dataset.ph}`;
+  const swap = () => { if (ixShown !== a) return; ixImgs[ixFront].classList.remove('on'); next.classList.add('on'); ixFront = 1 - ixFront; };
+  if (next.getAttribute('src') === src && next.complete) swap(); else { next.onload = swap; next.src = src; }
+}
+ixItems.forEach(a => { a.addEventListener('pointerenter', () => ixShow(a)); a.addEventListener('focus', () => ixShow(a)); });
+$('.ix-groups', ix).addEventListener('pointerleave', () => ixShow(ixHere));
+function ixLocate() { // the last section that starts above the middle of the screen
+  let here = ixItems[0]; for (const a of ixItems) { const el = document.getElementById(a.getAttribute('href').slice(1)); if (el && (a.getAttribute('href') === '#top' ? 0 : pageTop(el)) <= scrollY + vh * 0.5) here = a; }
+  ixItems.forEach(a => { a.classList.toggle('here', a === here); if (a === here) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current'); });
+  ixHere = here; ixShown = null; ixShow(here);
+}
 function setIndex(open) {
   clearTimeout(ixT); ixBtn.setAttribute('aria-expanded', open); $('span', ixBtn).textContent = open ? 'Close' : 'Index'; root.classList.toggle('ix-open', open);
-  if (open) { ix.hidden = false; requestAnimationFrame(() => requestAnimationFrame(() => ix.classList.add('open'))); } else { ix.classList.remove('open'); ixT = setTimeout(() => { ix.hidden = true; }, 900); }
+  if (open) { ixLocate(); ix.hidden = false; requestAnimationFrame(() => requestAnimationFrame(() => ix.classList.add('open'))); } else { ix.classList.remove('open'); ixT = setTimeout(() => { ix.hidden = true; }, 900); }
   document.body.style.overflow = open ? 'hidden' : '';
 }
 ixBtn.addEventListener('click', () => setIndex(ixBtn.getAttribute('aria-expanded') !== 'true'));

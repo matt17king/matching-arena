@@ -1,5 +1,5 @@
 // Turns content.js into markup. No behaviour here; main.js wires it up afterwards.
-import { FRAMES, RUNWAY, PLAYS, BRIEF, JOURNEY, RULES, FORMATS, MARKETS, KIT, FILM, RECORD, RIGHTS, ROUTE, STANDS, WORKED_WITH, TALENT, PRESS, SEATS, TOPICS, BOOK } from './content.js';
+import { FRAMES, RUNWAY, PLAYS, BRIEF, JOURNEY, RULES, FORMATS, MARKETS, KIT, FILM, RECORD, RIGHTS, ROUTE, STANDS, WORKED_WITH, TALENT, PRESS, SEATS, TOPICS, BOOK, INDEX } from './content.js';
 
 const B = import.meta.env.BASE_URL;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -148,8 +148,13 @@ export function renderAll() {
       <div class="steps" aria-hidden="true">${PRESS.map((p, i) => `<span><i></i><b class="mono">${pad2(i + 1)} — ${esc(p.source)}</b></span>`).join('')}</div>
     </div>
   </div>`);
-  const idx = [['top', 'The opening frame'], ['idea', 'The idea'], ['journey', 'How a fan is made'], ['company', 'The company'], ...FRAMES.map(f => [f.id, plain(f.title)]), ['plays', 'Plays worth stealing'], ['kit', 'How I work'], ['record', 'The record'], ['stands', 'In the stands'], ['press', 'In the press'], ['book', 'Book Matt']];
-  fill('index', idx.map(([id, t], i) => `<li><a href="#${id}"><span class="mono">${pad2(i)}</span><span class="ix-t">${esc(t)}</span></a></li>`).join(''));
+  // the index: chapters of sections. Each line carries the photo and the sentence its preview shows.
+  const first = t => t.split(/(?<=[.!?])\s/)[0];
+  let n = 0;
+  fill('index', INDEX.map(([name, items]) => {
+    const rows = items === 'frames' ? FRAMES.map(f => [f.id, plain(f.title), f.photo[0], first(f.intro)]) : items;
+    return `<section class="ix-g"><h3 class="mono ix-gk">${esc(name)}</h3><ol>${rows.map(([id, t, ph, line]) => `<li><a class="ix-i" href="#${id}" data-ph="${ph}" data-line="${esc(line)}" style="--n:${n}"><span class="mono">${pad2(n++)}</span><span class="ix-t">${esc(t)}</span><span class="mono ix-here" aria-hidden="true">You are here</span></a></li>`).join('')}</ol></section>`;
+  }).join(''));
   return {
     stands: STANDS.map(([f]) => `${B}photos/${f}`), standsMeta: STANDS,
     frames: FRAMES.map(f => `${B}photos/${f.photo[0]}`), portrait: `${B}photos/portrait.jpg`,
