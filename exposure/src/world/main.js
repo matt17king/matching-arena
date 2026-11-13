@@ -55,8 +55,8 @@ addEventListener('resize', fit);
 const wrap = i => (i + rooms.length) % rooms.length;
 function label() {
   const r = rooms[cur], a = rooms[wrap(cur - 1)], b = rooms[wrap(cur + 1)];
-  $('span', prevBtn).textContent = a.name; prevBtn.setAttribute('aria-label', `Go to the ${a.name.toLowerCase()}`);
-  $('span', nextBtn).textContent = b.name; nextBtn.setAttribute('aria-label', `Go to the ${b.name.toLowerCase()}`);
+  $('b', prevBtn).textContent = `Enter ${a.name}`; prevBtn.setAttribute('aria-label', `Go to the ${a.name.toLowerCase()}`);
+  $('b', nextBtn).textContent = `Enter ${b.name}`; nextBtn.setAttribute('aria-label', `Go to the ${b.name.toLowerCase()}`);
   where.textContent = `${pad2(cur + 1)} / ${pad2(rooms.length)} · ${r.name}`;
   rooms.forEach((x, i) => { x.tab.setAttribute('aria-current', i === cur ? 'true' : 'false'); });
   rooms[cur].tab.scrollIntoView({ block: 'nearest', inline: 'center', behavior: reduced ? 'auto' : 'smooth' });
