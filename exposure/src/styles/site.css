@@ -406,7 +406,7 @@ em.hi .w::before { content: ""; position: absolute; z-index: -1; inset: .2em -.2
 @media (max-width: 820px) {
   :root { --hd: 56px; }
   body { font-size: 16px; }
-  .hd { grid-template-columns: 1fr auto; } .hd-label, .hd-cta { display: none; } .hd-name { font-size: 24px; }
+  .hd { grid-template-columns: 1fr auto; } .hd-label, .hd-cta { display: none; } .hd-cta.hd-world { display: inline-block; } .hd-right { gap: 16px; } .hd-count { display: none; } .hd-name { white-space: nowrap; } .hd-name { font-size: 24px; }
   .ix-list { columns: 1; }
   .hero { padding-top: calc(var(--hd) + 2.5vh); }
   .hero-ph { right: -6vw; top: calc(var(--hd) + 6vh); height: 52svh; }
