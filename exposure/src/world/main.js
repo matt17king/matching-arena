@@ -17,7 +17,7 @@ const pad2 = n => String(n).padStart(2, '0');
 const rooms = ROOMS.map((r, i) => {
   const el = document.createElement('section'); el.className = 'wd-room'; el.setAttribute('aria-label', r.name); el.inert = true;
   el.innerHTML = `<div class="wd-plate"><img class="wd-day" alt="${esc(r.alt)}" decoding="async" draggable="false">`
-    + r.things.map((t, j) => `<button class="wd-dot" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
+    + r.things.map((t, j) => `<button class="wd-dot${t.at[0] > 78 ? ' flip' : ''}" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
   stage.append(el);
   const tab = document.createElement('button'); tab.type = 'button'; tab.className = 'wd-tab mono'; tab.innerHTML = `<b>${pad2(i + 1)}</b>${esc(r.name)}`; tab.addEventListener('click', () => show(i)); tabs.append(tab);
   return { ...r, file: r.img, el, tab, plate: $('.wd-plate', el), img: $('.wd-day', el), c: { x: r.focus[0] / 100, y: r.focus[1] / 100 }, loaded: false };

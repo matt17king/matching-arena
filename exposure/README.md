@@ -69,7 +69,7 @@ The six routes and six topics come from `SEATS` and `TOPICS` in `content.js` (ea
 
 ## The virtual world
 
-`world/` is a third page: Matt's penthouse, one picture per room (living room, office, wardrobe, gym, rooftop). No 3D and no extra libraries; it is pictures, markers and a little script.
+`world/` is a third page: Matt's penthouse, one picture per room (living room, office, wardrobe, gym, rooftop, garage). No 3D and no extra libraries; it is pictures, markers and a little script.
 
 - **The rooms** are the list in `src/world/rooms.js`, in walking order. Each names its picture in `public/rooms/` (2000 × 1116; a different shape needs `IW`/`IH` changed at the top of `src/world/main.js`). To add a room, drop the picture in and add an entry.
 - **Arrows** at either side go to the next and previous room (the list wraps), as do the left and right arrow keys and the room names along the bottom. The address keeps the room (`world/#office`).

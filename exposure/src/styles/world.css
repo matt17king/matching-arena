@@ -50,6 +50,7 @@ html.wd .hd::before { inset: 0 0 -44px 0; -webkit-backdrop-filter: none; backdro
   opacity: 0; transform: translate(-8px, -50%); transition: opacity .3s ease, transform .5s var(--expo); pointer-events: none; }
 .wd-dot:hover i, .wd-dot:focus-visible i, .wd-dot.open i { background: var(--poppy); border-color: var(--poppy); transform: scale(1.12); } .wd-dot.open i::before { transform: scale(.6); }
 .wd-dot:hover span, .wd-dot:focus-visible span { opacity: 1; transform: translate(0, -50%); }
+.wd-dot.flip span { left: auto; right: calc(50% + 22px); transform: translate(8px, -50%); }
 .wd-dot:focus-visible i { outline: 2px solid var(--ink); outline-offset: 3px; }
 .wd-dot:hover i::after, .wd-dot.open i::after { animation: none; opacity: 0; }
 @keyframes wd-ping { 0% { transform: scale(1); opacity: .8; } 60%, 100% { transform: scale(2); opacity: 0; } }
