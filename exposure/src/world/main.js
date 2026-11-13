@@ -8,18 +8,17 @@ import { ROOMS } from './rooms.js';
 
 const IW = 2000, IH = 1116; // every room picture is this shape
 const stage = $('[data-stage]');
-const tabs = $('[data-tabs]'), card = $('[data-card]');
+const menu = $('[data-menu]'), explore = $('[data-explore]'), shade = $('[data-shade]'), card = $('[data-card]');
 const prevBtn = $('[data-prev]'), nextBtn = $('[data-next]'), where = $('[data-where]');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const pad2 = n => String(n).padStart(2, '0');
 
-/* ---------- build: a plate per room (the picture and its markers), and a tab per room */
+/* ---------- build: a plate per room (the picture and its markers), and a line in the Explore menu per room */
 const rooms = ROOMS.map((r, i) => {
   const el = document.createElement('section'); el.className = 'wd-room'; el.setAttribute('aria-label', r.name); el.inert = true;
   el.innerHTML = `<div class="wd-plate"><img class="wd-day" alt="${esc(r.alt)}" decoding="async" draggable="false">`
     + r.things.map((t, j) => `<button class="wd-dot${t.at[0] > 78 ? ' flip' : ''}" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
   stage.append(el);
-  const tab = document.createElement('button'); tab.type = 'button'; tab.className = 'wd-tab mono'; tab.innerHTML = `<b>${pad2(i + 1)}</b>${esc(r.name)}`; tab.addEventListener('click', () => show(i)); tabs.append(tab);
+  const tab = document.createElement('button'); tab.type = 'button'; tab.className = 'wd-menu-i'; tab.textContent = r.name; tab.addEventListener('click', () => { closeMenu(); show(i); }); menu.append(tab);
   return { ...r, file: r.img, el, tab, plate: $('.wd-plate', el), img: $('.wd-day', el), c: { x: r.focus[0] / 100, y: r.focus[1] / 100 }, loaded: false };
 });
 function load(r) {
@@ -57,9 +56,8 @@ function label() {
   const r = rooms[cur], a = rooms[wrap(cur - 1)], b = rooms[wrap(cur + 1)];
   $('b', prevBtn).textContent = `Enter ${a.name}`; prevBtn.setAttribute('aria-label', `Go to the ${a.name.toLowerCase()}`);
   $('b', nextBtn).textContent = `Enter ${b.name}`; nextBtn.setAttribute('aria-label', `Go to the ${b.name.toLowerCase()}`);
-  where.textContent = `${pad2(cur + 1)} / ${pad2(rooms.length)} · ${r.name}`;
+  where.textContent = r.name;
   rooms.forEach((x, i) => { x.tab.setAttribute('aria-current', i === cur ? 'true' : 'false'); });
-  rooms[cur].tab.scrollIntoView({ block: 'nearest', inline: 'center', behavior: reduced ? 'auto' : 'smooth' });
 }
 function show(i, dir) {
   i = wrap(i); if (i === cur && rooms[cur].el.classList.contains('on')) return;
@@ -76,6 +74,12 @@ function show(i, dir) {
   label(); if (entered) history.replaceState(null, '', '#' + to.id);
 }
 prevBtn.addEventListener('click', () => show(cur - 1, -1)); nextBtn.addEventListener('click', () => show(cur + 1, 1));
+
+/* ---------- Explore: the list of rooms, over the blurred room */
+function openMenu() { closeCard(); root.classList.add('wd-exploring'); explore.setAttribute('aria-expanded', 'true'); menu.inert = false; rooms[cur].el.inert = true; }
+function closeMenu(refocus) { if (!root.classList.contains('wd-exploring')) return; root.classList.remove('wd-exploring'); explore.setAttribute('aria-expanded', 'false'); menu.inert = true; rooms[cur].el.inert = false; if (refocus) explore.focus({ preventScroll: true }); }
+explore.addEventListener('click', () => (root.classList.contains('wd-exploring') ? closeMenu() : openMenu()));
+shade.addEventListener('click', () => closeMenu());
 
 /* ---------- the card a marker opens */
 let opener = null, asked = 0;
@@ -104,7 +108,7 @@ $('[data-card-close]', card).addEventListener('click', () => closeCard(true));
 
 addEventListener('keydown', e => {
   if (!entered || e.metaKey || e.ctrlKey || e.altKey) return;
-  if (e.key === 'Escape') closeCard(true); else if (e.key === 'ArrowLeft') show(cur - 1, -1); else if (e.key === 'ArrowRight') show(cur + 1, 1);;
+  if (e.key === 'Escape') { if (root.classList.contains('wd-exploring')) closeMenu(true); else closeCard(true); } else if (root.classList.contains('wd-exploring')) return; else if (e.key === 'ArrowLeft') show(cur - 1, -1); else if (e.key === 'ArrowRight') show(cur + 1, 1);;
 });
 
 /* ---------- the way in: the page opens straight into the first room, which comes up out of the dark once its picture has loaded */

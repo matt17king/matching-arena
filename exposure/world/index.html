@@ -47,9 +47,12 @@
   <div class="wd-card-body" data-card-body></div>
 </aside>
 
-<div class="wd-ui" data-ui>
-  <p class="mono wd-where" data-where aria-live="polite"></p>
-  <nav class="wd-tabs" data-tabs aria-label="Rooms"></nav>
+<!-- Explore: bottom left. Opens the list of rooms over the blurred room. -->
+<div class="wd-shade" data-shade aria-hidden="true"></div>
+<div class="wd-ex">
+  <nav class="wd-menu" id="wd-menu" data-menu aria-label="Rooms" inert></nav>
+  <button class="wd-explore" type="button" data-explore aria-expanded="false" aria-controls="wd-menu">Explore</button>
+  <p class="wd-sr" data-where aria-live="polite"></p>
 </div>
 
 </main>
