@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" class="wd">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#090303">
+<title>Matt King — The virtual world</title>
+<meta name="description" content="A penthouse above London, built to hold pieces of Matt King's world. Walk from room to room, and open what's been left out.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Matt King — The virtual world">
+<meta property="og:description" content="A penthouse above London. Walk from room to room, and open what's been left out.">
+<meta property="og:site_name" content="Matt King">
+<meta property="og:image" content="../og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+
+<!-- the rooms: one picture each, built by src/world/main.js from src/world/rooms.js -->
+<div class="wd-stage" data-stage></div>
+<div class="grain" data-grain aria-hidden="true"></div>
+<svg class="defs" width="0" height="0" aria-hidden="true"><defs data-defs></defs></svg>
+
+<header class="hd">
+  <a class="hd-name" href="../" aria-label="Matt King — back to the story">Matt King</a>
+  <p class="hd-label mono" data-loc aria-hidden="true">The penthouse · London</p>
+  <div class="hd-right">
+    <a class="hd-cta" href="../">← The story</a>
+  </div>
+  <div class="hd-bar" aria-hidden="true"><i></i></div>
+</header>
+
+<main>
+
+<h1 class="wd-sr">The virtual world: Matt King's penthouse, room by room</h1>
+
+<p class="mono wd-hint" aria-hidden="true">Drag to look around</p>
+
+<!-- the arrows to the rooms either side -->
+<button class="wd-arrow wd-prev" type="button" data-prev><i aria-hidden="true">←</i><span class="wd-arrow-l" aria-hidden="true"><b></b></span></button>
+<button class="wd-arrow wd-next" type="button" data-next><span class="wd-arrow-l" aria-hidden="true"><b></b></span><i aria-hidden="true">→</i></button>
+
+<!-- what a marker opens -->
+<aside class="wd-card" data-card tabindex="-1" role="dialog" aria-labelledby="wd-card-t" hidden>
+  <button class="wd-card-x" type="button" data-card-close aria-label="Close"><i aria-hidden="true">×</i></button>
+  <div class="wd-card-body" data-card-body></div>
+</aside>
+
+<!-- Explore: bottom left. Opens the list of rooms over the blurred room. -->
+<div class="wd-shade" data-shade aria-hidden="true"></div>
+<div class="wd-ex">
+  <nav class="wd-menu" id="wd-menu" data-menu aria-label="Rooms" inert></nav>
+  <button class="wd-explore" type="button" data-explore aria-expanded="false" aria-controls="wd-menu">Explore</button>
+  <p class="wd-sr" data-where aria-live="polite"></p>
+</div>
+
+</main>
+
+<script type="module" src="/src/world/main.js"></script>
+</body>
+</html>

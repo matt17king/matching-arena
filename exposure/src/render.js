@@ -1,11 +1,12 @@
 // Turns content.js into markup. No behaviour here; main.js wires it up afterwards.
-import { EMAIL, FRAMES, RUNWAY, PLAYS, BRIEF, JOURNEY, RULES, FORMATS, FORMAT_PHOTOS, MARKETS, KIT, FILM, RECORD, RIGHTS, ROUTE, STANDS, WORKED_WITH, TALENT, PRESS, SEATS, TOPICS } from './content.js';
+import { FRAMES, RUNWAY, PLAYS, BRIEF, JOURNEY, RULES, FORMATS, MARKETS, KIT, FILM, RECORD, RIGHTS, ROUTE, STANDS, WORKED_WITH, TALENT, PRESS, SEATS, TOPICS, BOOK } from './content.js';
 
 const B = import.meta.env.BASE_URL;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pad2 = n => String(n).padStart(2, '0');
 const $ = s => document.querySelector(s);
 const fill = (name, html) => { const el = $(`[data-list="${name}"]`); if (el) el.innerHTML = html; };
+const plain = t => t.join(' ').replace(/<\/?em>/g, '');
 
 // A photo in two layers: colour underneath, the black-and-blue print on top. Hover, focus or tap develops it.
 const photo = ([f, title, line, alt], cls = '') => `<figure class="ph ${cls}" data-r="photo">
@@ -13,103 +14,104 @@ const photo = ([f, title, line, alt], cls = '') => `<figure class="ph ${cls}" da
   <figcaption><b>${esc(title)}</b><span>${esc(line)}</span></figcaption>
 </figure>`;
 const logo = (f, name) => `<i class="lg" role="img" aria-label="${esc(name)}" style="-webkit-mask-image:url('${B}logos/${f}');mask-image:url('${B}logos/${f}')"></i>`;
+// A number that proves the idea it sits beside
+const stat = ([v, what, where], cls = '') => `<div class="bc bc-stat ${cls}" data-r="fade" style="--d:.1s"><p class="mono"><span>Proof</span><span>${esc(where)}</span></p><div><b data-count="${esc(v)}">${esc(v)}</b><p>${esc(what)}</p></div></div>`;
 
-const card = (f, i) => `<header class="fr-card" data-scene="${f.scene}" data-blob="${['.82,.3,.1,.85', '.2,.72,.92,.2', '.75,.75,.15,.2', '.5,.25,.95,.9', '.78,.5,.05,.1'][i]}" data-energy="1" data-runners="1">
-  <span class="fr-num" aria-hidden="true">${f.n}</span>
-  <div class="fr-meta mono"><span>Frame ${f.n} / 05</span><span>${esc(f.sport)}</span></div>
-  <h2 class="fr-title" data-r="smear" data-split data-smear="46">${f.title.map(l => `<span class="ln">${l.replace('<em>', '<em class="hi">')}</span>`).join(' ')}</h2>
-  <p class="fr-intro lead" data-r="fade" style="--d:.25s">${esc(f.intro)}</p>
+// A frame's title card is pinned for a moment while its photo comes out of the blur beside the title.
+// The <img> is only a placeholder for position (and the fallback without WebGL); the field draws the photo itself.
+const card = (f, i) => `<header class="pin fr-pin" style="--len:.85" data-scene data-blob="${['.2,.82,.95,.1', '.85,.2,.1,.9', '.25,.2,.9,.85', '.15,.8,.95,.15', '.8,.15,.1,.9'][i]}" data-energy="1">
+  <div class="pin-in fr-card">
+    <figure class="fr-ph" data-fr-ph><img src="${B}photos/${f.photo[0]}" alt="${esc(f.photo[3])}" decoding="async"><figcaption class="mono"><b>${esc(f.photo[1])}</b><span>${esc(f.photo[2])}</span></figcaption></figure>
+    <div class="fr-meta mono"><span>Frame ${f.n} / 05</span></div>
+    <h2 class="fr-title" data-r="smear" data-split data-smear="46">${f.title.map(l => `<span class="ln">${l.replace('<em>', '<em class="hi">')}</span>`).join(' ')}</h2>
+    <p class="fr-intro lead" data-r="fade" style="--d:.25s">${esc(f.intro)}</p>
+  </div>
 </header>`;
 
 const BODY = {
   runway: () => `
-  <div class="blk split">
-    <div class="split-t" data-r="fade"><p class="mono">Arrivals</p><h3 class="h3">${esc(RUNWAY.h)}</h3><p>${esc(RUNWAY.p)}</p></div>
-    ${photo(RUNWAY.photos[0], 'ph-tall')}
-  </div>
-  <div class="blk split rev">
-    ${photo(RUNWAY.photos[1], 'ph-mid')}
-    <blockquote class="pull" data-r="smear" data-split>Fan first. Every story I tell starts from <em class="hi">a seat like this one.</em></blockquote>
+  <div class="blk bento">
+    <div class="bc bc-text" data-r="fade"><p class="mono">Arrivals</p><div><h3 class="h3">${esc(RUNWAY.h)}</h3><p class="lead">${esc(RUNWAY.p)}</p></div></div>
+    ${stat(RUNWAY.stat)}
   </div>`,
 
   'side-door': () => `
-  <div class="blk">
-    <div class="blk-h" data-r="fade"><p class="mono">Double exposures</p><h3 class="h3">Three plays I keep coming back to</h3></div>
-    <div class="dxs">${PLAYS.map(p => `<article class="dx" data-dev>
-      <div class="dx-meta mono"><span>Play ${p.n}</span><span class="dx-x">${esc(p.x)}</span></div>
-      <p class="dx-names" aria-label="${esc(p.rows.join(' × '))}">${p.rows.map((r, i) => `${i ? '<i aria-hidden="true">×</i>' : ''}<span aria-hidden="true" style="--k:${i - (p.rows.length - 1) / 2}">${esc(r)}</span>`).join('')}</p>
-      <div class="dx-t"><h4>${esc(p.h)}</h4><p>${esc(p.s)}</p></div>
-    </article>`).join('')}</div>
-  </div>
-  <div class="blk split brief-blk">
-    <div class="split-t" data-r="fade"><p class="mono">The brief</p><h3 class="h3">${esc(BRIEF.h)}</h3><p>${esc(BRIEF.p)}</p></div>
-    ${photo(BRIEF.photo, 'ph-mid')}
-  </div>
-  <ol class="brief">${BRIEF.steps.map(([n, h, chips, hot], i) => `<li class="brief-row${hot ? ' hot' : ''}" data-r="fade">
-      <div class="brief-k"><span class="mono">${n}</span><b>${esc(h)}</b></div>
-      <div class="brief-run${chips.length > 4 ? ' run' : ''}" style="--ad:${i % 2 ? 'reverse' : 'normal'}"><div class="brief-chips">${(chips.length > 4 ? [...chips, ...chips] : chips).map((c, k) => `<span${k >= chips.length ? ' aria-hidden="true"' : ''}>${esc(c)}</span>`).join('')}</div></div>
-    </li>`).join('')}</ol>`,
-
-  fit: () => `
-  <div class="pin jr" style="--len:3" data-pin="journey">
+  <div class="pin px" style="--len:2.3" data-pin="plays">
     <div class="pin-in">
-      <div class="jr-head"><p class="mono">How a fan is made</p><p class="mono" data-jr-n>Stage 01 / 07</p></div>
-      <ol class="jr-track" data-jr-track>${JOURNEY.map((s, i) => `<li class="jr-card"><span class="mono">Stage ${pad2(i + 1)}</span><h3>${esc(s.name)}</h3><p class="jr-role">${esc(s.role)}</p><p class="jr-d">${esc(s.detail)}</p></li>`).join('')}</ol>
-      <div class="jr-line" aria-hidden="true"><i data-jr-bar></i>${JOURNEY.map((s, i) => `<b style="left:${(i / (JOURNEY.length - 1)) * 100}%"><span>${esc(s.name)}</span></b>`).join('')}</div>
+      <div class="px-head"><p class="mono">Three plays I keep coming back to</p><p class="mono" data-px-n>Play 01 / 03</p></div>
+      <div class="px-stage">${PLAYS.map((p, i) => `<article class="dx" data-px="${i}">
+        <p class="dx-names" aria-label="${esc(p.rows.join(' × '))}">${p.rows.map((r, k) => `${k ? '<i aria-hidden="true">×</i>' : ''}<span aria-hidden="true">${esc(r)}</span>`).join('')}</p>
+        <div class="dx-out"><p class="mono dx-x">${esc(p.x)}</p><h4>${esc(p.h)}</h4><p>${esc(p.s)}</p></div>
+      </article>`).join('')}</div>
+      <div class="steps" aria-hidden="true">${PLAYS.map(p => `<span><i></i><b class="mono">${p.n} — ${esc(p.h)}</b></span>`).join('')}</div>
     </div>
   </div>
-  <div class="blk rules-blk">
-    <div class="blk-h" data-r="fade"><p class="mono">Casting</p><h3 class="h3">Eleven rules for working with talent</h3></div>
-    <ol class="rules">${RULES.map(([h, why], i) => `<li class="rule${i ? '' : ' on'}" data-r="fade" style="--d:${Math.min(i, 5) * 0.04}s">
-      <button class="rule-b" aria-expanded="${!i}" aria-controls="rule-${i}"><span class="mono">${pad2(i + 1)}</span><span class="rule-h">${esc(h)}</span><i aria-hidden="true"></i></button>
-      <div class="rule-w" id="rule-${i}"><div><p>${esc(why)}</p></div></div>
-    </li>`).join('')}</ol>
-    <aside class="rules-side" data-rules-side aria-hidden="true"><div><b>01</b><h4>${esc(RULES[0][0])}</h4><p>${esc(RULES[0][1])}</p></div></aside>
+  <div class="pin bf" style="--len:1.9" data-pin="brief">
+    <div class="pin-in">
+      <div class="bf-head"><p class="mono">The brief</p><h3 class="h3">${esc(BRIEF.h)}</h3><p class="lead">${esc(BRIEF.p)}</p></div>
+      <ol class="brief">${BRIEF.steps.map(([n, h, chips, hot], i) => `<li class="brief-row${hot ? ' hot' : ''}">
+        <div class="brief-k"><span class="mono">${n}</span><b>${esc(h)}</b></div>
+        <div class="brief-run${chips.length > 4 ? ' run' : ''}" style="--ad:${i % 2 ? 'reverse' : 'normal'}"><div class="brief-chips">${(chips.length > 4 ? [...chips, ...chips] : chips).map((c, k) => `<span${k >= chips.length ? ' aria-hidden="true"' : ''}>${esc(c)}</span>`).join('')}</div></div>
+      </li>`).join('')}</ol>
+    </div>
+  </div>`,
+
+  fit: () => `
+  <div class="pin rl" style="--len:3.6" data-pin="rules">
+    <div class="pin-in">
+      <div class="blk-h"><p class="mono">Casting</p><h3 class="h3">Eleven rules for working with talent</h3></div>
+      <ol class="rules">${RULES.map(([h, why], i) => `<li class="rule${i ? '' : ' on'}">
+        <button class="rule-b" aria-controls="rule-${i}"><span class="mono">${pad2(i + 1)}</span><span class="rule-h">${esc(h)}</span><i aria-hidden="true"></i></button>
+        <div class="rule-w" id="rule-${i}"><p>${esc(why)}</p></div>
+      </li>`).join('')}</ol>
+      <aside class="rules-side" data-rules-side aria-hidden="true"><div><b>01</b><h4>${esc(RULES[0][0])}</h4><p>${esc(RULES[0][1])}</p></div></aside>
+      <div class="rl-dots" aria-hidden="true">${RULES.map(() => '<i></i>').join('')}</div>
+    </div>
   </div>`,
 
   format: () => `
   <div class="pin ct" style="--len:2.4" data-pin="court">
     <div class="pin-in">
-      <div class="ct-l">
-        <svg class="court" viewBox="0 0 420 250" data-court role="img" aria-label="A tennis court that redraws for each format">
-          <rect class="c-fill c-fa" data-cf="a"/><rect class="c-fill c-fb" data-cf="b"/>
-          <rect class="c-wall" data-cw x="52" y="43" width="316" height="164" rx="2"/>
-          <g data-cl></g>
-          <text class="c-t" data-ct="0" x="120" y="236" text-anchor="middle">GRASS</text><text class="c-t" data-ct="1" x="300" y="236" text-anchor="middle">CLAY</text>
-          <text class="c-t" data-ct="2" x="300" y="236" text-anchor="middle">−9%</text>
-          <text class="c-t" data-ct="3" x="210" y="236" text-anchor="middle">20 × 10 M · WALLS IN PLAY</text>
-        </svg>
-      </div>
+      <div class="ct-l"><svg class="court" viewBox="0 0 420 250" data-court role="img" aria-label="A tennis court that redraws for each format"></svg></div>
       <div class="ct-r">
         <div class="ct-tabs" role="tablist" aria-label="Formats">${FORMATS.map((f, i) => `<button role="tab" class="ct-tab${i ? '' : ' on'}" data-ct-tab="${i}" aria-selected="${!i}"><span class="mono">${pad2(i + 1)}</span>${esc(f.h)}</button>`).join('')}</div>
         <div class="ct-panels">${FORMATS.map((f, i) => `<div class="ct-p${i ? '' : ' on'}" data-ct-p="${i}" role="tabpanel"><p class="ct-stat"><b>${esc(f.stat)}</b><span class="mono">${esc(f.unit)}</span></p><h3 class="ct-h">${esc(f.h)}</h3><p>${esc(f.p)}</p></div>`).join('')}</div>
       </div>
     </div>
-  </div>
-  <div class="blk pair">${photo(FORMAT_PHOTOS[0], 'ph-mid')}${photo(FORMAT_PHOTOS[1], 'ph-mid drop')}</div>`,
+  </div>`,
 
   story: () => `
-  <div class="blk split mk">
-    <div class="split-t">
-      <div data-r="fade"><p class="mono">Lap one</p><h3 class="h3">${esc(MARKETS.h)}</h3><p>${esc(MARKETS.p)}</p></div>
-      <ol class="mk-list" data-focus>${MARKETS.list.map((m, i) => `<li><span class="mono">${pad2(i + 1)}</span>${esc(m)}</li>`).join('')}</ol>
+  <div class="pin mkx" style="--len:1.9" data-pin="markets">
+    <div class="pin-in">
+      <div class="mkx-text">
+        <p class="mono">One idea, local execution</p><h3 class="h3">${esc(MARKETS.h)}</h3><p class="lead">${esc(MARKETS.p)}</p>
+        <p class="mono mkx-n" data-mk-n>Market 01 / ${pad2(MARKETS.list.length)}</p>
+      </div>
+      <div class="mkx-wheel"><ol class="mkx-list" data-mk-list>${MARKETS.list.map((m, i) => `<li><span class="mono">${pad2(i + 1)}</span><b>${esc(m)}</b></li>`).join('')}</ol></div>
     </div>
-    <div class="mk-ph">${photo(MARKETS.photos[0], 'ph-tall')}${photo(MARKETS.photos[1], 'ph-small')}</div>
   </div>
-  <div class="blk">
-    <div class="blk-h" data-r="fade"><p class="mono">The pit wall</p><h3 class="h3">AI is the pit crew, not the driver</h3></div>
-    <div class="kit">${KIT.map((k, i) => `<article class="kit-c" data-r="fade" style="--d:${i * 0.08}s"><p class="mono">${esc(k.tag)}</p><h4>${esc(k.title)}</h4><p>${esc(k.detail)}</p><p class="mono kit-t">${esc(k.tools)}</p></article>`).join('')}</div>
+  <div class="blk bento">
+    ${stat(MARKETS.stat)}
+    <div class="bc bc-photo">${photo(MARKETS.photo)}</div>
   </div>`,
 };
 
 export function renderAll() {
   const THEME = { fit: 'sky' };
-  fill('frames', FRAMES.map((f, i) => `<section class="frame" id="${f.id}" data-theme="${THEME[f.id] || 'raven'}" data-label="Frame ${f.n} — ${esc(f.sport)}">
+  fill('frames', FRAMES.map((f, i) => `<section class="frame" id="${f.id}" data-theme="${THEME[f.id] || 'raven'}" data-label="Frame ${f.n} / 05">
     ${card(f, i)}
-    <div class="fr-body" data-scene="drift" data-blob="${i % 2 ? '-.05,.5,1.05,.9' : '1.05,.55,-.05,.1'}" data-energy=".34" data-runners=".2">${BODY[f.id]()}</div>
+    <div class="fr-body" data-scene data-blob="${i % 2 ? '-.05,.5,1.05,.9' : '1.05,.55,-.05,.1'}" data-energy=".34">${BODY[f.id]()}</div>
   </section>`).join(''));
 
-  fill('sheet', FRAMES.map(f => `<li data-r="fade" style="--d:${(+f.n - 1) * 0.06}s"><a href="#${f.id}"><span class="mono">${f.n}</span><span class="sheet-t">${f.title.join(' ').replace(/<\/?em>/g, '')}</span><span class="mono sheet-s">${esc(f.sport)}</span><i aria-hidden="true">→</i></a></li>`).join(''));
+  fill('sheet', FRAMES.map((f, i) => `<li data-r="fade" style="--d:${i * 0.06}s"><a href="#${f.id}" data-peek="${i}"><span class="mono">${f.n}</span><span class="sheet-t">${plain(f.title)}</span><i aria-hidden="true">→</i></a></li>`).join(''));
+
+  fill('journey', `<div class="pin jr" style="--len:3" data-pin="journey">
+    <div class="pin-in">
+      <div class="jr-head"><p class="mono">How a fan is made</p><p class="mono" data-jr-n>Stage 01 / 07</p></div>
+      <ol class="jr-track" data-jr-track>${JOURNEY.map((s, i) => `<li class="jr-card"><span class="mono">Stage ${pad2(i + 1)}</span><h3>${esc(s.name)}</h3><p class="jr-role">${esc(s.role)}</p><p class="jr-d">${esc(s.detail)}</p></li>`).join('')}</ol>
+      <div class="jr-line" aria-hidden="true"><i data-jr-bar></i>${JOURNEY.map((s, i) => `<b style="left:${(i / (JOURNEY.length - 1)) * 100}%"><span>${esc(s.name)}</span></b>`).join('')}</div>
+    </div>
+  </div>`);
 
   fill('film', FILM.map((f, i) => `<article class="fm${i ? '' : ' on'}" data-r="fade" style="--d:${i * 0.05}s">
     <button class="fm-b" aria-expanded="${!i}" aria-controls="fm-${i}"><span class="mono">${pad2(i + 1)}</span><span class="fm-t">${esc(f.title)}</span><span class="mono fm-tag">${esc(f.tag)}</span><i aria-hidden="true"></i></button>
@@ -120,6 +122,8 @@ export function renderAll() {
     </div></div></div>
   </article>`).join(''));
 
+  fill('kit', KIT.map((k, i) => `<article class="kit-c" data-r="fade" style="--d:${i * 0.08}s"><p class="mono">${esc(k.tag)}</p><h4>${esc(k.title)}</h4><p>${esc(k.detail)}</p><p class="mono kit-t">${esc(k.tools)}</p></article>`).join(''));
+
   fill('record', RECORD.map(([v, what, where], i) => `<div class="stat" data-r="fade" style="--d:${(i % 4) * 0.07}s"><p class="mono"><span>${pad2(i + 1)}</span><span>${esc(where)}</span></p><p class="stat-v" data-count="${esc(v)}">${esc(v)}</p><p class="stat-w">${esc(what)}</p></div>`).join(''));
   fill('rights', `<div class="ticker-in">${[0, 1].map(k => RIGHTS.map(r => `<span${k ? ' aria-hidden="true"' : ''}>${esc(r)}</span>`).join('')).join('')}</div>`);
   fill('route', ROUTE.map(([y, n, f]) => `<li><span class="mono">${y}</span>${logo(f, n)}<b>${esc(n)}</b></li>`).join(''));
@@ -128,13 +132,27 @@ export function renderAll() {
 
   fill('logos', WORKED_WITH.map(([n, f], i) => `<li data-r="fade" style="--d:${(i % 6) * 0.04}s">${logo(f, n)}<span class="mono">${esc(n)}</span></li>`).join(''));
   fill('talent', TALENT.map(([n, w], i) => `<li><span class="mono">${pad2(i + 1)}</span><b>${esc(n)}</b><span class="mono">${esc(w)}</span></li>`).join(''));
-  fill('press', PRESS.map(p => `<article class="pr" data-r="fade"><figure class="ph" data-r="photo"><div class="ph-in" tabindex="0"><img src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="object-position:${p.pos}"><div class="ph-duo" aria-hidden="true"><img src="${B}photos/${p.img}" alt="" loading="lazy" decoding="async" style="object-position:${p.pos}"></div></div></figure>
-    <div class="pr-t"><p class="mono"><span>${esc(p.source)}</span><span>${esc(p.date)}</span></p><h3 class="h3">${esc(p.headline)}</h3><p>${esc(p.line)}</p></div></article>`).join(''));
-
-  fill('topics', TOPICS.map(t => `<li>${esc(t)}</li>`).join(''));
-  fill('seats', SEATS.map(([what, line, subject, q], i) => `<li data-r="fade" style="--d:${i * 0.04}s"><a href="mailto:${EMAIL}?subject=${encodeURIComponent(subject)}"><span class="mono">${esc(what)}</span><span class="seat-q">${esc(q)}</span><span class="seat-l">${esc(line)}</span><i aria-hidden="true">→</i></a></li>`).join(''));
-
-  const idx = [['top', 'The opening frame', ''], ['idea', 'The idea', ''], ...FRAMES.map(f => [f.id, f.title.join(' ').replace(/<\/?em>/g, ''), f.sport]), ['plays', 'Plays worth stealing', ''], ['record', 'The record', ''], ['stands', 'In the stands', ''], ['company', 'The company', ''], ['book', 'Book Matt', '']];
-  fill('index', idx.map(([id, t, s], i) => `<li><a href="#${id}"><span class="mono">${pad2(i)}</span><span class="ix-t">${esc(t)}</span>${s ? `<span class="mono ix-s">${esc(s)}</span>` : ''}</a></li>`).join(''));
-  return { stands: STANDS.map(([f]) => `${B}photos/${f}`), standsMeta: STANDS, journey: JOURNEY.length };
+  // Press: one story per screen, pinned. The headline is set in words so the ones that matter (`key`) can come into focus first.
+  const pfWords = (t, k) => t.trim().split(/\s+/).filter(Boolean).map(w => `<span class="w${k ? ' k' : ''}">${esc(w)}</span>`).join(' ');
+  const pfHead = p => { const at = p.key ? p.headline.indexOf(p.key) : -1; if (at < 0) return pfWords(p.headline); const a = p.headline.slice(0, at), b = p.headline.slice(at + p.key.length); return `${a.trim() ? pfWords(a) + ' ' : ''}<em class="pf-key">${pfWords(p.key, true)}</em>${b.trim() ? ' ' + pfWords(b) : ''}`; };
+  fill('press', `<div class="pin pf" style="--len:${(PRESS.length * 0.95).toFixed(2)}" data-pin="press">
+    <div class="pin-in">
+      <div class="pf-stage">${PRESS.map((p, i) => `<article class="pf-item" data-pf="${i}">
+        <header class="pf-meta mono"><span>${esc(p.source)}</span><span>Story ${pad2(i + 1)} / ${pad2(PRESS.length)}</span><span>${esc(p.date)}</span></header>
+        <h3 class="pf-head">${pfHead(p)}</h3>
+        <div class="pf-foot">
+          <p class="pf-line">${esc(p.line)}</p>
+          <figure class="pf-ph" data-pf-ph><img src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="aspect-ratio:${p.ar};object-position:${p.pos}"></figure>
+        </div>
+      </article>`).join('')}</div>
+      <div class="steps" aria-hidden="true">${PRESS.map((p, i) => `<span><i></i><b class="mono">${pad2(i + 1)} — ${esc(p.source)}</b></span>`).join('')}</div>
+    </div>
+  </div>`);
+  const idx = [['top', 'The opening frame'], ['idea', 'The idea'], ['journey', 'How a fan is made'], ['company', 'The company'], ...FRAMES.map(f => [f.id, plain(f.title)]), ['plays', 'Plays worth stealing'], ['kit', 'How I work'], ['record', 'The record'], ['stands', 'In the stands'], ['press', 'In the press'], ['book', 'Book Matt']];
+  fill('index', idx.map(([id, t], i) => `<li><a href="#${id}"><span class="mono">${pad2(i)}</span><span class="ix-t">${esc(t)}</span></a></li>`).join(''));
+  return {
+    stands: STANDS.map(([f]) => `${B}photos/${f}`), standsMeta: STANDS,
+    frames: FRAMES.map(f => `${B}photos/${f.photo[0]}`), portrait: `${B}photos/portrait.jpg`,
+    press: PRESS.map(p => `${B}photos/${p.img}`),
+  };
 }

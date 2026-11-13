@@ -1,7 +1,8 @@
 // The field: one WebGL canvas behind the whole page.
-//  1. trail sim   — a feedback buffer. Anything that moves (cursor, runners) leaves light that decays: a long exposure.
+//  1. trail sim   — a feedback buffer. The cursor (or a tap) leaves light that decays: a long exposure. Nothing moves on its own.
 //  2. composite   — the base colour, two soft fields of light with panned streaks and contour lines, the trails, and film grain.
-//  3. photo pass  — the "in the stands" strip, drawn with a real directional blur tied to how fast it is moving.
+//  3. photo pass  — every photo that arrives out of the blur (the portrait, each frame's photo, the list previews, the strip),
+//                    drawn with a real directional blur, the black-and-blue print, and a leak of the page's red light.
 // Plain WebGL1, no libraries. If the context can't be created the page still works on its CSS background.
 
 const VERT = `attribute vec2 aPos; varying vec2 vUv; void main(){ vUv = aPos*0.5+0.5; gl_Position = vec4(aPos,0.,1.); }`;
@@ -67,7 +68,7 @@ void main(){
   // fine contour lines through the light, the rings a moving lamp leaves on a long exposure
   float ring=smoothstep(.3,.7,.5+.5*sin(da*uRes.y*uLines+w.x*5.));
   float ring2=smoothstep(.3,.7,.5+.5*sin(db*uRes.y*uLines*.8-w.y*5.));
-  a*=.8+.2*ring; b*=.84+.16*ring2;
+  a*=.87+.13*ring; b*=.9+.1*ring2;
   a=a*a*(3.-2.*a)*uEnergy; b=b*b*(3.-2.*b)*uEnergy;
 
   vec3 tr=texture2D(uTrail,vUv).rgb*.5+texture2D(uTrail,vUv+vec2(.006,0.)).rgb*.25+texture2D(uTrail,vUv-vec2(.006,0.)).rgb*.25;
@@ -76,7 +77,7 @@ void main(){
   // grain: fine + slightly coarser, and it also breaks up every blend edge (the airbrushed, gritty falloff)
   vec2 fc=gl_FragCoord.xy; float g=hash(fc+uSeed)-.5, g2=hash(floor(fc*.5)+uSeed*1.7)-.5; float gr=g*.68+g2*.32;
   float ea=a*(1.-a)*4., eb=b*(1.-b)*4., eh=halo*(1.-halo)*4., ec=core*(1.-core)*4.;
-  a=clamp(a+gr*.5*ea,0.,1.); b=clamp(b+gr*.5*eb,0.,1.); halo=clamp(halo+gr*.55*eh,0.,1.); core=clamp(core+gr*.5*ec,0.,1.);
+  a=clamp(a+gr*.36*ea,0.,1.); b=clamp(b+gr*.36*eb,0.,1.); halo=clamp(halo+gr*.4*eh,0.,1.); core=clamp(core+gr*.36*ec,0.,1.);
 
   vec3 col=uBg;
   col=mix(col,uB,b*uMix.y);
@@ -89,7 +90,7 @@ void main(){
 
 const PVERT = `attribute vec2 aPos; varying vec2 vUv; uniform vec4 uRect; void main(){ vUv=aPos*0.5+0.5; vec2 c=uRect.xy+vUv*uRect.zw; gl_Position=vec4(c*2.-1.,0.,1.); }`;
 const PFRAG = `precision highp float;
-varying vec2 vUv; uniform sampler2D uTex; uniform vec2 uCover, uPx; uniform float uBlur, uPad, uDuo, uAlpha, uSeed, uGrain, uRad; uniform vec3 uLo, uHi;
+varying vec2 vUv; uniform sampler2D uTex; uniform vec2 uCover, uPx; uniform float uBlur, uPad, uDuo, uAlpha, uSeed, uGrain, uRad, uFeather, uLeak; uniform vec2 uLeakAt; uniform vec3 uLo, uHi, uAccent;
 float hash(vec2 p){ vec3 p3=fract(vec3(p.xyx)*.1031); p3+=dot(p3,p3.yzx+33.33); return fract((p3.x+p3.y)*p3.z); }
 void main(){
   // the quad is wider than the photo by uPad on each side so the blur can spill past the frame, as it does on film
@@ -113,25 +114,13 @@ void main(){
   vec2 hp=vec2(1./uPx.x/(1.+2.*uPad),1./uPx.y)*.5; vec2 dd=abs((vec2(x,vUv.y)-.5)*hp*2.)-hp+uRad;
   float rr=clamp(.5-(length(max(dd,0.))+min(max(dd.x,dd.y),0.)-uRad),0.,1.);
   al=min(al,max(rr,clamp(uBlur*10.,0.,1.)));
+  vec2 pc=vec2(x,vUv.y);
+  // the same red light that crosses the page falls across one corner of the print
+  float lk=1.-clamp(length((pc-uLeakAt)*vec2(1.,.8))/.95,0.,1.); lk=lk*lk*uLeak*uDuo; c=c+uAccent*lk*(1.-c*.6);
+  // soft-edged mode: no frame at all, the photo simply falls off into the dark
+  if(uFeather>0.){ float r=length((pc-.5)*vec2(2.,1.84)); al*=1.-smoothstep(1.-uFeather,1.,r); }
   gl_FragColor=vec4(c,al*uAlpha*f);
 }`;
-
-// The lines the light draws, one per scene. Each returns a point in 0..1 screen space (y up) for runner i at time t.
-const tri = x => 1 - Math.abs(((x % 2) + 2) % 2 - 1);
-export const RUNNERS = {
-  // every line keeps to the upper part of the screen: headlines sit low and left, and light should pass behind them, not through them
-  drift: (i, t) => [0.56 + 0.42 * Math.sin(t * 0.46 + i * 2.4 + 1), 0.74 + 0.2 * Math.sin(t * 0.61 + i * 1.3)],
-  // runway: long straight passes, low to high
-  runway: (i, t) => { const u = (t * 0.16 + i * 0.5) % 1; return [0.2 + 1.0 * u, 0.56 + i * 0.13 + 0.3 * u]; },
-  // arc: the flight of a shot
-  arc: (i, t) => { const u = (t * 0.17 + i * 0.5) % 1, dir = i ? -1 : 1; return [0.55 + dir * (u - 0.5) * 0.86, 0.54 + 0.4 * 4 * u * (1 - u)]; },
-  // route: straight upfield, then a hard cut
-  route: (i, t) => { const u = (t * 0.15 + i * 0.5) % 1, x0 = 0.42 + i * 0.4, s = i ? -1 : 1; return u < 0.55 ? [x0, 0.5 + u * 0.62] : [x0 + s * (u - 0.55) * 0.8, 0.84 + (u - 0.55) * 0.2]; },
-  // rally: over the net and back
-  rally: (i, t) => { const k = t * 0.34 + i * 0.5; return [0.2 + 0.72 * tri(k), 0.58 + 0.3 * Math.abs(Math.sin(k * Math.PI)) + i * 0.05]; },
-  // lap: a circuit with a chicane, two cars
-  lap: (i, t) => { const th = t * 0.62 - i * 0.55; return [0.66 + 0.26 * Math.cos(th) + 0.05 * Math.cos(3 * th), 0.7 + 0.18 * Math.sin(th) + 0.04 * Math.sin(2 * th)]; },
-};
 
 function compile(gl, type, src) { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || 'shader'); return s; }
 function program(gl, vs, fs) {
@@ -174,10 +163,8 @@ export function createField(canvas, { reduced = false } = {}) {
   }
   resize();
 
-  // runners + pointer: up to six light sources. Each keeps its last position so we can stamp the whole segment it travelled.
+  // light sources: the pointer's last move and any tap. Each is stamped as the whole segment it travelled.
   const segs = new Float32Array(24), segP = new Float32Array(18);
-  const last = Array.from({ length: 6 }, () => null);
-  let mode = 'drift';
   const pointer = { x: 0.5, y: 0.5, px: 0.5, py: 0.5, moved: false, burst: 0 };
 
   // photo strip
@@ -202,7 +189,7 @@ export function createField(canvas, { reduced = false } = {}) {
 
   let seedT = 0, seed = 0, slow = 0, frames = 0;
   function frame(s) {
-    // s: { time, dt, scroll (in viewport heights), flow (page movement this frame in viewport heights), vel 0..1, theme {bg,a,b,halo,core,mix}, blob [ax,ay,bx,by], energy, runners 0..1, mode, strip:[{i,x,y,w,h,blur,duo,alpha}] }
+    // s: { time, dt, scroll (in viewport heights), flow (page movement this frame in viewport heights), vel 0..1, theme {bg,a,b,halo,core,mix}, blob [ax,ay,bx,by], energy, quads:[{i,x,y,w,h,blur,duo,alpha,rad,feather,leak,leakAt}], duoLo, duoHi, accent }
     resize();
     const aspect = W / H, t = s.time;
     if (!reduced) { seedT += s.dt; if (seedT > 1 / 14) { seedT = 0; seed = Math.random() * 97; } }
@@ -211,14 +198,6 @@ export function createField(canvas, { reduced = false } = {}) {
     let n = 0;
     const rs = Math.min(1, aspect * 1.2); // on a narrow screen the same light would be a blob, so scale it with the width
     const push = (ax, ay, bx, by, rc, rh, str) => { if (n >= 6) return; segs.set([ax * aspect, ay, bx * aspect, by], n * 4); segP.set([rc * rs, rh * rs, str], n * 3); n++; };
-    if (s.mode !== mode) { mode = s.mode; last[0] = last[1] = last[2] = null; }
-    const fn = RUNNERS[mode] || RUNNERS.drift, count = mode === 'drift' ? 1 : 2;
-    if (!reduced && s.runners > 0.01) for (let i = 0; i < count; i++) {
-      const [x, y] = fn(i, t); const l = last[i];
-      // a runner that wraps round to the start of its line shouldn't draw the jump back
-      if (l && Math.hypot(x - l[0], y - l[1]) < 0.2) push(l[0], l[1] + s.flow, x, y, 0.0065, 0.045, 0.55 * s.runners);
-      last[i] = [x, y];
-    }
     if (pointer.moved) {
       const sp = Math.hypot(pointer.x - pointer.px, pointer.y - pointer.py);
       if (sp > 0.0005 && sp < 0.5) push(pointer.px, pointer.py + s.flow, pointer.x, pointer.y, 0.007 + Math.min(sp, 0.08) * 0.12, 0.05 + Math.min(sp, 0.08) * 0.5, Math.min(0.95, 0.3 + sp * 14));
@@ -249,11 +228,11 @@ export function createField(canvas, { reduced = false } = {}) {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
     // ---- photo strip
-    if (s.strip && s.strip.length) {
+    if (s.quads && s.quads.length) {
       gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      gl.useProgram(photo.p); const pu = photo.u; gl.uniform1i(pu.uTex, 0); gl.uniform1f(pu.uSeed, seed); gl.uniform1f(pu.uGrain, s.grain * 1.4);
-      gl.uniform3fv(pu.uLo, s.duoLo); gl.uniform3fv(pu.uHi, s.duoHi);
-      for (const q of s.strip) {
+      gl.useProgram(photo.p); const pu = photo.u; gl.uniform1i(pu.uTex, 0); gl.uniform1f(pu.uSeed, seed); gl.uniform1f(pu.uGrain, s.grain * 0.45);
+      gl.uniform3fv(pu.uLo, s.duoLo); gl.uniform3fv(pu.uHi, s.duoHi); gl.uniform3fv(pu.uAccent, s.accent);
+      for (const q of s.quads) {
         const ph = photos[q.i]; if (!ph || !ph.ready || q.alpha <= 0.003) continue;
         const pad = Math.min(0.9, q.blur * 0.5 + 0.002), wq = q.w * (1 + 2 * pad);
         if (q.x + q.w / 2 + q.w * pad < 0 || q.x - q.w / 2 - q.w * pad > 1) continue;
@@ -262,7 +241,7 @@ export function createField(canvas, { reduced = false } = {}) {
         // cover fit
         const qa = (q.w * W) / (q.h * H), ia = ph.aspect; const cx = qa > ia ? 1 : qa / ia, cy = qa > ia ? ia / qa : 1;
         gl.uniform2f(pu.uCover, cx, cy); gl.uniform2f(pu.uPx, 1 / (wq * W), 1 / (q.h * H));
-        gl.uniform1f(pu.uBlur, q.blur); gl.uniform1f(pu.uRad, 14 * (W / Math.max(1, canvas.clientWidth))); gl.uniform1f(pu.uPad, pad); gl.uniform1f(pu.uDuo, q.duo); gl.uniform1f(pu.uAlpha, q.alpha);
+        gl.uniform1f(pu.uBlur, q.blur); gl.uniform1f(pu.uRad, (q.rad ?? 14) * (W / Math.max(1, canvas.clientWidth))); gl.uniform1f(pu.uFeather, q.feather || 0); gl.uniform1f(pu.uLeak, q.leak || 0); gl.uniform2f(pu.uLeakAt, q.leakAt ? q.leakAt[0] : 1.05, q.leakAt ? q.leakAt[1] : 1.05); gl.uniform1f(pu.uPad, pad); gl.uniform1f(pu.uDuo, q.duo); gl.uniform1f(pu.uAlpha, q.alpha);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       }
       gl.disable(gl.BLEND);
