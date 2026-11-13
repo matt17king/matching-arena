@@ -165,3 +165,24 @@ export const TOPICS = [
   ['Storytelling in sport', 'Story before sport'],
   ['AI in marketing', 'AI is the pit crew, not the driver'],
 ];
+
+// The index (the full-screen menu). Chapters in page order; each entry is [section id, title, photo in public/photos, one line].
+// The chapter marked 'frames' is filled from FRAMES above.
+export const INDEX = [
+  ['Start here', [
+    ['top', 'The opening frame', 'portrait.jpg', 'Sport is a blur. The story is what stays sharp.'],
+    ['idea', 'The idea', 'goodwood.jpg', 'Fans fall for stories, not fixtures.'],
+    ['journey', 'How a fan is made', 'barcelona.jpg', 'Seven steps, from a feed to a fan.'],
+    ['company', 'The company', 'national-league-awards.jpg', "The clubs, brands and people I've worked with."],
+  ]],
+  ['Five ideas', 'frames'],
+  ['The work', [
+    ['plays', 'Plays worth stealing', 'tennis.jpg', 'Four moves from other sports, and what to take from each.'],
+    ['kit', 'How I work', 'working.jpg', 'AI is the pit crew, not the driver.'],
+    ['record', 'The record', 'man-city-match.jpg', 'Eight numbers, and where they came from.'],
+  ]],
+  ['Out there', [
+    ['stands', 'In the stands', 'boxing.jpg', 'Twelve photos from the grounds.'],
+    ['press', 'In the press', 'press-circle.jpg', "What's been written."],
+  ]],
+];
