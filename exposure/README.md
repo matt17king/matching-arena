@@ -32,7 +32,7 @@ Two helpers are derived from those and used only for legibility: `ice` (`#f3f8fc
 | `index.html` | The story: header, index, and the static sections |
 | `book/index.html` | The booking page |
 | `world/index.html` | The virtual world: the penthouse, room by room |
-| `src/world/` | The virtual world: `rooms.js` lists the rooms and what is in them, `main.js` is the arrows, markers, cards and light switch |
+| `src/world/` | The virtual world: `rooms.js` lists the rooms and what is in them, `main.js` is the arrows, markers and cards |
 | `public/rooms/` | The room pictures |
 | `src/kit.js` | Shared by both pages: fonts and styles, helpers, the three colour themes, word splitting, the panned-blur headline, grain |
 | `src/book.js` | The booking page: the four questions, the pass, the written brief, the email hand-off |
@@ -74,10 +74,10 @@ The six routes and six topics come from `SEATS` and `TOPICS` in `content.js` (ea
 - **The rooms** are the list in `src/world/rooms.js`, in walking order. Each names its picture in `public/rooms/` (2000 × 1116; a different shape needs `IW`/`IH` changed at the top of `src/world/main.js`). To add a room, drop the picture in and add an entry.
 - **Arrows** at either side go to the next and previous room (the list wraps), as do the left and right arrow keys and the room names along the bottom. The address keeps the room (`world/#office`).
 - **Markers** are each room's `things`: a position as a percentage across and down the picture, a hover name, and the card it opens (small line, title, words, and optionally a number, a photo from `public/photos/` and a link). To move a marker, change its `at`.
-- **The light switch** (or `L`) turns the lights off. A room with a `night` picture fades to it; a room without one is graded in CSS: darkened, then washed with the site's blue and red.
+- **Photos in cards** are shown whole, at their own shape: an upright photo stands beside the words, a wide one sits above them.
 - **Small screens** show the picture at full height and let it be dragged sideways; each room's `focus` is where it starts.
 
-The story links to it from the footer and the index. Review switches: `?in` skips the title, `?in&dark` starts with the lights off.
+The story links to it from the footer and the index. Review switches: `?in` skips the title.
 
 ## Notes
 

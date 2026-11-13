@@ -1,10 +1,9 @@
 // The penthouse, room by room. Each room is one picture (public/rooms, 2000 × 1116) and a list of things in it.
 // A thing sits `at` [across, down] as a percentage of the picture, and opens a card: `k` the small line above, `t` the title,
 // `p` the words, and optionally `stat` [number, what], `photo` [file in public/photos, alt text] and `link` [label, where to].
-// `focus` is the part of the picture a narrow screen starts on. `night` can name a second picture of the same room with
-// the lights off; without one, the page grades the daytime picture itself.
+// `focus` is the part of the picture a narrow screen starts on. Photos are shown whole, at their own shape, never cropped.
 export const ROOMS = [
-  { id: 'living', name: 'Living room', img: 'living.webp', night: null, focus: [47, 58], alt: 'The living room: dark leather sofas around a black marble table, a marble fireplace, tall windows over London',
+  { id: 'living', name: 'Living room', img: 'living.webp', focus: [47, 58], alt: 'The living room: dark leather sofas around a black marble table, a marble fireplace, tall windows over London',
     things: [
       { at: [45.3, 60.5], label: 'The match ball', k: 'DAZN · FIFA', t: 'The World Cup ball',
         p: "The FIFA World Cup is one of eight football rights portfolios I've led at DAZN. Bringing FIFA+ across put more than three million fans onto the platform.",
@@ -13,7 +12,7 @@ export const ROOMS = [
         p: '80 Four, the agency I founded with James Parker-Aiken and Emily Martin, was named a finalist for Start Up of the Year.',
         photo: ['press-circle.jpg', 'The 80 Four founders at the Circle Networks awards'], link: ['Read the press', '../#press'] },
     ] },
-  { id: 'office', name: 'Office', img: 'office.webp', night: null, focus: [58, 45], alt: 'The office: a walnut and marble desk with a laptop and a microphone, three framed football shirts on the wall',
+  { id: 'office', name: 'Office', img: 'office.webp', focus: [58, 45], alt: 'The office: a walnut and marble desk with a laptop and a microphone, three framed football shirts on the wall',
     things: [
       { at: [55, 13], label: 'Foden, 47', k: 'The Couture Club', t: 'Phil Foden',
         p: "At The Couture Club, influencers sold the womenswear. The menswear didn't move until footballers posted it. Then it sold out.",
@@ -34,7 +33,7 @@ export const ROOMS = [
         p: 'Podcasts, talks, panels, brand collaborations and press comment all start here.',
         link: ['Book Matt', '../book/'] },
     ] },
-  { id: 'wardrobe', name: 'Wardrobe', img: 'wardrobe.webp', night: null, focus: [52, 55], alt: 'The wardrobe: walnut cabinets, a lit wall of trainers, a marble island and a rail of clothes',
+  { id: 'wardrobe', name: 'Wardrobe', img: 'wardrobe.webp', focus: [52, 55], alt: 'The wardrobe: walnut cabinets, a lit wall of trainers, a marble island and a rail of clothes',
     things: [
       { at: [42.4, 50.5], label: 'The race-weekend tee', k: 'F1 Miami', t: 'The tee on the island',
         p: 'A Represent tee for a race weekend in a new market. Fashion is everywhere in sport.',
@@ -42,11 +41,14 @@ export const ROOMS = [
       { at: [64, 80], label: 'The bags', k: 'The Couture Club × Man City', t: 'Fashion meets football',
         p: 'Carrying The Couture Club into the Manchester City training ground.',
         stat: ['+41%', 'Online sales from a rebuilt e-commerce strategy'], photo: ['man-city-couture.jpg', 'Matt carrying Couture Club bags into the Manchester City training ground'], link: ['See the record', '../#record'] },
+      { at: [64.6, 19.8], label: 'The spotlit pair', k: 'Tennis × sneakers', t: 'Alcaraz × Travis Scott × Nike',
+        p: "The shoe Carlos Alcaraz wore on court. A sneaker drop travels further than a match report: it put a tennis player in front of the sneaker world, on that world's terms.",
+        photo: ['alcaraz.jpg', 'Carlos Alcaraz walking on court in a brown Nike kit and the white and brown shoes'], link: ['Read the play', '../#plays'] },
       { at: [81.6, 53], label: 'The tracksuit', k: '2021', t: 'Gym King',
         p: 'Where the route here started, working with Tom Aspinall, Ash Cain and Alex Bowen.',
         link: ['See the route', '../#company'] },
     ] },
-  { id: 'gym', name: 'Gym', img: 'gym.webp', night: null, focus: [60, 45], alt: 'The gym: a punch bag, boxing gloves, a wall of medals, a treadmill by the window and a golf bag',
+  { id: 'gym', name: 'Gym', img: 'gym.webp', focus: [60, 45], alt: 'The gym: a punch bag, boxing gloves, a wall of medals, a treadmill by the window and a golf bag',
     things: [
       { at: [37, 24.5], label: 'The medals', k: 'Race day', t: 'Paris Marathon',
         p: 'Paris Marathon, and a 10K where you ring the bell at the finish.',
@@ -58,7 +60,7 @@ export const ROOMS = [
         p: 'Golf with Niall Horan and Judy Murray.',
         stat: ['+400%', 'Channel growth with Niall Horan & Judy Murray'], link: ['See the record', '../#record'] },
     ] },
-  { id: 'rooftop', name: 'Rooftop', img: 'rooftop.webp', night: null, focus: [50, 55], alt: 'The roof terrace: a blue padel court with glass walls, a marble bar, and the London skyline at sunset',
+  { id: 'rooftop', name: 'Rooftop', img: 'rooftop.webp', focus: [50, 55], alt: 'The roof terrace: a blue padel court with glass walls, a marble bar, and the London skyline at sunset',
     things: [
       { at: [41.6, 67], label: 'The rackets', k: 'On court', t: 'Padel',
         p: "I play it too. Four players, one small court, walls in play: it's built to be social.",

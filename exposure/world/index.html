@@ -38,7 +38,7 @@
   <div class="wd-gate-in">
     <p class="mono" data-r="fade" style="--d:.1s">Matt King — The penthouse, London</p>
     <h1 class="wd-h1" data-r="smear" data-split data-smear="70" style="--d:.15s">Enter the <em class="hi">virtual world.</em></h1>
-    <p class="lead wd-lead" data-r="fade" style="--d:.5s">A penthouse above London, with pieces of my world left out in every room. Walk through, switch the lights off, and open what you find.</p>
+    <p class="lead wd-lead" data-r="fade" style="--d:.5s">A penthouse above London, with pieces of my world left out in every room. Walk through, and open what you find.</p>
     <div class="wd-gate-go" data-r="fade" style="--d:.65s">
       <button class="btn" data-enter disabled><span data-enter-label>Opening the door</span><i aria-hidden="true">→</i></button>
       <a class="btn btn-line" href="../"><span>Back to the story</span><i aria-hidden="true">←</i></a>
@@ -53,7 +53,7 @@
 <button class="wd-arrow wd-next" type="button" data-next><span class="mono"></span><i aria-hidden="true">→</i></button>
 
 <!-- what a marker opens -->
-<aside class="wd-card" data-card role="dialog" aria-labelledby="wd-card-t" hidden>
+<aside class="wd-card" data-card tabindex="-1" role="dialog" aria-labelledby="wd-card-t" hidden>
   <button class="wd-card-x" type="button" data-card-close aria-label="Close"><i aria-hidden="true">×</i></button>
   <div class="wd-card-body" data-card-body></div>
 </aside>
@@ -61,11 +61,6 @@
 <div class="wd-ui" data-ui>
   <p class="mono wd-where" data-where aria-live="polite"></p>
   <nav class="wd-tabs" data-tabs aria-label="Rooms"></nav>
-  <button class="wd-switch" data-lights aria-pressed="true" aria-label="Lights">
-    <span class="mono">Lights</span>
-    <span class="wd-track" aria-hidden="true"><i></i></span>
-    <span class="mono wd-state" data-lights-state>On</span>
-  </button>
 </div>
 
 </main>
