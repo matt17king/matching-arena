@@ -6,6 +6,10 @@ import { createField } from './gl/field.js';
 import { renderAll } from './render.js';
 import { RULES } from './content.js';
 
+// The virtual world has its own address, world.bymattking.com. On the live domain the links to it point there;
+// on a preview or a local build they stay as ./world/, the folder beside this page.
+{ const h = location.hostname.replace(/^www\./, ''); if (h === 'bymattking.com') document.querySelectorAll('a[href="./world/"]').forEach(a => (a.href = `https://world.${h}/`)); }
+
 const data = renderAll();
 
 /* ---------- words */

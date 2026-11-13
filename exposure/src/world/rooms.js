@@ -1,8 +1,11 @@
-// The penthouse, room by room. Each room is one picture (public/rooms, 2000 × 1116) and a list of things in it.
+// The virtual world, location by location. The penthouse is the first; a second (a sports ground, say) is another entry
+// in LOCATIONS at the bottom, with its own rooms, and gets its own address (world.bymattking.com/<id>).
+//
+// Each room is one picture (public/rooms, 2000 × 1116) and a list of things in it.
 // A thing sits `at` [across, down] as a percentage of the picture, and opens a card: `k` the small line above, `t` the title,
 // `p` the words, and optionally `stat` [number, what], `photo` [file in public/photos, alt text] and `link` [label, where to].
 // `focus` is the part of the picture a narrow screen starts on. Photos are shown whole, at their own shape, never cropped.
-export const ROOMS = [
+const PENTHOUSE = [
   { id: 'living', name: 'Living room', img: 'living.webp', focus: [47, 58], alt: 'The living room: dark leather sofas around a black marble table, a marble fireplace, tall windows over London',
     things: [
       { at: [45.3, 60.5], label: 'The match ball', k: 'DAZN · FIFA', t: 'The World Cup ball',
@@ -93,4 +96,9 @@ export const ROOMS = [
         p: 'Bags packed for matchday at Manchester City.',
         photo: ['man-city-match.jpg', 'Matchday at Manchester City'], link: ['See the stands', '../#stands'] },
     ] },
+];
+
+// `name` and `place` make the line in the header; the first location is the one the bare address opens.
+export const LOCATIONS = [
+  { id: 'penthouse', name: 'The penthouse', place: 'London', rooms: PENTHOUSE },
 ];

@@ -79,6 +79,15 @@ The six routes and six topics come from `SEATS` and `TOPICS` in `content.js` (ea
 
 The story links to it from the footer and the index. The page opens straight into the living room; there is no title screen.
 
+### Its own address
+
+The virtual world is meant to live at `world.bymattking.com`, with the story at `bymattking.com`, both served by this one project.
+
+- `vercel.json` sends the root of `world.bymattking.com` (and `/penthouse`) to the world page. These are `routes`, not `rewrites`, because a rewrite cannot replace a file that exists and the story's `index.html` sits at the root.
+- On the world address, links back to the story become absolute (`bymattking.com/#record`); on the live story domain, the links into the world point at the world address. On previews and local builds both stay relative, with the world at `/world/`.
+- Locations are the `LOCATIONS` list at the bottom of `src/world/rooms.js`. The penthouse is the only one so far. A new location needs an entry there, its pictures in `public/rooms/`, and its id added to the second route in `vercel.json`.
+- To switch it on: add `world.bymattking.com` to the project's domains in Vercel and add the DNS record Vercel shows.
+
 ## Notes
 
 - Fonts (Inter Tight, Geist, Geist Mono) ship in the bundle via Fontsource; nothing loads from a third party at runtime.

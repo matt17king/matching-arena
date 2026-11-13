@@ -2,8 +2,17 @@
 // the things in each room open a card about the work they stand for. The rooms and everything in them are listed in rooms.js.
 import { root, $, $$, clamp, reduced, grainURL } from '../kit.js';
 import '../styles/world.css';
-import { ROOMS } from './rooms.js';
+import { LOCATIONS } from './rooms.js';
 
+// Which location: the last part of the address (world.bymattking.com/penthouse), or the first one listed.
+const LOC = LOCATIONS.find(l => l.id === location.pathname.split('/').filter(Boolean).pop()) || LOCATIONS[0], ROOMS = LOC.rooms;
+// This page lives at world.bymattking.com and the story at bymattking.com. On the world address, links back to the story
+// are made absolute; anywhere else (a preview, a local build) the page sits in /world/ beside the story and they stay relative.
+const HOME = location.hostname.startsWith('world.') ? `${location.protocol}//${location.hostname.slice(6)}/` : '../';
+const out = href => (href.startsWith('../') ? HOME + href.slice(3) : href);
+
+$$('a[href^="../"]').forEach(a => (a.href = out(a.getAttribute('href'))));
+{ const l = $('[data-loc]'); if (l) l.textContent = `${LOC.name} · ${LOC.place}`; const h = $('h1'); if (h) h.textContent = `The virtual world: ${LOC.name}, ${LOC.place}, room by room`; }
 { const g = grainURL(); $('[data-grain]').style.backgroundImage = g; root.style.setProperty('--grain', g); }
 
 const IW = 2000, IH = 1116; // every room picture is this shape
@@ -92,7 +101,7 @@ async function openCard(t, btn) {
   const tall = dim && dim[1] > dim[0] * 1.05;
   $('[data-card-body]', card).innerHTML = (dim ? `<figure class="wd-card-ph" style="aspect-ratio:${dim[0]} / ${dim[1]}"><img src="../photos/${t.photo[0]}" alt="${esc(t.photo[1])}" width="${dim[0]}" height="${dim[1]}"></figure>` : '')
     + `<div class="wd-card-head"><p class="mono wd-card-k">${esc(t.k)}</p><h2 class="wd-card-t" id="wd-card-t">${esc(t.t)}</h2>${t.stat ? `<p class="wd-card-stat"><b>${esc(t.stat[0])}</b><span class="mono">${esc(t.stat[1])}</span></p>` : ''}</div>`
-    + `<div class="wd-card-foot"><p class="wd-card-p">${esc(t.p)}</p>${href ? `<a class="btn" href="${href}"><span>${esc(label_)}</span><i aria-hidden="true">→</i></a>` : ''}</div>`;
+    + `<div class="wd-card-foot"><p class="wd-card-p">${esc(t.p)}</p>${href ? `<a class="btn" href="${out(href)}"><span>${esc(label_)}</span><i aria-hidden="true">→</i></a>` : ''}</div>`;
   card.classList.toggle('tall', !!tall); card.classList.toggle('wide', !!dim && !tall); card.scrollTop = 0;
   $$('.wd-dot.open').forEach(d => d.classList.remove('open')); btn.classList.add('open'); opener = btn;
   card.hidden = false; card.getBoundingClientRect(); root.classList.add('wd-carded'); card.focus({ preventScroll: true });

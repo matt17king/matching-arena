@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "routes": [
+    {
+      "src": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "world.bymattking.com"
+        }
+      ],
+      "dest": "/world/index.html"
+    },
+    {
+      "src": "/(penthouse)/?",
+      "has": [
+        {
+          "type": "host",
+          "value": "world.bymattking.com"
+        }
+      ],
+      "dest": "/world/index.html"
+    },
+    {
+      "handle": "filesystem"
+    }
+  ]
+}
