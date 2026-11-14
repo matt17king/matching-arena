@@ -1,8 +1,9 @@
 // The virtual world: Matt's penthouse, one picture per room. Arrows (or the room names) walk between rooms; markers on
 // the things in each room open a card about the work they stand for. The rooms and everything in them are listed in rooms.js.
-import { root, $, $$, clamp, reduced, grainURL } from '../kit.js';
+import { root, $, $$, clamp, reduced, params, grainURL } from '../kit.js';
 import '../styles/world.css';
 import { LOCATIONS } from './rooms.js';
+import { createSky, sunHeight, londonWeather, WEATHERS, TIMES } from './sky.js';
 
 // Which location: the last part of the address (world.bymattking.com/penthouse), or the first one listed.
 const LOC = LOCATIONS.find(l => l.id === location.pathname.split('/').filter(Boolean).pop()) || LOCATIONS[0], ROOMS = LOC.rooms;
@@ -12,7 +13,7 @@ const HOME = location.hostname.startsWith('world.') ? `${location.protocol}//${l
 const out = href => (href.startsWith('../') ? HOME + href.slice(3) : href);
 
 $$('a[href^="../"]').forEach(a => (a.href = out(a.getAttribute('href'))));
-{ const l = $('[data-loc]'); if (l) l.textContent = `${LOC.name} · ${LOC.place}`; const h = $('h1'); if (h) h.textContent = `The virtual world: ${LOC.name}, ${LOC.place}, room by room`; }
+{ const h = $('h1'); if (h) h.textContent = `The virtual world: ${LOC.name}, ${LOC.place}, room by room`; }
 { const g = grainURL(); $('[data-grain]').style.backgroundImage = g; root.style.setProperty('--grain', g); }
 
 const IW = 2000, IH = 1116; // every room picture is this shape
@@ -24,17 +25,47 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 /* ---------- build: a plate per room (the picture and its markers), and a line in the Explore menu per room */
 const rooms = ROOMS.map((r, i) => {
   const el = document.createElement('section'); el.className = 'wd-room'; el.setAttribute('aria-label', r.name); el.inert = true;
-  el.innerHTML = `<div class="wd-plate"><img class="wd-day" alt="${esc(r.alt)}" decoding="async" draggable="false">`
+  el.innerHTML = `<div class="wd-plate"><img class="wd-day" alt="${esc(r.alt)}" decoding="async" draggable="false">${r.sky ? '<canvas class="wd-lit" aria-hidden="true"></canvas>' : ''}`
     + (r.screens || []).map((sc, k) => `<button class="wd-screen" type="button" data-screen="${k}" aria-label="Play the video on ${esc(sc.label)} full screen"><video muted loop playsinline preload="none" poster="../video/${sc.poster}"></video><i aria-hidden="true"></i></button><span class="wd-screen-hint mono" aria-hidden="true" style="left:${(sc.quad[0][0] + sc.quad[2][0]) / 2}%;top:${(sc.quad[0][1] + sc.quad[2][1]) / 2}%">Watch full screen</span>`).join('')
     + r.things.map((t, j) => `<button class="wd-dot${t.at[0] > 78 ? ' flip' : ''}${t.spotify ? ' wd-dot-music' : ''}" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
   stage.append(el);
   const tab = document.createElement('button'); tab.type = 'button'; tab.className = 'wd-menu-i'; tab.textContent = r.name; tab.addEventListener('click', () => { closeMenu(); show(i); }); menu.append(tab);
-  return { ...r, file: r.img, el, tab, plate: $('.wd-plate', el), img: $('.wd-day', el), c: { x: r.focus[0] / 100, y: r.focus[1] / 100 }, loaded: false, tvs: $$('.wd-screen', el).map((b, k) => ({ b, v: $('video', b), ...r.screens[k] })) };
+  return { ...r, file: r.img, el, tab, plate: $('.wd-plate', el), img: $('.wd-day', el), c: { x: r.focus[0] / 100, y: r.focus[1] / 100 }, loaded: null, lit: $('.wd-lit', el), maskImg: null, tvs: $$('.wd-screen', el).map((b, k) => ({ b, v: $('video', b), ...r.screens[k] })) };
 });
-function load(r) {
-  if (r.loaded) return Promise.resolve(); r.loaded = true;
-  return new Promise(res => { r.img.addEventListener('load', res, { once: true }); r.img.addEventListener('error', res, { once: true }); r.img.src = `../rooms/${r.file}`; });
+const fetched = (img, src) => new Promise(res => { img.addEventListener('load', () => res(true), { once: true }); img.addEventListener('error', () => res(false), { once: true }); img.src = src; });
+function load(r) { // the picture, and with it the room's light mask. Resolves once both are in; the room is then painted for the hour.
+  if (!r.loaded) r.loaded = Promise.all([fetched(r.img, `../rooms/${r.file}`), r.sky && sky ? fetched((r.maskImg = new Image()), `../rooms/masks/${r.id}.png`) : false]).then(([a, b]) => { r.ready = a && b; paint(r); });
+  return r.loaded;
 }
+
+/* ---------- London's light: the hour and the weather there, live, relighting each room (see sky.js) */
+const coarse = matchMedia('(pointer: coarse)').matches, sky = params.has('nosky') ? null : createSky(coarse), locLabel = $('[data-loc]');
+const light = { sun: 40, cloud: 0, rain: 0, label: '' }; let weather = WEATHERS[params.get('weather')] || null, clock = 0;
+// for looking at a particular moment: ?time=night (or day, golden, sunset, dusk, or 21:30) and ?weather=rain (or clear, cloudy, storm)
+const forced = params.get('time'), londonTime = d => d.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' });
+function setLight() {
+  const now = new Date(); let when = londonTime(now);
+  if (forced in TIMES) { light.sun = TIMES[forced]; when = forced[0].toUpperCase() + forced.slice(1); }
+  else if (/^\d{1,2}:\d\d$/.test(forced || '')) { // that time today, in London
+    const [h, m] = forced.split(':').map(Number), [lh, lm] = londonTime(now).split(':').map(Number), off = (lh * 60 + lm) - (now.getUTCHours() * 60 + now.getUTCMinutes());
+    light.sun = sunHeight(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, h * 60 + m - off))); when = forced;
+  } else light.sun = sunHeight(now);
+  light.cloud = weather ? weather.cloud : 0; light.rain = weather ? weather.rain : 0; light.label = weather ? weather.label : '';
+  if (locLabel) locLabel.textContent = [LOC.name, LOC.place, sky && when, sky && light.label].filter(Boolean).join(' · ');
+  root.classList.toggle('wd-raining', !!sky && light.rain > 0);
+}
+// in clear daylight an indoor room is exactly its picture, so nothing is drawn over it
+const plain = r => !r.sky.outdoor && light.sun >= 12 && light.cloud < 0.05 && !light.rain;
+const moving = r => !!(sky && r.sky && r.ready && !reduced && (light.rain > 0 || (r.sky.outdoor && light.cloud > 0.2 && light.sun > -6)));
+function paint(r) {
+  if (!sky || !r.sky || !r.ready) return;
+  if (plain(r)) return r.lit.classList.remove('on');
+  if (r.lit.width !== sky.width) { r.lit.width = sky.width; r.lit.height = sky.height; }
+  sky.draw(r, light, reduced ? 0 : clock, r.lit); r.lit.classList.add('on');
+}
+{ let last = 0; const frame = t => { requestAnimationFrame(frame); if (t - last < 33 || document.hidden) return; const r = rooms[cur]; if (!entered || !moving(r) || cinemaOf) return; clock += Math.min(0.1, (t - last) / 1000); last = t; paint(r); }; requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); }); }
+function relight() { setLight(); paint(rooms[cur]); }
+if (sky) { setInterval(relight, 60000); if (!weather) { const ask = () => londonWeather().then(w => { if (w) { weather = w; relight(); } }); ask(); setInterval(ask, 15 * 60000); } }
 
 /* ---------- screens: a video laid onto a screen in the picture. The video is a flat 640 × 360 box; a perspective
    transform pins its four corners to the screen's four corners, so it sits on the TV at whatever angle the TV is drawn. */
@@ -89,7 +120,7 @@ function label() {
 function show(i, dir) {
   i = wrap(i); if (i === cur && rooms[cur].el.classList.contains('on')) return;
   closeCard(); const from = rooms[cur], to = rooms[i]; if (dir == null) dir = i > cur ? 1 : -1; cur = i;
-  warm(to); load(to).then(() => load(rooms[wrap(i + 1)])); load(rooms[wrap(i - 1)]);
+  warm(to); paint(to); load(to).then(() => load(rooms[wrap(i + 1)])); load(rooms[wrap(i - 1)]);
   to.c.x = to.focus[0] / 100; to.c.y = to.focus[1] / 100; place(to);
   from.el.classList.remove('on'); from.el.inert = true; to.el.classList.add('on'); to.el.inert = !entered; screens(from, false); screens(to, entered);
   if (!reduced && from !== to) {
@@ -182,4 +213,4 @@ function go() {
 fit();
 { const start = Math.max(0, rooms.findIndex(r => r.id === location.hash.slice(1))); cur = start; const r = rooms[start];
   r.el.classList.add('on'); label(); warm(r);
-  load(r).then(go); }
+  setLight(); load(r).then(go); }

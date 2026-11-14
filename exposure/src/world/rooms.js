@@ -8,9 +8,13 @@
 // A room can have `screens`: a video (in public/video, with a still `poster` beside it) laid onto a screen in the picture.
 // `quad` is the screen's four corners as percentages of the picture: top left, top right, bottom right, bottom left.
 // It plays silently in the room and opens full screen, with sound, when clicked.
+// A room with `sky` is relit for London's real time and weather (see sky.js). Its `lights` are the lamps that come up as it
+// gets dark: [across %, down %, reach as a % of the picture's width, strength, colour]. `outdoor` marks a room under the sky.
+// The room needs a mask in public/rooms/masks, built by tools/masks.py.
 // `focus` is the part of the picture a narrow screen starts on. Photos are shown whole, at their own shape, never cropped.
 const PENTHOUSE = [
   { id: 'living', name: 'Living room', img: 'living.webp', focus: [47, 58], alt: 'The living room: dark leather sofas around a black marble table, a marble fireplace, tall windows over London',
+    sky: { lights: [[71.5, 50, 17, 1.1, [1, 0.62, 0.3]], [47, 28, 20, 0.75, [1, 0.82, 0.6]], [88, 42, 12, 0.5, [1, 0.8, 0.58]], [70, 23, 9, 0.3, [0.6, 0.72, 1]], [40, 62, 26, 0.4, [1, 0.84, 0.66]]] },
     screens: [{ video: 'tv.mp4', poster: 'tv.jpg', label: 'the TV', quad: [[63.45, 8.9], [76.4, 22.0], [76.4, 38.2], [63.45, 24.9]] }],
     things: [
       { at: [45.3, 60.5], label: 'The match ball', k: 'DAZN · FIFA', t: 'The World Cup ball',
@@ -21,7 +25,7 @@ const PENTHOUSE = [
         p: '80 Four, the agency I founded with James Parker-Aiken and Emily Martin, was named a finalist for Start Up of the Year.',
         photo: ['press-circle.jpg', 'The 80 Four founders at the Circle Networks awards'], link: ['Read the press', '../#press'] },
     ] },
-  { id: 'office', name: 'Office', img: 'office.webp', focus: [58, 45], alt: 'The office: a walnut and marble desk with a laptop and a microphone, three framed football shirts on the wall',
+  { id: 'office', name: 'Office', img: 'office.webp', focus: [58, 45], sky: { lights: [[38.5, 38, 15, 1, [1, 0.78, 0.5]], [68, 22, 24, 0.7, [1, 0.86, 0.68]], [53.5, 53, 6, 0.45, [0.7, 0.8, 1]], [55, 60, 30, 0.4, [1, 0.84, 0.66]]] }, alt: 'The office: a walnut and marble desk with a laptop and a microphone, three framed football shirts on the wall',
     things: [
       { at: [55, 13], label: 'Foden, 47', k: 'The Couture Club', t: 'Phil Foden',
         p: "At The Couture Club, influencers sold the womenswear. The menswear didn't move until footballers posted it. Then it sold out.",
@@ -42,7 +46,7 @@ const PENTHOUSE = [
         p: 'Podcasts, talks, panels, brand collaborations and press comment all start here.',
         link: ['Book Matt', '../book/'] },
     ] },
-  { id: 'wardrobe', name: 'Wardrobe', img: 'wardrobe.webp', focus: [52, 55], alt: 'The wardrobe: walnut cabinets, a lit wall of trainers, a marble island and a rail of clothes',
+  { id: 'wardrobe', name: 'Wardrobe', img: 'wardrobe.webp', focus: [52, 55], sky: { lights: [[24, 30, 26, 0.8, [1, 0.8, 0.56]], [58, 30, 22, 0.8, [1, 0.8, 0.56]], [45, 62, 28, 0.55, [1, 0.84, 0.66]]] }, alt: 'The wardrobe: walnut cabinets, a lit wall of trainers, a marble island and a rail of clothes',
     things: [
       { at: [42.4, 50.5], label: 'The race-weekend tee', k: 'F1 Miami', t: 'The tee on the island',
         p: 'A Represent tee for a race weekend in a new market. Fashion is everywhere in sport.',
@@ -57,7 +61,7 @@ const PENTHOUSE = [
         p: 'Where the route here started, working with Tom Aspinall, Ash Cain and Alex Bowen.',
         link: ['See the route', '../#company'] },
     ] },
-  { id: 'gym', name: 'Gym', img: 'gym.webp', focus: [60, 45], alt: 'The gym: a punch bag, boxing gloves, a wall of medals, a treadmill by the window and a golf bag',
+  { id: 'gym', name: 'Gym', img: 'gym.webp', focus: [60, 45], sky: { lights: [[37, 22, 16, 0.7, [1, 0.88, 0.72]], [35, 55, 30, 0.55, [1, 0.86, 0.7]], [70, 50, 22, 0.4, [1, 0.86, 0.7]]] }, alt: 'The gym: a punch bag, boxing gloves, a wall of medals, a treadmill by the window and a golf bag',
     things: [
       { at: [37, 24.5], label: 'The medals', k: 'Race day', t: 'Paris Marathon',
         p: 'Paris Marathon, and a 10K where you ring the bell at the finish.',
@@ -69,7 +73,7 @@ const PENTHOUSE = [
         p: 'Golf with Niall Horan and Judy Murray.',
         stat: ['+400%', 'Channel growth with Niall Horan & Judy Murray'], link: ['See the record', '../#record'] },
     ] },
-  { id: 'rooftop', name: 'Rooftop', img: 'rooftop.webp', focus: [50, 55], alt: 'The roof terrace: a blue padel court with glass walls, a marble bar, and the London skyline at sunset',
+  { id: 'rooftop', name: 'Rooftop', img: 'rooftop.webp', focus: [50, 55], sky: { outdoor: true, lights: [[95, 54, 9, 1.2, [1, 0.6, 0.3]], [62, 68, 14, 0.9, [1, 0.72, 0.42]], [30, 80, 20, 0.5, [1, 0.72, 0.42]], [86, 52, 12, 0.4, [1, 0.8, 0.6]]] }, alt: 'The roof terrace: a blue padel court with glass walls, a marble bar, and the London skyline at sunset',
     things: [
       { at: [41.6, 67], label: 'The rackets', k: 'On court', t: 'Padel',
         p: "I play it too. Four players, one small court, walls in play: it's built to be social.",

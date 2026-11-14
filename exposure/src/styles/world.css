@@ -9,7 +9,9 @@ html.wd body { background: #090303; }
 .wd-plate { position: absolute; left: 0; top: 0; will-change: transform; isolation: isolate; }
 .wd-plate img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 /* the first room comes up out of the dark once its picture has loaded */
-.wd-plate img { transition: filter 1.2s ease; } html.wd:not(.wd-in) .wd-plate img { filter: brightness(0); }
+.wd-plate img, .wd-lit { transition: filter 1.2s ease; } html.wd:not(.wd-in) .wd-plate img, html.wd:not(.wd-in) .wd-lit { filter: brightness(0); }
+/* the same room, relit for London's hour and weather. It sits exactly over the picture and replaces it. */
+.wd-lit { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; visibility: hidden; } .wd-lit.on { visibility: visible; }
 html.wd .grain { opacity: .2; }
 /* the room can be bright behind the header, so the header carries its own shade here */
 html.wd .hd::before { inset: 0 0 -44px 0; -webkit-backdrop-filter: none; backdrop-filter: none; -webkit-mask-image: none; mask-image: none; background: linear-gradient(rgb(9 3 3 / .72), rgb(9 3 3 / 0)); }
