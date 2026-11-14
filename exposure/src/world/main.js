@@ -25,15 +25,33 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const rooms = ROOMS.map((r, i) => {
   const el = document.createElement('section'); el.className = 'wd-room'; el.setAttribute('aria-label', r.name); el.inert = true;
   el.innerHTML = `<div class="wd-plate"><img class="wd-day" alt="${esc(r.alt)}" decoding="async" draggable="false">`
+    + (r.screens || []).map((sc, k) => `<button class="wd-screen" type="button" data-screen="${k}" aria-label="Play the video on ${esc(sc.label)} full screen"><video muted loop playsinline preload="none" poster="../video/${sc.poster}"></video><i aria-hidden="true"></i></button><span class="wd-screen-hint mono" aria-hidden="true" style="left:${(sc.quad[0][0] + sc.quad[2][0]) / 2}%;top:${(sc.quad[0][1] + sc.quad[2][1]) / 2}%">Watch full screen</span>`).join('')
     + r.things.map((t, j) => `<button class="wd-dot${t.at[0] > 78 ? ' flip' : ''}${t.spotify ? ' wd-dot-music' : ''}" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
   stage.append(el);
   const tab = document.createElement('button'); tab.type = 'button'; tab.className = 'wd-menu-i'; tab.textContent = r.name; tab.addEventListener('click', () => { closeMenu(); show(i); }); menu.append(tab);
-  return { ...r, file: r.img, el, tab, plate: $('.wd-plate', el), img: $('.wd-day', el), c: { x: r.focus[0] / 100, y: r.focus[1] / 100 }, loaded: false };
+  return { ...r, file: r.img, el, tab, plate: $('.wd-plate', el), img: $('.wd-day', el), c: { x: r.focus[0] / 100, y: r.focus[1] / 100 }, loaded: false, tvs: $$('.wd-screen', el).map((b, k) => ({ b, v: $('video', b), ...r.screens[k] })) };
 });
 function load(r) {
   if (r.loaded) return Promise.resolve(); r.loaded = true;
   return new Promise(res => { r.img.addEventListener('load', res, { once: true }); r.img.addEventListener('error', res, { once: true }); r.img.src = `../rooms/${r.file}`; });
 }
+
+/* ---------- screens: a video laid onto a screen in the picture. The video is a flat 640 × 360 box; a perspective
+   transform pins its four corners to the screen's four corners, so it sits on the TV at whatever angle the TV is drawn. */
+const SW = 640, SH = 360;
+function pin(q) { // q: four corners in pixels, clockwise from top left. Returns the matrix3d that carries the box onto them.
+  const src = [[0, 0], [SW, 0], [SW, SH], [0, SH]], A = [], B = [];
+  for (let i = 0; i < 4; i++) { const [x, y] = src[i], [u, v] = q[i]; A.push([x, y, 1, 0, 0, 0, -u * x, -u * y], [0, 0, 0, x, y, 1, -v * x, -v * y]); B.push(u, v); }
+  for (let i = 0; i < 8; i++) { // solve the eight unknowns by elimination
+    let m = i; for (let r = i + 1; r < 8; r++) if (Math.abs(A[r][i]) > Math.abs(A[m][i])) m = r;
+    [A[i], A[m]] = [A[m], A[i]]; [B[i], B[m]] = [B[m], B[i]];
+    for (let r = i + 1; r < 8; r++) { const f = A[r][i] / A[i][i]; for (let c = i; c < 8; c++) A[r][c] -= f * A[i][c]; B[r] -= f * B[i]; }
+  }
+  const h = new Array(8); for (let i = 7; i >= 0; i--) { let t = B[i]; for (let c = i + 1; c < 8; c++) t -= A[i][c] * h[c]; h[i] = t / A[i][i]; }
+  return `matrix3d(${[h[0], h[3], 0, h[6], h[1], h[4], 0, h[7], 0, 0, 1, 0, h[2], h[5], 0, 1].map(n => +n.toFixed(6)).join(',')})`;
+}
+// only the room on screen plays; with reduced motion the still stays up and the click still opens the video
+function screens(r, on) { for (const t of r.tvs) { if (on && !reduced) { if (!t.v.getAttribute('src')) t.v.src = `../video/${t.video}`; t.v.play().catch(() => {}); } else t.v.pause(); } }
 
 /* ---------- fit: the picture always covers the screen. Where it is bigger than the screen, it can be dragged. */
 let W = 1, H = 1, pw = 1, ph = 1, cur = 0, entered = false;
@@ -43,7 +61,7 @@ function place(r) {
 }
 function fit() {
   W = stage.clientWidth; H = stage.clientHeight; const s = Math.max(W / IW, H / IH); pw = IW * s; ph = IH * s;
-  rooms.forEach(r => { r.plate.style.width = pw.toFixed(1) + 'px'; r.plate.style.height = ph.toFixed(1) + 'px'; place(r); });
+  rooms.forEach(r => { r.plate.style.width = pw.toFixed(1) + 'px'; r.plate.style.height = ph.toFixed(1) + 'px'; place(r); for (const t of r.tvs) t.b.style.transform = pin(t.quad.map(([x, y]) => [x / 100 * pw, y / 100 * ph])); });
   root.classList.toggle('wd-pan', pw - W > 24 || ph - H > 24); root.classList.toggle('wd-far', pw > W * 1.3);
 }
 addEventListener('resize', fit);
@@ -73,7 +91,7 @@ function show(i, dir) {
   closeCard(); const from = rooms[cur], to = rooms[i]; if (dir == null) dir = i > cur ? 1 : -1; cur = i;
   warm(to); load(to).then(() => load(rooms[wrap(i + 1)])); load(rooms[wrap(i - 1)]);
   to.c.x = to.focus[0] / 100; to.c.y = to.focus[1] / 100; place(to);
-  from.el.classList.remove('on'); from.el.inert = true; to.el.classList.add('on'); to.el.inert = !entered;
+  from.el.classList.remove('on'); from.el.inert = true; to.el.classList.add('on'); to.el.inert = !entered; screens(from, false); screens(to, entered);
   if (!reduced && from !== to) {
     // the old room smears away in the direction of travel; the new one arrives from the other side
     const o = { duration: 900, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'both' };
@@ -89,6 +107,22 @@ function openMenu() { closeCard(); root.classList.add('wd-exploring'); explore.s
 function closeMenu(refocus) { if (!root.classList.contains('wd-exploring')) return; root.classList.remove('wd-exploring'); explore.setAttribute('aria-expanded', 'false'); menu.inert = true; rooms[cur].el.inert = false; if (refocus) explore.focus({ preventScroll: true }); }
 explore.addEventListener('click', () => (root.classList.contains('wd-exploring') ? closeMenu() : openMenu()));
 shade.addEventListener('click', () => closeMenu());
+
+/* ---------- the cinema: a screen's video, full screen, with sound and controls. It picks up where the screen had got to,
+   and hands the time back when it closes. */
+const cinema = $('[data-cinema]'), cinemaV = $('[data-cinema-video]'); let cinemaOf = null;
+function openCinema(t) {
+  closeCard(); cinemaOf = t; t.v.pause(); cinemaV.src = `../video/${t.video}`; cinemaV.poster = `../video/${t.poster}`;
+  const at = t.v.currentTime || 0; cinemaV.addEventListener('loadedmetadata', () => { try { cinemaV.currentTime = at; } catch {} }, { once: true });
+  cinema.hidden = false; cinema.getBoundingClientRect(); root.classList.add('wd-watching'); cinemaV.play().catch(() => {}); $('[data-cinema-close]').focus({ preventScroll: true });
+}
+function closeCinema() {
+  if (!cinemaOf) return; const t = cinemaOf; cinemaOf = null; root.classList.remove('wd-watching'); cinemaV.pause();
+  try { if (t.v.getAttribute('src')) t.v.currentTime = cinemaV.currentTime; } catch {}
+  cinemaV.removeAttribute('src'); cinemaV.load(); cinema.hidden = true; if (rooms[cur].tvs.includes(t)) screens(rooms[cur], true); t.b.focus({ preventScroll: true });
+}
+$('[data-cinema-close]').addEventListener('click', closeCinema);
+cinema.addEventListener('click', e => { if (e.target === cinema) closeCinema(); });
 
 /* ---------- music: the speaker opens a Spotify player in the corner. Nothing is loaded from Spotify until it is asked for,
    and the player stays where it is from room to room, so whatever is playing keeps playing. */
@@ -125,6 +159,7 @@ function closeCard(refocus) {
   if (refocus && opener) opener.focus({ preventScroll: true }); opener = null;
 }
 stage.addEventListener('click', e => {
+  const sb = e.target.closest('.wd-screen'); if (sb) return openCinema(rooms[cur].tvs[+sb.dataset.screen]);
   const b = e.target.closest('.wd-dot'); if (!b) return; const t = rooms[cur].things[+b.dataset.thing];
   if (t.spotify) return music.hidden ? openMusic(t.spotify) : closeMusic();
   if (b.classList.contains('open')) return closeCard(true); openCard(t, b);
@@ -133,13 +168,14 @@ $('[data-card-close]', card).addEventListener('click', () => closeCard(true));
 
 addEventListener('keydown', e => {
   if (!entered || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (cinemaOf) { if (e.key === 'Escape') closeCinema(); return; }
   if (e.key === 'Escape') { if (root.classList.contains('wd-exploring')) closeMenu(true); else closeCard(true); } else if (root.classList.contains('wd-exploring')) return; else if (e.key === 'ArrowLeft') show(cur - 1, -1); else if (e.key === 'ArrowRight') show(cur + 1, 1);;
 });
 
 /* ---------- the way in: the page opens straight into the first room, which comes up out of the dark once its picture has loaded */
 function go() {
   if (entered) return; entered = true; root.classList.add('wd-in');
-  rooms[cur].el.inert = false; history.replaceState(null, '', '#' + rooms[cur].id);
+  rooms[cur].el.inert = false; history.replaceState(null, '', '#' + rooms[cur].id); screens(rooms[cur], true);
   load(rooms[wrap(cur + 1)]); load(rooms[wrap(cur - 1)]);
 }
 

@@ -5,9 +5,13 @@
 // A thing sits `at` [across, down] as a percentage of the picture, and opens a card: `k` the small line above, `t` the title,
 // `p` the words, and optionally `stat` [number, what], `photo` [file in public/photos, alt text] and `link` [label, where to].
 // A thing with `spotify` (a link to a track, album or playlist on Spotify) is a music marker: it opens the player, not a card.
+// A room can have `screens`: a video (in public/video, with a still `poster` beside it) laid onto a screen in the picture.
+// `quad` is the screen's four corners as percentages of the picture: top left, top right, bottom right, bottom left.
+// It plays silently in the room and opens full screen, with sound, when clicked.
 // `focus` is the part of the picture a narrow screen starts on. Photos are shown whole, at their own shape, never cropped.
 const PENTHOUSE = [
   { id: 'living', name: 'Living room', img: 'living.webp', focus: [47, 58], alt: 'The living room: dark leather sofas around a black marble table, a marble fireplace, tall windows over London',
+    screens: [{ video: 'tv.mp4', poster: 'tv.jpg', label: 'the TV', quad: [[63.45, 8.9], [76.4, 22.0], [76.4, 38.2], [63.45, 24.9]] }],
     things: [
       { at: [45.3, 60.5], label: 'The match ball', k: 'DAZN · FIFA', t: 'The World Cup ball',
         p: "The FIFA World Cup is one of eight football rights portfolios I've led at DAZN. Bringing FIFA+ across put more than three million fans onto the platform.",
