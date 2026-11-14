@@ -11,6 +11,7 @@
 // A room with `sky` is relit for London's real time and weather (see sky.js). Its `lights` are the lamps that come up as it
 // gets dark: [across %, down %, reach as a % of the picture's width, strength, colour]. `outdoor` marks a room under the sky.
 // The room needs a mask in public/rooms/masks, built by tools/masks.py.
+// `arrows` moves the side arrows down the screen (a percentage) in a room where they would sit on top of something.
 // `focus` is the part of the picture a narrow screen starts on. Photos are shown whole, at their own shape, never cropped.
 const PENTHOUSE = [
   { id: 'living', name: 'Living room', img: 'living.webp', focus: [47, 58], alt: 'The living room: dark leather sofas around a black marble table, a marble fireplace, tall windows over London',
@@ -45,6 +46,28 @@ const PENTHOUSE = [
       { at: [53.6, 53], label: 'The MacBook', k: 'Book Matt', t: 'Open the laptop',
         p: 'Podcasts, talks, panels, brand collaborations and press comment all start here.',
         link: ['Book Matt', '../book/'] },
+    ] },
+  { id: 'trophies', name: 'Trophy room', img: 'trophies.webp', focus: [50, 52], arrows: 80, alt: 'The trophy room: eight football trophies, each lit in its own walnut bay on a black marble plinth, around a bench and a football in a glass case',
+    // the markers sit on the brass plates of the plinths, left to right
+    things: [
+      { at: [12.6, 62.4], label: 'FIFA World Cup', k: 'DAZN · FIFA', t: 'FIFA World Cup',
+        p: "One of the football rights portfolios I've led at DAZN. Bringing FIFA+ across put more than three million fans onto the platform.",
+        stat: ['3M+', 'FIFA+ fans brought onto DAZN'], link: ['See the record', '../#record'] },
+      { at: [24.6, 57.2], label: 'Champions League', k: 'DAZN · UEFA', t: 'UEFA Champions League',
+        p: "One of the football rights portfolios I've led at DAZN.", link: ['See the record', '../#record'] },
+      { at: [35.1, 51.2], label: 'Serie A', k: 'DAZN', t: 'Serie A',
+        p: "One of the football rights portfolios I've led at DAZN.", link: ['See the record', '../#record'] },
+      { at: [44.85, 45.4], label: 'LaLiga', k: 'DAZN', t: 'LaLiga',
+        p: "One of the football rights portfolios I've led at DAZN.", link: ['See the record', '../#record'] },
+      { at: [54.9, 46], label: 'Copa Sudamericana', k: 'DAZN', t: 'Copa Sudamericana',
+        p: "One of the football rights portfolios I've led at DAZN.", link: ['See the record', '../#record'] },
+      { at: [65.85, 51.3], label: 'Bundesliga', k: 'DAZN', t: 'Bundesliga',
+        p: "One of the football rights portfolios I've led at DAZN.", link: ['See the record', '../#record'] },
+      { at: [76.4, 57.3], label: 'National League', k: 'DAZN', t: 'National League',
+        p: "One of the football rights portfolios I've led at DAZN.",
+        photo: ['national-league-awards.jpg', 'On the red carpet at the National League Awards'], link: ['See the record', '../#record'] },
+      { at: [87.75, 63.5], label: 'Europa League', k: 'UEFA', t: 'UEFA Europa League',
+        p: "One of the competitions I've worked on.", link: ['See the record', '../#record'] },
     ] },
   { id: 'wardrobe', name: 'Wardrobe', img: 'wardrobe.webp', focus: [52, 55], sky: { lights: [[24, 30, 26, 0.8, [1, 0.8, 0.56]], [58, 30, 22, 0.8, [1, 0.8, 0.56]], [45, 62, 28, 0.55, [1, 0.84, 0.66]]] }, alt: 'The wardrobe: walnut cabinets, a lit wall of trainers, a marble island and a rail of clothes',
     things: [

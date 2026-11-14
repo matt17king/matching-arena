@@ -114,7 +114,7 @@ function label() {
   const r = rooms[cur], a = rooms[wrap(cur - 1)], b = rooms[wrap(cur + 1)];
   $('b', prevBtn).textContent = `Enter ${a.name}`; prevBtn.setAttribute('aria-label', `Go to the ${a.name.toLowerCase()}`);
   $('b', nextBtn).textContent = `Enter ${b.name}`; nextBtn.setAttribute('aria-label', `Go to the ${b.name.toLowerCase()}`);
-  where.textContent = r.name;
+  where.textContent = r.name; root.style.setProperty('--arrow-y', `${r.arrows || 50}%`);
   rooms.forEach((x, i) => { x.tab.setAttribute('aria-current', i === cur ? 'true' : 'false'); });
 }
 function show(i, dir) {

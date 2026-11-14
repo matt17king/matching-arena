@@ -2,7 +2,7 @@
 html.wd, html.wd body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 html.wd body { background: #090303; }
 
-.wd-stage { position: fixed; inset: 0; overflow: hidden; touch-action: none; background: #090303; user-select: none; -webkit-user-select: none; }
+.wd-stage { position: fixed; inset: 0; overflow: hidden; overflow: clip; touch-action: none; background: #090303; user-select: none; -webkit-user-select: none; }
 .wd-pan .wd-stage { cursor: grab; } .wd-stage.drag { cursor: grabbing; }
 .wd-room { position: absolute; inset: 0; opacity: 0; visibility: hidden; }
 .wd-room.on { opacity: 1; visibility: visible; }
@@ -24,6 +24,8 @@ html.wd .hd::before { inset: 0 0 -44px 0; -webkit-backdrop-filter: none; backdro
 .wd-shade { position: fixed; inset: 0; z-index: 21; display: none; } .wd-exploring .wd-shade { display: block; }
 .wd-ex { position: fixed; left: var(--gut); bottom: clamp(16px, 3.4vh, 30px); z-index: 22; display: grid; gap: clamp(18px, 3.4vh, 34px); justify-items: start; opacity: 0; transition: opacity .8s ease .5s; }
 .wd-in .wd-ex { opacity: 1; }
+/* the closed list still takes up room above the button; it must not swallow clicks meant for the picture underneath */
+.wd-ex { pointer-events: none; } .wd-ex .wd-explore, .wd-exploring .wd-ex .wd-menu, .wd-exploring .wd-ex .wd-menu-i { pointer-events: auto; }
 .wd-explore { all: unset; cursor: pointer; padding: 8px 0; font: 600 19px/1 var(--disp); letter-spacing: -.01em; color: var(--ice); text-shadow: 0 1px 14px rgb(9 3 3 / .7), 0 0 2px rgb(9 3 3 / .5); transition: opacity .3s ease; }
 .wd-explore:hover { opacity: .7; } .wd-explore:focus-visible { outline: 2px solid var(--ice); outline-offset: 6px; border-radius: 4px; }
 .wd-menu { display: grid; justify-items: start; visibility: hidden; }
@@ -43,7 +45,7 @@ html.wd-exploring .wd-arrow, html.wd-exploring .wd-hint { opacity: 0; visibility
 .wd-in.wd-far:not(.wd-dragged):not(.wd-carded) .wd-hint { opacity: 1; transition-delay: 1s; }
 
 /* ---- the arrows: a plain outlined circle at each side, which opens into the name of the room on hover or focus ---- */
-.wd-arrow { all: unset; box-sizing: border-box; position: fixed; top: 50%; z-index: 20; cursor: pointer; display: flex; align-items: center; height: 46px; min-width: 46px; border-radius: 999px; border: 2px solid var(--ice); color: var(--ice);
+.wd-arrow { all: unset; box-sizing: border-box; position: fixed; top: var(--arrow-y, 50%); z-index: 20; cursor: pointer; display: flex; align-items: center; height: 46px; min-width: 46px; border-radius: 999px; border: 2px solid var(--ice); color: var(--ice);
   background: rgb(9 3 3 / .18); opacity: 0; visibility: hidden; transform: translateY(-50%); transition: opacity .8s ease .6s, visibility 0s linear .6s, background-color .35s ease; filter: drop-shadow(0 2px 10px rgb(9 3 3 / .55)); }
 .wd-in .wd-arrow { opacity: 1; visibility: visible; }
 .wd-prev { left: var(--gut); } .wd-next { right: var(--gut); }
