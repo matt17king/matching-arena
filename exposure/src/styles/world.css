@@ -74,6 +74,21 @@ html.wd-exploring .wd-arrow, html.wd-exploring .wd-hint { opacity: 0; visibility
 .wd-dot:hover i::after, .wd-dot.open i::after { animation: none; opacity: 0; }
 @keyframes wd-ping { 0% { transform: scale(1); opacity: .8; } 60%, 100% { transform: scale(2); opacity: 0; } }
 
+/* ---- the music player: bottom right, out of the way of Explore and the arrows ---- */
+.wd-music { position: fixed; z-index: 24; right: var(--gut); bottom: clamp(16px, 3.4vh, 30px); width: min(360px, calc(100vw - 2 * var(--gut))); padding: 10px; border-radius: 20px; border: 1px solid var(--line-strong);
+  background: rgb(9 3 3 / .86); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); box-shadow: 0 30px 80px rgb(9 3 3 / .6); opacity: 0; transform: translateY(20px); transition: opacity .4s ease, transform .7s var(--expo); }
+.wd-playing .wd-music { opacity: 1; transform: none; }
+.wd-music-k { display: flex; align-items: center; justify-content: space-between; padding: 2px 2px 8px 10px; } .wd-music-k .mono { color: var(--sky); }
+.wd-music-frame { border-radius: 12px; overflow: hidden; background: rgb(243 248 252 / .06); line-height: 0; } .wd-music-frame iframe { width: 100%; border: 0; display: block; }
+.wd-music-x { all: unset; box-sizing: border-box; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line-strong); color: var(--ink); cursor: pointer; transition: background-color .3s ease, color .3s ease; }
+.wd-music-x i { font: 400 19px/1 var(--sans); font-style: normal; } .wd-music-x:hover { background: var(--ice); color: var(--raven); } .wd-music-x:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+/* the speaker's marker carries a note, and stays lit while the player is open */
+.wd-dot-music i::before { inset: 0; background: none; content: "♪"; display: grid; place-items: center; font: 600 13px/1 var(--sans); color: var(--ice); }
+.wd-playing .wd-dot-music i { background: var(--poppy); border-color: var(--poppy); } .wd-playing .wd-dot-music i::after { animation: none; opacity: 0; }
+html.wd-exploring .wd-music { opacity: 0; pointer-events: none; }
+/* a card and the player share the right-hand side: while music is on, the card stops short of it */
+@media (min-width: 821px) { .wd-playing .wd-card { max-height: calc(100% - var(--hd) - 262px); } }
+
 /* ---- the card a marker opens ---- */
 .wd-card { position: fixed; z-index: 25; right: var(--gut); top: calc(var(--hd) + 14px); width: min(400px, calc(100vw - 2 * var(--gut))); max-height: calc(100% - var(--hd) - 110px); overflow: auto; overscroll-behavior: contain; border-radius: 20px; border: 1px solid var(--line-strong);
   background: rgb(9 3 3 / .86); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); box-shadow: 0 30px 80px rgb(9 3 3 / .6); opacity: 0; transform: translateX(26px); filter: blur(10px); transition: opacity .4s ease, transform .7s var(--expo), filter .4s ease; }
@@ -100,6 +115,7 @@ html.wd-exploring .wd-arrow, html.wd-exploring .wd-hint { opacity: 0; visibility
   .wd-prev { left: 10px; } .wd-next { right: 10px; }
   .wd-card, .wd-card.tall { left: 10px; right: 10px; top: auto; bottom: 10px; width: auto; max-height: min(80vh, 100% - var(--hd) - 20px); transform: translateY(30px); z-index: 40; }
   .wd-carded .wd-card { transform: none; }
+  .wd-music { left: 10px; right: 10px; bottom: 64px; width: auto; }
   .wd-card-body { padding: 16px; gap: 16px; } .wd-card-t { font-size: 28px; } .wd-card-stat b { font-size: 46px; } .wd-card-p { font-size: 16px; }
   .wd-card.tall .wd-card-body { grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 16px; }
   .wd-card.tall .wd-card-ph { grid-row: 1; } .wd-card.tall .wd-card-head { align-self: end; } .wd-card.tall .wd-card-foot { grid-column: 1 / -1; }

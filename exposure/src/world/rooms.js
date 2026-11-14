@@ -4,6 +4,7 @@
 // Each room is one picture (public/rooms, 2000 × 1116) and a list of things in it.
 // A thing sits `at` [across, down] as a percentage of the picture, and opens a card: `k` the small line above, `t` the title,
 // `p` the words, and optionally `stat` [number, what], `photo` [file in public/photos, alt text] and `link` [label, where to].
+// A thing with `spotify` (a link to a track, album or playlist on Spotify) is a music marker: it opens the player, not a card.
 // `focus` is the part of the picture a narrow screen starts on. Photos are shown whole, at their own shape, never cropped.
 const PENTHOUSE = [
   { id: 'living', name: 'Living room', img: 'living.webp', focus: [47, 58], alt: 'The living room: dark leather sofas around a black marble table, a marble fireplace, tall windows over London',
@@ -11,6 +12,7 @@ const PENTHOUSE = [
       { at: [45.3, 60.5], label: 'The match ball', k: 'DAZN · FIFA', t: 'The World Cup ball',
         p: "The FIFA World Cup is one of eight football rights portfolios I've led at DAZN. Bringing FIFA+ across put more than three million fans onto the platform.",
         stat: ['3M+', 'FIFA+ fans brought onto DAZN'], link: ['See the record', '../#record'] },
+      { at: [51.6, 21.5], label: 'Play music', t: 'On the speakers', spotify: 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M' },
       { at: [50.6, 69.6], label: 'On the coffee table', k: 'Circle Networks · 2025', t: 'In the press',
         p: '80 Four, the agency I founded with James Parker-Aiken and Emily Martin, was named a finalist for Start Up of the Year.',
         photo: ['press-circle.jpg', 'The 80 Four founders at the Circle Networks awards'], link: ['Read the press', '../#press'] },

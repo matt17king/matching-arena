@@ -25,7 +25,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const rooms = ROOMS.map((r, i) => {
   const el = document.createElement('section'); el.className = 'wd-room'; el.setAttribute('aria-label', r.name); el.inert = true;
   el.innerHTML = `<div class="wd-plate"><img class="wd-day" alt="${esc(r.alt)}" decoding="async" draggable="false">`
-    + r.things.map((t, j) => `<button class="wd-dot${t.at[0] > 78 ? ' flip' : ''}" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
+    + r.things.map((t, j) => `<button class="wd-dot${t.at[0] > 78 ? ' flip' : ''}${t.spotify ? ' wd-dot-music' : ''}" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
   stage.append(el);
   const tab = document.createElement('button'); tab.type = 'button'; tab.className = 'wd-menu-i'; tab.textContent = r.name; tab.addEventListener('click', () => { closeMenu(); show(i); }); menu.append(tab);
   return { ...r, file: r.img, el, tab, plate: $('.wd-plate', el), img: $('.wd-day', el), c: { x: r.focus[0] / 100, y: r.focus[1] / 100 }, loaded: false };
@@ -90,6 +90,18 @@ function closeMenu(refocus) { if (!root.classList.contains('wd-exploring')) retu
 explore.addEventListener('click', () => (root.classList.contains('wd-exploring') ? closeMenu() : openMenu()));
 shade.addEventListener('click', () => closeMenu());
 
+/* ---------- music: the speaker opens a Spotify player in the corner. Nothing is loaded from Spotify until it is asked for,
+   and the player stays where it is from room to room, so whatever is playing keeps playing. */
+const music = $('[data-music]'), musicFrame = $('[data-music-frame]');
+function openMusic(url) {
+  closeCard();
+  const m = url.match(/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|artist|episode|show)\/([A-Za-z0-9]+)/); if (!m) return;
+  musicFrame.innerHTML = `<iframe title="Spotify player" src="https://open.spotify.com/embed/${m[1]}/${m[2]}?theme=0" height="152" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+  music.hidden = false; music.getBoundingClientRect(); root.classList.add('wd-playing');
+}
+function closeMusic() { root.classList.remove('wd-playing'); musicFrame.innerHTML = ''; music.hidden = true; }
+$('[data-music-close]').addEventListener('click', closeMusic);
+
 /* ---------- the card a marker opens */
 let opener = null, asked = 0;
 // photos are shown whole, at their own shape; their size is read once, ahead of the click where possible
@@ -112,7 +124,11 @@ function closeCard(refocus) {
   setTimeout(() => { if (!root.classList.contains('wd-carded')) card.hidden = true; }, reduced ? 0 : 500);
   if (refocus && opener) opener.focus({ preventScroll: true }); opener = null;
 }
-stage.addEventListener('click', e => { const b = e.target.closest('.wd-dot'); if (!b) return; if (b.classList.contains('open')) return closeCard(true); openCard(rooms[cur].things[+b.dataset.thing], b); });
+stage.addEventListener('click', e => {
+  const b = e.target.closest('.wd-dot'); if (!b) return; const t = rooms[cur].things[+b.dataset.thing];
+  if (t.spotify) return music.hidden ? openMusic(t.spotify) : closeMusic();
+  if (b.classList.contains('open')) return closeCard(true); openCard(t, b);
+});
 $('[data-card-close]', card).addEventListener('click', () => closeCard(true));
 
 addEventListener('keydown', e => {
