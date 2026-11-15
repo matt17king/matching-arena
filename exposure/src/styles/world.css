@@ -39,7 +39,7 @@ html.wd .hd::before { inset: 0 0 -44px 0; -webkit-backdrop-filter: none; backdro
 .wd-exploring .wd-menu .wd-menu-i:hover, .wd-exploring .wd-menu .wd-menu-i:focus-visible { opacity: 1; }
 .wd-menu-i:focus-visible { outline: none; }
 /* the other places: bottom right, by name */
-.wd-places { position: fixed; z-index: 22; right: var(--gut); bottom: clamp(16px, 3.4vh, 30px); justify-items: end; text-align: right; }
+.wd-places { position: fixed; z-index: 22; right: var(--gut); bottom: calc(clamp(16px, 3.4vh, 30px) + 35px + clamp(18px, 3.4vh, 34px)); /* level with the foot of the room list, which sits above the Explore button */ justify-items: end; text-align: right; }
 .wd-exploring .wd-places, .wd-exploring .wd-places .wd-menu-i { pointer-events: auto; }
 /* a place with one room has no rooms to either side */
 .wd-solo .wd-arrow { display: none; }
@@ -162,7 +162,7 @@ html.wd-exploring .wd-music { opacity: 0; pointer-events: none; }
 
 @media (hover: none), (pointer: coarse) { .wd-dot span { display: none; } }
 @media (max-width: 820px) {
-  .wd-ex { left: 16px; } .wd-menu-i { font-size: 30px; } .wd-places { right: 16px; bottom: 16px; }
+  .wd-ex { left: 16px; } .wd-menu-i { font-size: 30px; } .wd-places { right: 16px; }
   .wd-fly { left: auto; right: 10px; transform: none; bottom: 14px; } .wd-fly button { min-height: 42px; padding: 0 14px; } .wd-fly button b { font-size: 15px; }
   .wd-fly.board { left: 10px; right: 10px; bottom: 62px; flex-wrap: wrap; justify-content: center; border-radius: 20px; padding: 10px; } .wd-fly.board > .mono { width: 100%; text-align: center; margin: 0 0 2px; } .wd-fly.board button { flex-direction: column; gap: 3px; padding: 7px 12px; } .wd-fly.board button .mono { font-size: 9px; }
   .wd-playing .wd-fly { display: none; }
