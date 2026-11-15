@@ -1,8 +1,9 @@
 // The virtual world: Matt's penthouse, one picture per room. Arrows (or the room names) walk between rooms; markers on
 // the things in each room open a card about the work they stand for. The rooms and everything in them are listed in rooms.js.
-import { root, $, $$, clamp, reduced, grainURL } from '../kit.js';
+import { root, $, $$, clamp, reduced, params, grainURL } from '../kit.js';
 import '../styles/world.css';
 import { LOCATIONS } from './rooms.js';
+import { createSky, sunHeight, londonWeather, WEATHERS, TIMES } from './sky.js';
 
 // Which location: the last part of the address (world.bymattking.com/penthouse), or the first one listed.
 const LOC = LOCATIONS.find(l => l.id === location.pathname.split('/').filter(Boolean).pop()) || LOCATIONS[0], ROOMS = LOC.rooms;
@@ -12,7 +13,7 @@ const HOME = location.hostname.startsWith('world.') ? `${location.protocol}//${l
 const out = href => (href.startsWith('../') ? HOME + href.slice(3) : href);
 
 $$('a[href^="../"]').forEach(a => (a.href = out(a.getAttribute('href'))));
-{ const l = $('[data-loc]'); if (l) l.textContent = `${LOC.name} · ${LOC.place}`; const h = $('h1'); if (h) h.textContent = `The virtual world: ${LOC.name}, ${LOC.place}, room by room`; }
+{ const h = $('h1'); if (h) h.textContent = `The virtual world: ${LOC.name}, ${LOC.place}, room by room`; }
 { const g = grainURL(); $('[data-grain]').style.backgroundImage = g; root.style.setProperty('--grain', g); }
 
 const IW = 2000, IH = 1116; // every room picture is this shape
@@ -24,16 +25,91 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 /* ---------- build: a plate per room (the picture and its markers), and a line in the Explore menu per room */
 const rooms = ROOMS.map((r, i) => {
   const el = document.createElement('section'); el.className = 'wd-room'; el.setAttribute('aria-label', r.name); el.inert = true;
-  el.innerHTML = `<div class="wd-plate"><img class="wd-day" alt="${esc(r.alt)}" decoding="async" draggable="false">`
-    + r.things.map((t, j) => `<button class="wd-dot${t.at[0] > 78 ? ' flip' : ''}" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
+  el.innerHTML = `<div class="wd-plate"><img class="wd-day" alt="${esc(r.alt)}" decoding="async" draggable="false">${r.sky ? '<canvas class="wd-lit" aria-hidden="true"></canvas>' : ''}`
+    + (r.screens || []).map((sc, k) => `<button class="wd-screen" type="button" data-screen="${k}" aria-label="Play the video on ${esc(sc.label)} full screen"><video muted loop playsinline preload="none" poster="../video/${sc.poster}"></video><i aria-hidden="true"></i></button><span class="wd-screen-hint mono" aria-hidden="true" style="left:${(sc.quad[0][0] + sc.quad[2][0]) / 2}%;top:${(sc.quad[0][1] + sc.quad[2][1]) / 2}%">Watch full screen</span>`).join('')
+    + r.things.map((t, j) => `<button class="wd-dot${t.at[0] > 78 ? ' flip' : ''}${t.spotify ? ' wd-dot-music' : ''}" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
   stage.append(el);
   const tab = document.createElement('button'); tab.type = 'button'; tab.className = 'wd-menu-i'; tab.textContent = r.name; tab.addEventListener('click', () => { closeMenu(); show(i); }); menu.append(tab);
-  return { ...r, file: r.img, el, tab, plate: $('.wd-plate', el), img: $('.wd-day', el), c: { x: r.focus[0] / 100, y: r.focus[1] / 100 }, loaded: false };
+  return { ...r, file: r.img, el, tab, plate: $('.wd-plate', el), img: $('.wd-day', el), c: { x: r.focus[0] / 100, y: r.focus[1] / 100 }, loaded: null, lit: $('.wd-lit', el), maskImg: null, tvs: $$('.wd-screen', el).map((b, k) => ({ b, v: $('video', b), ...r.screens[k] })) };
 });
-function load(r) {
-  if (r.loaded) return Promise.resolve(); r.loaded = true;
-  return new Promise(res => { r.img.addEventListener('load', res, { once: true }); r.img.addEventListener('error', res, { once: true }); r.img.src = `../rooms/${r.file}`; });
+const fetched = (img, src) => new Promise(res => { img.addEventListener('load', () => res(true), { once: true }); img.addEventListener('error', () => res(false), { once: true }); img.src = src; });
+function load(r) { // the picture, and with it the room's light mask. Resolves once both are in; the room is then painted for the hour.
+  if (!r.loaded) r.loaded = Promise.all([fetched(r.img, `../rooms/${r.file}`), r.sky && sky ? fetched((r.maskImg = new Image()), `../rooms/masks/${r.id}.png`) : false]).then(([a, b]) => { r.ready = a && b; paint(r); });
+  return r.loaded;
 }
+
+/* ---------- London's light: the hour and the weather there, live, relighting each room (see sky.js) */
+const coarse = matchMedia('(pointer: coarse)').matches, sky = params.has('sky') ? createSky(coarse) : null,   // switched off for now: it only runs when ?sky is added to the address
+   locLabel = $('[data-loc]');
+const light = { sun: 40, cloud: 0, rain: 0, label: '' }, aim = { sun: 40, cloud: 0, rain: 0 }; let liveWeather = null, clock = 0, settled = false;
+// for looking at a particular moment: ?time=night (or day, golden, sunset, dusk, or 21:30) and ?weather=rain (or clear, cloudy, storm)
+let forced = params.get('time'), forcedWeather = params.get('weather') in WEATHERS ? params.get('weather') : null; const londonTime = d => d.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' });
+function setLight() {
+  const now = new Date(); let when = londonTime(now);
+  if (forced in TIMES) { aim.sun = TIMES[forced]; when = forced[0].toUpperCase() + forced.slice(1); }
+  else if (/^\d{1,2}:\d\d$/.test(forced || '')) { // that time today, in London
+    const [h, m] = forced.split(':').map(Number), [lh, lm] = londonTime(now).split(':').map(Number), off = (lh * 60 + lm) - (now.getUTCHours() * 60 + now.getUTCMinutes());
+    aim.sun = sunHeight(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, h * 60 + m - off))); when = forced;
+  } else aim.sun = sunHeight(now);
+  const weather = forcedWeather ? WEATHERS[forcedWeather] : liveWeather;
+  aim.cloud = weather ? weather.cloud : 0; aim.rain = weather ? weather.rain : 0; light.label = weather ? weather.label : '';
+  if (!settled || reduced) Object.assign(light, aim);   // the first time, and for anyone who has asked for less motion, it is simply set
+  if (locLabel) locLabel.textContent = [LOC.name, LOC.place, sky && when, sky && light.label].filter(Boolean).join(' · ');
+  root.classList.toggle('wd-raining', !!sky && aim.rain > 0);
+}
+// afterwards it moves there: the sun travels, so a change of hour passes through the hours between
+const easing = () => Math.abs(aim.sun - light.sun) > 0.02 || Math.abs(aim.cloud - light.cloud) > 0.004 || Math.abs(aim.rain - light.rain) > 0.004;
+function ease(dt) {
+  const k = 1 - Math.exp(-dt * 2.6), go = (a, b, min) => (Math.abs(b - a) < min ? b : a + (b - a) * k + Math.sign(b - a) * min * 0.5);
+  light.sun = go(light.sun, clamp(aim.sun, -14, 16), 0.04); if (Math.abs(clamp(aim.sun, -14, 16) - light.sun) < 0.05) light.sun = aim.sun;
+  light.cloud = go(light.cloud, aim.cloud, 0.006); light.rain = go(light.rain, aim.rain, 0.006);
+}
+// in clear daylight an indoor room is exactly its picture, so nothing is drawn over it
+const plain = r => !r.sky.outdoor && light.sun >= 12 && light.cloud < 0.05 && !light.rain;
+const moving = r => !!(sky && r.sky && r.ready && !reduced && (light.rain > 0 || (r.sky.outdoor && light.cloud > 0.2 && light.sun > -6)));
+function paint(r) {
+  if (!sky || !r.sky || !r.ready) return;
+  if (plain(r)) return r.lit.classList.remove('on');
+  if (r.lit.width !== sky.width) { r.lit.width = sky.width; r.lit.height = sky.height; }
+  sky.draw(r, light, reduced ? 0 : clock, r.lit); r.lit.classList.add('on');
+}
+{ let last = 0; const frame = t => { requestAnimationFrame(frame); if (t - last < 33 || document.hidden) return; const r = rooms[cur]; const dt = Math.min(0.1, (t - last) / 1000), turning = easing(); if (!entered || cinemaOf || !(turning || moving(r))) { last = t; return; } if (turning) ease(dt); clock += dt; last = t; paint(r); }; requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); }); }
+function relight() { setLight(); paint(rooms[cur]); }
+if (sky) { setInterval(relight, 60000); const ask = () => londonWeather().then(w => { if (w) { liveWeather = w; relight(); } }); ask(); setInterval(ask, 15 * 60000); }
+
+/* ---------- the test panel: step through every hour and every weather without waiting for London to oblige.
+   It is only there on previews and local builds (or with ?test); the live addresses never show it. */
+if (sky && (params.has('test') || !/(^|\.)bymattking\.com$/.test(location.hostname))) {
+  const el = document.createElement('aside'); el.className = 'wd-test'; el.setAttribute('aria-label', 'Test the light');
+  const row = (name, opts, get, set) => `<div class="wd-test-row" data-row="${name}"><span class="mono">${name}</span>${opts.map(o => `<button type="button" class="mono" data-v="${o || ''}">${o || 'Live'}</button>`).join('')}</div>`;
+  el.innerHTML = `<button type="button" class="wd-test-x mono" data-fold aria-expanded="true">Test · hide</button>` + row('Time', [null, ...Object.keys(TIMES)]) + row('Weather', [null, ...Object.keys(WEATHERS)]) + '<p class="mono wd-test-note">Preview only. Not shown on the live site.</p>';
+  document.body.append(el);
+  const mark = () => { $$('[data-row="Time"] button', el).forEach(b => b.setAttribute('aria-pressed', (b.dataset.v || null) === (forced in TIMES ? forced : null))); $$('[data-row="Weather"] button', el).forEach(b => b.setAttribute('aria-pressed', (b.dataset.v || null) === forcedWeather)); };
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.hasAttribute('data-fold')) { const shut = el.classList.toggle('shut'); b.textContent = shut ? 'Test' : 'Test · hide'; b.setAttribute('aria-expanded', !shut); return; }
+    if (b.closest('[data-row="Time"]')) forced = b.dataset.v || null; else forcedWeather = b.dataset.v || null;
+    mark(); relight();
+  });
+  mark();
+}
+
+/* ---------- screens: a video laid onto a screen in the picture. The video is a flat 640 × 360 box; a perspective
+   transform pins its four corners to the screen's four corners, so it sits on the TV at whatever angle the TV is drawn. */
+const SW = 640, SH = 360;
+function pin(q) { // q: four corners in pixels, clockwise from top left. Returns the matrix3d that carries the box onto them.
+  const src = [[0, 0], [SW, 0], [SW, SH], [0, SH]], A = [], B = [];
+  for (let i = 0; i < 4; i++) { const [x, y] = src[i], [u, v] = q[i]; A.push([x, y, 1, 0, 0, 0, -u * x, -u * y], [0, 0, 0, x, y, 1, -v * x, -v * y]); B.push(u, v); }
+  for (let i = 0; i < 8; i++) { // solve the eight unknowns by elimination
+    let m = i; for (let r = i + 1; r < 8; r++) if (Math.abs(A[r][i]) > Math.abs(A[m][i])) m = r;
+    [A[i], A[m]] = [A[m], A[i]]; [B[i], B[m]] = [B[m], B[i]];
+    for (let r = i + 1; r < 8; r++) { const f = A[r][i] / A[i][i]; for (let c = i; c < 8; c++) A[r][c] -= f * A[i][c]; B[r] -= f * B[i]; }
+  }
+  const h = new Array(8); for (let i = 7; i >= 0; i--) { let t = B[i]; for (let c = i + 1; c < 8; c++) t -= A[i][c] * h[c]; h[i] = t / A[i][i]; }
+  return `matrix3d(${[h[0], h[3], 0, h[6], h[1], h[4], 0, h[7], 0, 0, 1, 0, h[2], h[5], 0, 1].map(n => +n.toFixed(6)).join(',')})`;
+}
+// only the room on screen plays; with reduced motion the still stays up and the click still opens the video
+function screens(r, on) { for (const t of r.tvs) { if (on && !reduced) { if (!t.v.getAttribute('src')) t.v.src = `../video/${t.video}`; t.v.play().catch(() => {}); } else t.v.pause(); } }
 
 /* ---------- fit: the picture always covers the screen. Where it is bigger than the screen, it can be dragged. */
 let W = 1, H = 1, pw = 1, ph = 1, cur = 0, entered = false;
@@ -43,7 +119,7 @@ function place(r) {
 }
 function fit() {
   W = stage.clientWidth; H = stage.clientHeight; const s = Math.max(W / IW, H / IH); pw = IW * s; ph = IH * s;
-  rooms.forEach(r => { r.plate.style.width = pw.toFixed(1) + 'px'; r.plate.style.height = ph.toFixed(1) + 'px'; place(r); });
+  rooms.forEach(r => { r.plate.style.width = pw.toFixed(1) + 'px'; r.plate.style.height = ph.toFixed(1) + 'px'; place(r); for (const t of r.tvs) t.b.style.transform = pin(t.quad.map(([x, y]) => [x / 100 * pw, y / 100 * ph])); });
   root.classList.toggle('wd-pan', pw - W > 24 || ph - H > 24); root.classList.toggle('wd-far', pw > W * 1.3);
 }
 addEventListener('resize', fit);
@@ -65,15 +141,15 @@ function label() {
   const r = rooms[cur], a = rooms[wrap(cur - 1)], b = rooms[wrap(cur + 1)];
   $('b', prevBtn).textContent = `Enter ${a.name}`; prevBtn.setAttribute('aria-label', `Go to the ${a.name.toLowerCase()}`);
   $('b', nextBtn).textContent = `Enter ${b.name}`; nextBtn.setAttribute('aria-label', `Go to the ${b.name.toLowerCase()}`);
-  where.textContent = r.name;
+  where.textContent = r.name; root.style.setProperty('--arrow-y', `${r.arrows || 50}%`);
   rooms.forEach((x, i) => { x.tab.setAttribute('aria-current', i === cur ? 'true' : 'false'); });
 }
 function show(i, dir) {
   i = wrap(i); if (i === cur && rooms[cur].el.classList.contains('on')) return;
   closeCard(); const from = rooms[cur], to = rooms[i]; if (dir == null) dir = i > cur ? 1 : -1; cur = i;
-  warm(to); load(to).then(() => load(rooms[wrap(i + 1)])); load(rooms[wrap(i - 1)]);
+  warm(to); paint(to); load(to).then(() => load(rooms[wrap(i + 1)])); load(rooms[wrap(i - 1)]);
   to.c.x = to.focus[0] / 100; to.c.y = to.focus[1] / 100; place(to);
-  from.el.classList.remove('on'); from.el.inert = true; to.el.classList.add('on'); to.el.inert = !entered;
+  from.el.classList.remove('on'); from.el.inert = true; to.el.classList.add('on'); to.el.inert = !entered; screens(from, false); screens(to, entered);
   if (!reduced && from !== to) {
     // the old room smears away in the direction of travel; the new one arrives from the other side
     const o = { duration: 900, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'both' };
@@ -89,6 +165,34 @@ function openMenu() { closeCard(); root.classList.add('wd-exploring'); explore.s
 function closeMenu(refocus) { if (!root.classList.contains('wd-exploring')) return; root.classList.remove('wd-exploring'); explore.setAttribute('aria-expanded', 'false'); menu.inert = true; rooms[cur].el.inert = false; if (refocus) explore.focus({ preventScroll: true }); }
 explore.addEventListener('click', () => (root.classList.contains('wd-exploring') ? closeMenu() : openMenu()));
 shade.addEventListener('click', () => closeMenu());
+
+/* ---------- the cinema: a screen's video, full screen, with sound and controls. It picks up where the screen had got to,
+   and hands the time back when it closes. */
+const cinema = $('[data-cinema]'), cinemaV = $('[data-cinema-video]'); let cinemaOf = null;
+function openCinema(t) {
+  closeCard(); cinemaOf = t; t.v.pause(); cinemaV.src = `../video/${t.video}`; cinemaV.poster = `../video/${t.poster}`;
+  const at = t.v.currentTime || 0; cinemaV.addEventListener('loadedmetadata', () => { try { cinemaV.currentTime = at; } catch {} }, { once: true });
+  cinema.hidden = false; cinema.getBoundingClientRect(); root.classList.add('wd-watching'); cinemaV.play().catch(() => {}); $('[data-cinema-close]').focus({ preventScroll: true });
+}
+function closeCinema() {
+  if (!cinemaOf) return; const t = cinemaOf; cinemaOf = null; root.classList.remove('wd-watching'); cinemaV.pause();
+  try { if (t.v.getAttribute('src')) t.v.currentTime = cinemaV.currentTime; } catch {}
+  cinemaV.removeAttribute('src'); cinemaV.load(); cinema.hidden = true; if (rooms[cur].tvs.includes(t)) screens(rooms[cur], true); t.b.focus({ preventScroll: true });
+}
+$('[data-cinema-close]').addEventListener('click', closeCinema);
+cinema.addEventListener('click', e => { if (e.target === cinema) closeCinema(); });
+
+/* ---------- music: the speaker opens a Spotify player in the corner. Nothing is loaded from Spotify until it is asked for,
+   and the player stays where it is from room to room, so whatever is playing keeps playing. */
+const music = $('[data-music]'), musicFrame = $('[data-music-frame]');
+function openMusic(url) {
+  closeCard();
+  const m = url.match(/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|artist|episode|show)\/([A-Za-z0-9]+)/); if (!m) return;
+  musicFrame.innerHTML = `<iframe title="Spotify player" src="https://open.spotify.com/embed/${m[1]}/${m[2]}?theme=0" height="152" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
+  music.hidden = false; music.getBoundingClientRect(); root.classList.add('wd-playing');
+}
+function closeMusic() { root.classList.remove('wd-playing'); musicFrame.innerHTML = ''; music.hidden = true; }
+$('[data-music-close]').addEventListener('click', closeMusic);
 
 /* ---------- the card a marker opens */
 let opener = null, asked = 0;
@@ -112,22 +216,28 @@ function closeCard(refocus) {
   setTimeout(() => { if (!root.classList.contains('wd-carded')) card.hidden = true; }, reduced ? 0 : 500);
   if (refocus && opener) opener.focus({ preventScroll: true }); opener = null;
 }
-stage.addEventListener('click', e => { const b = e.target.closest('.wd-dot'); if (!b) return; if (b.classList.contains('open')) return closeCard(true); openCard(rooms[cur].things[+b.dataset.thing], b); });
+stage.addEventListener('click', e => {
+  const sb = e.target.closest('.wd-screen'); if (sb) return openCinema(rooms[cur].tvs[+sb.dataset.screen]);
+  const b = e.target.closest('.wd-dot'); if (!b) return; const t = rooms[cur].things[+b.dataset.thing];
+  if (t.spotify) return music.hidden ? openMusic(t.spotify) : closeMusic();
+  if (b.classList.contains('open')) return closeCard(true); openCard(t, b);
+});
 $('[data-card-close]', card).addEventListener('click', () => closeCard(true));
 
 addEventListener('keydown', e => {
   if (!entered || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (cinemaOf) { if (e.key === 'Escape') closeCinema(); return; }
   if (e.key === 'Escape') { if (root.classList.contains('wd-exploring')) closeMenu(true); else closeCard(true); } else if (root.classList.contains('wd-exploring')) return; else if (e.key === 'ArrowLeft') show(cur - 1, -1); else if (e.key === 'ArrowRight') show(cur + 1, 1);;
 });
 
 /* ---------- the way in: the page opens straight into the first room, which comes up out of the dark once its picture has loaded */
 function go() {
   if (entered) return; entered = true; root.classList.add('wd-in');
-  rooms[cur].el.inert = false; history.replaceState(null, '', '#' + rooms[cur].id);
+  rooms[cur].el.inert = false; history.replaceState(null, '', '#' + rooms[cur].id); screens(rooms[cur], true);
   load(rooms[wrap(cur + 1)]); load(rooms[wrap(cur - 1)]);
 }
 
 fit();
 { const start = Math.max(0, rooms.findIndex(r => r.id === location.hash.slice(1))); cur = start; const r = rooms[start];
   r.el.classList.add('on'); label(); warm(r);
-  load(r).then(go); }
+  setLight(); settled = true; load(r).then(go); }

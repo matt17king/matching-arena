@@ -69,11 +69,18 @@ The six routes and six topics come from `SEATS` and `TOPICS` in `content.js` (ea
 
 ## The virtual world
 
-`world/` is a third page: Matt's penthouse, one picture per room (living room, office, wardrobe, gym, rooftop, garage). No 3D and no extra libraries; it is pictures, markers and a little script.
+`world/` is a third page: Matt's penthouse, one picture per room (living room, office, trophy room, wardrobe, gym, rooftop, garage). No 3D and no extra libraries; it is pictures, markers and a little script.
 
 - **The rooms** are the list in `src/world/rooms.js`, in walking order. Each names its picture in `public/rooms/` (2000 × 1116; a different shape needs `IW`/`IH` changed at the top of `src/world/main.js`). To add a room, drop the picture in and add an entry.
 - **Arrows** at either side (a circle that opens into "Enter Office" on hover) go to the next and previous room (the list wraps), as do the left and right arrow keys. **Explore**, bottom left, opens the list of rooms over the blurred room to jump straight to one. The address keeps the room (`world/#office`).
 - **Markers** are each room's `things`: a position as a percentage across and down the picture, a hover name, and the card it opens (small line, title, words, and optionally a number, a photo from `public/photos/` and a link). To move a marker, change its `at`.
+- **London's light (switched off for now; add `?sky` to the address to see it):** the rooms are relit for the real time of day and weather in London (`src/world/sky.js`). Each room with a `sky` entry has a mask in `public/rooms/masks/` that marks, pixel by pixel, what is glass, what makes its own light, and how far daylight reaches. A shader uses it to dim the view outside to dusk and night and fill it with city lights, fade the daylight on the floor, bring up the room's `lights`, and, when it is raining in London, run rain down the glass. The header shows London's time and weather. In clear daylight an indoor room is exactly its picture.
+  - The weather comes from Open-Meteo (free, no key); if it cannot be reached the sky is clear. The time needs nothing.
+  - On previews and local builds a **test panel** sits at the bottom of the page, with a button for each time of day and each weather (and `Live` for the real thing). It never appears on `bymattking.com` or `world.bymattking.com` unless `?test` is added, and like everything here it needs `?sky`.
+  - To look at a particular moment by address: `?time=night` (or `day`, `golden`, `sunset`, `dusk`, or a London clock time like `21:30`) and `?weather=rain` (or `clear`, `cloudy`, `storm`). All of these need `?sky` as well, for example `?sky&time=night&weather=rain`.
+  - A new or changed room picture needs its mask rebuilt: add the window outlines to `tools/masks.py` and run `python3 tools/masks.py` from `exposure/` (needs Pillow and NumPy).
+- **Screens:** a room's `screens` lay a video onto a screen in the picture (the living room TV is the first). It plays silently, looped, pinned to the screen's four corners (`quad`, in percentages of the picture), and opens full screen with sound when clicked. To change the video, replace `public/video/tv.mp4` (and the still `tv.jpg`) or point `video` at another file. Keep it short and small: 16:9, 720p, under about 5 MB.
+- **Music:** a thing with `spotify: '<link>'` (a track, album or playlist copied from Spotify's Share menu) is a music marker. It opens Spotify's own player in the corner, which stays open from room to room. Nothing loads from Spotify until the marker is clicked. The speaker in the living room is the first.
 - **Photos in cards** are shown whole, at their own shape: an upright photo stands beside the words, a wide one sits above them.
 - **Small screens** show the picture at full height and let it be dragged sideways; each room's `focus` is where it starts.
 
