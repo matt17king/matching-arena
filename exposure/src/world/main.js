@@ -27,7 +27,7 @@ const rooms = ROOMS.map((r, i) => {
   const el = document.createElement('section'); el.className = 'wd-room'; el.setAttribute('aria-label', r.name); el.inert = true;
   el.innerHTML = `<div class="wd-plate"><img class="wd-day" alt="${esc(r.alt)}" decoding="async" draggable="false">${r.sky ? '<canvas class="wd-lit" aria-hidden="true"></canvas>' : ''}`
     + (r.screens || []).map((sc, k) => `<button class="wd-screen" type="button" data-screen="${k}" aria-label="Play the video on ${esc(sc.label)} full screen"><video muted loop playsinline preload="none" poster="../video/${sc.poster}"></video><i aria-hidden="true"></i></button><span class="wd-screen-hint mono" aria-hidden="true" style="left:${(sc.quad[0][0] + sc.quad[2][0]) / 2}%;top:${(sc.quad[0][1] + sc.quad[2][1]) / 2}%">Watch full screen</span>`).join('')
-    + r.things.map((t, j) => `<button class="wd-dot${t.at[0] > 78 ? ' flip' : ''}${t.spotify ? ' wd-dot-music' : ''}" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
+    + r.things.map((t, j) => `<button class="wd-dot${t.at[0] > 78 ? ' flip' : ''}${t.spotify ? ' wd-dot-music' : ''}${t.game ? ' wd-dot-game' : ''}" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
   stage.append(el);
   const tab = document.createElement('button'); tab.type = 'button'; tab.className = 'wd-menu-i'; tab.textContent = r.name; tab.addEventListener('click', () => { closeMenu(); show(i); }); menu.append(tab);
   return { ...r, file: r.img, el, tab, plate: $('.wd-plate', el), img: $('.wd-day', el), c: { x: r.focus[0] / 100, y: r.focus[1] / 100 }, loaded: null, lit: $('.wd-lit', el), maskImg: null, tvs: $$('.wd-screen', el).map((b, k) => ({ b, v: $('video', b), ...r.screens[k] })) };
@@ -182,6 +182,12 @@ function closeCinema() {
 $('[data-cinema-close]').addEventListener('click', closeCinema);
 cinema.addEventListener('click', e => { if (e.target === cinema) closeCinema(); });
 
+/* ---------- games: a marker with `game` opens a table to play at (see games.js, which is only fetched when first needed) */
+function openGame(name, from) {
+  closeCard(); root.classList.add('wd-gaming'); screens(rooms[cur], false);
+  import('./games.js').then(m => m.open(name, () => { root.classList.remove('wd-gaming'); screens(rooms[cur], entered); from?.focus({ preventScroll: true }); }));
+}
+
 /* ---------- music: the speaker opens a Spotify player in the corner. Nothing is loaded from Spotify until it is asked for,
    and the player stays where it is from room to room, so whatever is playing keeps playing. */
 const music = $('[data-music]'), musicFrame = $('[data-music-frame]');
@@ -220,12 +226,14 @@ stage.addEventListener('click', e => {
   const sb = e.target.closest('.wd-screen'); if (sb) return openCinema(rooms[cur].tvs[+sb.dataset.screen]);
   const b = e.target.closest('.wd-dot'); if (!b) return; const t = rooms[cur].things[+b.dataset.thing];
   if (t.spotify) return music.hidden ? openMusic(t.spotify) : closeMusic();
+  if (t.game) return openGame(t.game, b);
   if (b.classList.contains('open')) return closeCard(true); openCard(t, b);
 });
 $('[data-card-close]', card).addEventListener('click', () => closeCard(true));
 
 addEventListener('keydown', e => {
   if (!entered || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (root.classList.contains('wd-gaming')) return;
   if (cinemaOf) { if (e.key === 'Escape') closeCinema(); return; }
   if (e.key === 'Escape') { if (root.classList.contains('wd-exploring')) closeMenu(true); else closeCard(true); } else if (root.classList.contains('wd-exploring')) return; else if (e.key === 'ArrowLeft') show(cur - 1, -1); else if (e.key === 'ArrowRight') show(cur + 1, 1);;
 });
@@ -240,4 +248,4 @@ function go() {
 fit();
 { const start = Math.max(0, rooms.findIndex(r => r.id === location.hash.slice(1))); cur = start; const r = rooms[start];
   r.el.classList.add('on'); label(); warm(r);
-  setLight(); settled = true; load(r).then(go); }
+  setLight(); settled = true; load(r).then(() => { go(); if (params.get('game')) openGame(params.get('game')); }); }   // ?game=blackjack opens a table straight away, for testing

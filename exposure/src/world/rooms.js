@@ -5,6 +5,7 @@
 // A thing sits `at` [across, down] as a percentage of the picture, and opens a card: `k` the small line above, `t` the title,
 // `p` the words, and optionally `stat` [number, what], `photo` [file in public/photos, alt text] and `link` [label, where to].
 // A thing with `spotify` (a link to a track, album or playlist on Spotify) is a music marker: it opens the player, not a card.
+// A thing with `game` ('blackjack', 'roulette' or 'slots') is a table to play at: it opens the game, not a card (see games.js).
 // A room can have `screens`: a video (in public/video, with a still `poster` beside it) laid onto a screen in the picture.
 // `quad` is the screen's four corners as percentages of the picture: top left, top right, bottom right, bottom left.
 // It plays silently in the room and opens full screen, with sound, when clicked.

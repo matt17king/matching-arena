@@ -122,6 +122,9 @@ html.wd-exploring .wd-music { opacity: 0; pointer-events: none; }
 /* a card and the player share the right-hand side: while music is on, the card stops short of it */
 @media (min-width: 821px) { .wd-playing .wd-card { max-height: calc(100% - var(--hd) - 262px); } }
 
+/* a table you can play at carries a spade */
+.wd-dot-game i::before { inset: 0; background: none; content: "♠"; display: grid; place-items: center; font: 400 13px/1 var(--sans); color: var(--ice); }
+
 /* ---- the card a marker opens ---- */
 .wd-card { position: fixed; z-index: 25; right: var(--gut); top: calc(var(--hd) + 14px); width: min(400px, calc(100vw - 2 * var(--gut))); max-height: calc(100% - var(--hd) - 110px); overflow: auto; overscroll-behavior: contain; border-radius: 20px; border: 1px solid var(--line-strong);
   background: rgb(9 3 3 / .86); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); box-shadow: 0 30px 80px rgb(9 3 3 / .6); opacity: 0; transform: translateX(26px); filter: blur(10px); transition: opacity .4s ease, transform .7s var(--expo), filter .4s ease; }
