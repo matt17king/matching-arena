@@ -5,15 +5,14 @@ import '../styles/world.css';
 import { LOCATIONS } from './rooms.js';
 import { createSky, sunHeight, londonWeather, WEATHERS, TIMES } from './sky.js';
 
-// Which location: the last part of the address (world.bymattking.com/penthouse), or the first one listed.
-const LOC = LOCATIONS.find(l => l.id === location.pathname.split('/').filter(Boolean).pop()) || LOCATIONS[0], ROOMS = LOC.rooms;
+// Every room of every place, in one list. Each remembers the place it belongs to.
+const ROOMS = LOCATIONS.flatMap(l => l.rooms.map(r => ({ ...r, loc: l })));
 // This page lives at world.bymattking.com and the story at bymattking.com. On the world address, links back to the story
 // are made absolute; anywhere else (a preview, a local build) the page sits in /world/ beside the story and they stay relative.
 const HOME = location.hostname.startsWith('world.') ? `${location.protocol}//${location.hostname.slice(6)}/` : '../';
 const out = href => (href.startsWith('../') ? HOME + href.slice(3) : href);
 
 $$('a[href^="../"]').forEach(a => (a.href = out(a.getAttribute('href'))));
-{ const h = $('h1'); if (h) h.textContent = `The virtual world: ${LOC.name}, ${LOC.place}, room by room`; }
 { const g = grainURL(); $('[data-grain]').style.backgroundImage = g; root.style.setProperty('--grain', g); }
 
 const IW = 2000, IH = 1116; // every room picture is this shape
@@ -27,10 +26,9 @@ const rooms = ROOMS.map((r, i) => {
   const el = document.createElement('section'); el.className = 'wd-room'; el.setAttribute('aria-label', r.name); el.inert = true;
   el.innerHTML = `<div class="wd-plate"><img class="wd-day" alt="${esc(r.alt)}" decoding="async" draggable="false">${r.sky ? '<canvas class="wd-lit" aria-hidden="true"></canvas>' : ''}`
     + (r.screens || []).map((sc, k) => `<button class="wd-screen" type="button" data-screen="${k}" aria-label="Play the video on ${esc(sc.label)} full screen"><video muted loop playsinline preload="none" poster="../video/${sc.poster}"></video><i aria-hidden="true"></i></button><span class="wd-screen-hint mono" aria-hidden="true" style="left:${(sc.quad[0][0] + sc.quad[2][0]) / 2}%;top:${(sc.quad[0][1] + sc.quad[2][1]) / 2}%">Watch full screen</span>`).join('')
-    + r.things.map((t, j) => `<button class="wd-dot${t.at[0] > 78 ? ' flip' : ''}${t.spotify ? ' wd-dot-music' : ''}" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
+    + r.things.map((t, j) => `<button class="wd-dot${t.at[0] > 78 ? ' flip' : ''}${t.spotify ? ' wd-dot-music' : ''}${t.game ? ' wd-dot-game' : ''}" type="button" data-thing="${j}" style="left:${t.at[0]}%;top:${t.at[1]}%" aria-label="${esc(t.label)}: ${esc(t.t)}"><i aria-hidden="true"></i><span aria-hidden="true">${esc(t.label)}</span></button>`).join('') + '</div>';
   stage.append(el);
-  const tab = document.createElement('button'); tab.type = 'button'; tab.className = 'wd-menu-i'; tab.textContent = r.name; tab.addEventListener('click', () => { closeMenu(); show(i); }); menu.append(tab);
-  return { ...r, file: r.img, el, tab, plate: $('.wd-plate', el), img: $('.wd-day', el), c: { x: r.focus[0] / 100, y: r.focus[1] / 100 }, loaded: null, lit: $('.wd-lit', el), maskImg: null, tvs: $$('.wd-screen', el).map((b, k) => ({ b, v: $('video', b), ...r.screens[k] })) };
+  return { ...r, file: r.img, el, plate: $('.wd-plate', el), img: $('.wd-day', el), c: { x: r.focus[0] / 100, y: r.focus[1] / 100 }, loaded: null, lit: $('.wd-lit', el), maskImg: null, tvs: $$('.wd-screen', el).map((b, k) => ({ b, v: $('video', b), ...r.screens[k] })) };
 });
 const fetched = (img, src) => new Promise(res => { img.addEventListener('load', () => res(true), { once: true }); img.addEventListener('error', () => res(false), { once: true }); img.src = src; });
 function load(r) { // the picture, and with it the room's light mask. Resolves once both are in; the room is then painted for the hour.
@@ -54,7 +52,7 @@ function setLight() {
   const weather = forcedWeather ? WEATHERS[forcedWeather] : liveWeather;
   aim.cloud = weather ? weather.cloud : 0; aim.rain = weather ? weather.rain : 0; light.label = weather ? weather.label : '';
   if (!settled || reduced) Object.assign(light, aim);   // the first time, and for anyone who has asked for less motion, it is simply set
-  if (locLabel) locLabel.textContent = [LOC.name, LOC.place, sky && when, sky && light.label].filter(Boolean).join(' · ');
+  if (locLabel) locLabel.textContent = [rooms[cur].loc.name, rooms[cur].loc.place, sky && when, sky && light.label].filter(Boolean).join(' · ');
   root.classList.toggle('wd-raining', !!sky && aim.rain > 0);
 }
 // afterwards it moves there: the sun travels, so a change of hour passes through the hours between
@@ -137,12 +135,30 @@ addEventListener('resize', fit);
 
 /* ---------- walking between rooms */
 const wrap = i => (i + rooms.length) % rooms.length;
+// the room to one side, within the place you are in: the arrows never leave it
+const side = d => { const mine = rooms.map((r, i) => i).filter(i => rooms[i].loc === rooms[cur].loc); return mine[(mine.indexOf(cur) + d + mine.length) % mine.length]; };
+const first = l => rooms.findIndex(r => r.loc === l), fly = $('[data-fly]');
+// Explore: on the left the rooms of the penthouse, as it always was; in the bottom right corner, the other places, by name
+const places = $('[data-places]'), home = LOCATIONS[0];
+function buildMenu() {
+  const add = (to, text, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'wd-menu-i'; b.textContent = text; if (i === cur) b.setAttribute('aria-current', 'true'); b.addEventListener('click', () => { closeMenu(); show(i); }); to.append(b); };
+  menu.innerHTML = ''; rooms.forEach((r, i) => r.loc === home && add(menu, r.name, i));
+  places.innerHTML = ''; LOCATIONS.forEach(l => l !== home && add(places, l.hub ? l.name : l.place, first(l)));
+}
+// travelling: on the jet, the list of places to land
+function buildFly() {
+  const here = rooms[cur].loc, hub = LOCATIONS.find(l => l.hub); if (!hub) return (fly.hidden = true);
+  fly.classList.toggle('board', here === hub);
+  fly.innerHTML = here === hub ? `<p class="mono">Where to?</p>${LOCATIONS.filter(l => l !== hub).map(l => `<button type="button" data-to="${l.id}"><b>${esc(l.place)}</b><span class="mono">${esc(l.name)}</span></button>`).join('')}`
+    : '';   // off the jet there is nothing here: Explore is the way around
+}
+fly.addEventListener('click', e => { const b = e.target.closest('[data-to]'); if (b) show(first(LOCATIONS.find(l => l.id === b.dataset.to))); });
 function label() {
-  const r = rooms[cur], a = rooms[wrap(cur - 1)], b = rooms[wrap(cur + 1)];
+  const r = rooms[cur], a = rooms[side(-1)], b = rooms[side(1)];
+  root.classList.toggle('wd-solo', r.loc.rooms.length < 2); buildMenu(); buildFly(); setLight();
   $('b', prevBtn).textContent = `Enter ${a.name}`; prevBtn.setAttribute('aria-label', `Go to the ${a.name.toLowerCase()}`);
   $('b', nextBtn).textContent = `Enter ${b.name}`; nextBtn.setAttribute('aria-label', `Go to the ${b.name.toLowerCase()}`);
-  where.textContent = r.name; root.style.setProperty('--arrow-y', `${r.arrows || 50}%`);
-  rooms.forEach((x, i) => { x.tab.setAttribute('aria-current', i === cur ? 'true' : 'false'); });
+  where.textContent = `${r.loc.name}, ${r.loc.place}: ${r.name}`; root.style.setProperty('--arrow-y', `${r.arrows || 50}%`);
 }
 function show(i, dir) {
   i = wrap(i); if (i === cur && rooms[cur].el.classList.contains('on')) return;
@@ -158,11 +174,11 @@ function show(i, dir) {
   } else { from.el.getAnimations().forEach(a => a.cancel()); to.el.getAnimations().forEach(a => a.cancel()); }
   label(); if (entered) history.replaceState(null, '', '#' + to.id);
 }
-prevBtn.addEventListener('click', () => show(cur - 1, -1)); nextBtn.addEventListener('click', () => show(cur + 1, 1));
+prevBtn.addEventListener('click', () => show(side(-1), -1)); nextBtn.addEventListener('click', () => show(side(1), 1));
 
 /* ---------- Explore: the list of rooms, over the blurred room */
-function openMenu() { closeCard(); root.classList.add('wd-exploring'); explore.setAttribute('aria-expanded', 'true'); menu.inert = false; rooms[cur].el.inert = true; }
-function closeMenu(refocus) { if (!root.classList.contains('wd-exploring')) return; root.classList.remove('wd-exploring'); explore.setAttribute('aria-expanded', 'false'); menu.inert = true; rooms[cur].el.inert = false; if (refocus) explore.focus({ preventScroll: true }); }
+function openMenu() { closeCard(); root.classList.add('wd-exploring'); explore.setAttribute('aria-expanded', 'true'); menu.inert = false; places.inert = false; rooms[cur].el.inert = true; }
+function closeMenu(refocus) { if (!root.classList.contains('wd-exploring')) return; root.classList.remove('wd-exploring'); explore.setAttribute('aria-expanded', 'false'); menu.inert = true; places.inert = true; rooms[cur].el.inert = false; if (refocus) explore.focus({ preventScroll: true }); }
 explore.addEventListener('click', () => (root.classList.contains('wd-exploring') ? closeMenu() : openMenu()));
 shade.addEventListener('click', () => closeMenu());
 
@@ -181,6 +197,12 @@ function closeCinema() {
 }
 $('[data-cinema-close]').addEventListener('click', closeCinema);
 cinema.addEventListener('click', e => { if (e.target === cinema) closeCinema(); });
+
+/* ---------- games: a marker with `game` opens a table to play at (see games.js, which is only fetched when first needed) */
+function openGame(name, from) {
+  closeCard(); root.classList.add('wd-gaming'); screens(rooms[cur], false);
+  import('./games.js').then(m => m.open(name, () => { root.classList.remove('wd-gaming'); screens(rooms[cur], entered); from?.focus({ preventScroll: true }); }));
+}
 
 /* ---------- music: the speaker opens a Spotify player in the corner. Nothing is loaded from Spotify until it is asked for,
    and the player stays where it is from room to room, so whatever is playing keeps playing. */
@@ -220,14 +242,16 @@ stage.addEventListener('click', e => {
   const sb = e.target.closest('.wd-screen'); if (sb) return openCinema(rooms[cur].tvs[+sb.dataset.screen]);
   const b = e.target.closest('.wd-dot'); if (!b) return; const t = rooms[cur].things[+b.dataset.thing];
   if (t.spotify) return music.hidden ? openMusic(t.spotify) : closeMusic();
+  if (t.game) return openGame(t.game, b);
   if (b.classList.contains('open')) return closeCard(true); openCard(t, b);
 });
 $('[data-card-close]', card).addEventListener('click', () => closeCard(true));
 
 addEventListener('keydown', e => {
   if (!entered || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (root.classList.contains('wd-gaming')) return;
   if (cinemaOf) { if (e.key === 'Escape') closeCinema(); return; }
-  if (e.key === 'Escape') { if (root.classList.contains('wd-exploring')) closeMenu(true); else closeCard(true); } else if (root.classList.contains('wd-exploring')) return; else if (e.key === 'ArrowLeft') show(cur - 1, -1); else if (e.key === 'ArrowRight') show(cur + 1, 1);;
+  if (e.key === 'Escape') { if (root.classList.contains('wd-exploring')) closeMenu(true); else closeCard(true); } else if (root.classList.contains('wd-exploring')) return; else if (e.key === 'ArrowLeft') show(side(-1), -1); else if (e.key === 'ArrowRight') show(side(1), 1);;
 });
 
 /* ---------- the way in: the page opens straight into the first room, which comes up out of the dark once its picture has loaded */
@@ -238,6 +262,8 @@ function go() {
 }
 
 fit();
-{ const start = Math.max(0, rooms.findIndex(r => r.id === location.hash.slice(1))); cur = start; const r = rooms[start];
+{ // start in the room the address names (#casino), or in the place it names (/miami), or at the beginning
+  const byRoom = rooms.findIndex(r => r.id === location.hash.slice(1)), byPlace = rooms.findIndex(r => r.loc.id === location.pathname.split('/').filter(Boolean).pop());
+  const start = byRoom >= 0 ? byRoom : Math.max(0, byPlace); cur = start; const r = rooms[start];
   r.el.classList.add('on'); label(); warm(r);
-  setLight(); settled = true; load(r).then(go); }
+  setLight(); settled = true; load(r).then(() => { go(); if (params.get('game')) openGame(params.get('game')); }); }   // ?game=blackjack opens a table straight away, for testing

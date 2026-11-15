@@ -1,10 +1,11 @@
-// The virtual world, location by location. The penthouse is the first; a second (a sports ground, say) is another entry
-// in LOCATIONS at the bottom, with its own rooms, and gets its own address (world.bymattking.com/<id>).
+// The virtual world, place by place. The penthouse is the first; the others are listed in LOCATIONS at the bottom, each
+// with its own rooms. Room ids are unique across every place: the address keeps the room (world.bymattking.com/#casino).
 //
 // Each room is one picture (public/rooms, 2000 × 1116) and a list of things in it.
 // A thing sits `at` [across, down] as a percentage of the picture, and opens a card: `k` the small line above, `t` the title,
 // `p` the words, and optionally `stat` [number, what], `photo` [file in public/photos, alt text] and `link` [label, where to].
 // A thing with `spotify` (a link to a track, album or playlist on Spotify) is a music marker: it opens the player, not a card.
+// A thing with `game` ('blackjack', 'roulette' or 'slots') is a table to play at: it opens the game, not a card (see games.js).
 // A room can have `screens`: a video (in public/video, with a still `poster` beside it) laid onto a screen in the picture.
 // `quad` is the screen's four corners as percentages of the picture: top left, top right, bottom right, bottom left.
 // It plays silently in the room and opens full screen, with sound, when clicked.
@@ -131,7 +132,55 @@ const PENTHOUSE = [
     ] },
 ];
 
-// `name` and `place` make the line in the header; the first location is the one the bare address opens.
+// ---- the other places. Each is its own picture and its own kind of place; the jet is how you get between them.
+const JET = [
+  { id: 'jet', name: 'The cabin', img: 'jet.webp', focus: [40, 55], alt: 'The cabin of a private jet: cream leather seats, black marble tables, a row of windows over the clouds at sunrise',
+    things: [
+      { at: [22.8, 54.7], label: 'The laptop', k: 'Book Matt', t: 'Working from the air',
+        p: 'Podcasts, talks, panels, brand collaborations and press comment all start here.', link: ['Book Matt', '../book/'] },
+      { at: [84.8, 51.6], label: 'The magazines', k: 'In the press', t: 'Reading for the flight',
+        p: "What's been written about the work, and about 80 Four, the agency I co-founded.", link: ['Read the press', '../#press'] },
+      { at: [91, 54.6], label: 'The headphones', k: 'Podcasts · radio', t: 'On the mic',
+        p: 'Sport, fashion and culture, and why fans fall for stories, not fixtures.', link: ['Invite me on', '../book/?for=podcast'] },
+    ] },
+];
+const MIAMI = [
+  { id: 'villa', name: 'The villa', img: 'miami.webp', focus: [62, 55], alt: 'A waterfront villa in Miami: a pool terrace with loungers and palms, a padel court, and a living room open to it',
+    things: [
+      { at: [84.5, 28.3], label: 'The pennant', k: 'Babson Park, Florida', t: 'Webber International University',
+        p: 'Bachelor of Science in General Business Studies.',
+        photo: ['diploma.jpg', "Matt's degree certificate from Webber International University: Bachelor of Science, General Business Studies"] },
+      { at: [77.6, 41.6], label: 'The photo', k: 'Florida', t: 'Graduation day',
+        p: 'Cap, gown and diploma, by the lake at Webber.',
+        photo: ['graduation.jpg', 'Matt in a cap and gown on graduation day, holding his diploma by a lake in Florida'] },
+      { at: [55.4, 84.4], label: 'The race pass', k: 'F1 Miami', t: 'Race weekend',
+        p: 'Represent tee, race weekend in a new market. Fashion is everywhere in sport.',
+        photo: ['f1-miami.jpg', 'Matt at F1 Miami in a Represent tee'], link: ['Read the story', '../#frames'] },
+      { at: [59.4, 82.2], label: 'The book', k: 'Webber Athletics · 2020', t: 'Warrior of the Week',
+        p: "Named Warrior of the Week after my freshman season in the men's soccer team: right back, and the winning goal against Florida Memorial.",
+        photo: ['press-webber.jpg', "Webber Athletics' Warrior of the Week graphic: Matt King, number 23, striking the ball"], link: ['Read the press', '../#press'] },
+      { at: [60, 29.6], label: 'The court', k: 'The format is the product', t: 'Padel',
+        p: "I play it too. Four players, one small court, walls in play: it's built to be social.",
+        photo: ['padel.jpg', 'Matt playing padel'], link: ['Read the story', '../#frames'] },
+    ] },
+];
+const MONACO = [
+  { id: 'yacht', name: 'The yacht', img: 'monaco.webp', focus: [55, 55], alt: 'The deck of a yacht in Monaco harbour on race weekend: a curved sofa, a bar, and racing cars passing the grandstands on the quay',
+    things: [
+      { at: [50.4, 65.2], label: 'The race programme', k: 'Story before sport', t: 'Race weekend',
+        p: 'Drive to Survive turned box-set watchers into F1 fans. They came for the people and stayed for the racing.',
+        link: ['Read the story', '../#frames'] },
+      { at: [92.4, 26.6], label: 'The circuit', k: 'F1 × Netflix', t: 'A play worth stealing',
+        p: 'F1 let the cameras into the paddock and handed the story to Netflix: the rivalries, the team bosses, the drivers as people.',
+        link: ['Read the play', '../#plays'] },
+    ] },
+];
+
+// The places, in the order Explore lists them. `name` and `place` make the line in the header. The one marked `hub` is the
+// jet: from it you choose where to land. A new place is another entry here.
 export const LOCATIONS = [
   { id: 'penthouse', name: 'The penthouse', place: 'London', rooms: PENTHOUSE },
+  { id: 'jet', name: 'The jet', place: 'In the air', hub: true, rooms: JET },
+  { id: 'miami', name: 'The villa', place: 'Miami', rooms: MIAMI },
+  { id: 'monaco', name: 'The yacht', place: 'Monaco', rooms: MONACO },
 ];

@@ -136,6 +136,7 @@ export const TALENT = [['Phil Foden', 'The Couture Club'], ['Molly-Mae Hague', '
 export const PRESS = [
   { img: 'press-circle.jpg', ar: 0.8, pos: 'center 30%', alt: 'The 80 Four founders at the Circle Networks awards', source: 'Circle Networks', date: '2025', headline: 'Start Up of the Year: finalist', key: 'finalist', line: '80 Four was named a finalist for Circle Networks Start Up of the Year 2025.' },
   { img: 'press-bdaily-photo.jpg', ar: 2.1, pos: 'center 40%', alt: 'The three 80 Four founders', source: 'Bdaily Business News', date: '21 Oct 2025', headline: 'Trio launch new marketing agency', key: 'marketing agency', line: '80 Four, founded by Matt King, James Parker-Aiken and Emily Martin, specialises in sport, health and lifestyle branding and brand strategy.' },
+  { img: 'press-webber.jpg', ar: 1.78, pos: 'center', alt: "Webber Athletics' Warrior of the Week graphic: Matt King, number 23, striking the ball for the men's soccer team", source: 'Webber Athletics', date: '6 Apr 2020', headline: 'Matt King named Warrior of the Week', key: 'Warrior of the Week', line: "Named Warrior of the Week by Webber International University Athletics after a freshman season at right back, with the winning goal against Florida Memorial.", url: 'https://webberathletics.com/news/2020/4/6/mens-soccer-warrior-of-the-week-matt-king.aspx' },
 ];
 
 // Book Matt: [what, line, email subject, the question, key]. The key is what the booking page uses (book/?for=key).

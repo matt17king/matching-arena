@@ -80,6 +80,7 @@ The six routes and six topics come from `SEATS` and `TOPICS` in `content.js` (ea
   - To look at a particular moment by address: `?time=night` (or `day`, `golden`, `sunset`, `dusk`, or a London clock time like `21:30`) and `?weather=rain` (or `clear`, `cloudy`, `storm`). All of these need `?sky` as well, for example `?sky&time=night&weather=rain`.
   - A new or changed room picture needs its mask rebuilt: add the window outlines to `tools/masks.py` and run `python3 tools/masks.py` from `exposure/` (needs Pillow and NumPy).
 - **Screens:** a room's `screens` lay a video onto a screen in the picture (the living room TV is the first). It plays silently, looped, pinned to the screen's four corners (`quad`, in percentages of the picture), and opens full screen with sound when clicked. To change the video, replace `public/video/tv.mp4` (and the still `tv.jpg`) or point `video` at another file. Keep it short and small: 16:9, 720p, under about 5 MB.
+- **Games:** a thing with `game: 'blackjack'` (or `'roulette'`, `'slots'`) is a table to play at. The games are in `src/world/games.js`, use play chips only (remembered in the browser, never real money) and are downloaded only when a table is first opened. No room uses them at the moment (the casino was taken out); `?game=blackjack` on the world page opens one directly.
 - **Music:** a thing with `spotify: '<link>'` (a track, album or playlist copied from Spotify's Share menu) is a music marker. It opens Spotify's own player in the corner, which stays open from room to room. Nothing loads from Spotify until the marker is clicked. The speaker in the living room is the first.
 - **Photos in cards** are shown whole, at their own shape: an upright photo stands beside the words, a wide one sits above them.
 - **Small screens** show the picture at full height and let it be dragged sideways; each room's `focus` is where it starts.
@@ -92,12 +93,12 @@ The virtual world is meant to live at `world.bymattking.com`, with the story at 
 
 - `vercel.json` sends the root of `world.bymattking.com` (and `/penthouse`) to the world page. These are `routes`, not `rewrites`, because a rewrite cannot replace a file that exists and the story's `index.html` sits at the root.
 - On the world address, links back to the story become absolute (`bymattking.com/#record`); on the live story domain, the links into the world point at the world address. On previews and local builds both stay relative, with the world at `/world/`.
-- Locations are the `LOCATIONS` list at the bottom of `src/world/rooms.js`. The penthouse is the only one so far. A new location needs an entry there, its pictures in `public/rooms/`, and its id added to the second route in `vercel.json`.
+- **Places** are the `LOCATIONS` list at the bottom of `src/world/rooms.js`: the penthouse, the jet, the villa in Miami and the yacht in Monaco. The arrows stay within a place; Explore lists the penthouse's rooms on the left and the other places, by name, in the bottom right corner. The jet is the hub (`hub: true`): on it a small board offers the places to land. A new place needs an entry there, its pictures in `public/rooms/`, and its id added to the second route in `vercel.json`.
 - To switch it on: add `world.bymattking.com` to the project's domains in Vercel and add the DNS record Vercel shows.
 
 ## Notes
 
 - Fonts (Inter Tight, Geist, Geist Mono) ship in the bundle via Fontsource; nothing loads from a third party at runtime.
 - Review switches: `?nogl` forces the no-WebGL fallback, `?still` forces reduced motion, `?debug` exposes `__mk` (pins, `go(id)`).
-- `og:image` points at `./og.jpg`. Once this has its own domain, make that an absolute URL and add `og:url` and a canonical link.
+- Link previews: the story uses `public/og.jpg` and the virtual world uses `public/og-world.jpg`, both by their full live addresses, because social sites ignore relative ones. A preview deployment therefore shows the live site's image.
 - The logo masks were made from the Arena logo files; to add one, drop a transparent PNG whose alpha is the mark into `public/logos` and reference it in `content.js`.
