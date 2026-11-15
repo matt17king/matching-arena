@@ -96,7 +96,7 @@ const PENTHOUSE = [
         p: 'Golf with Niall Horan and Judy Murray.',
         stat: ['+400%', 'Channel growth with Niall Horan & Judy Murray'], link: ['See the record', '../#record'] },
     ] },
-  { id: 'rooftop', name: 'Rooftop', img: 'rooftop.webp', focus: [50, 55], sky: { outdoor: true, lights: [[95, 54, 9, 1.2, [1, 0.6, 0.3]], [62, 68, 14, 0.9, [1, 0.72, 0.42]], [30, 80, 20, 0.5, [1, 0.72, 0.42]], [86, 52, 12, 0.4, [1, 0.8, 0.6]]] }, alt: 'The roof terrace: a blue padel court with glass walls, a marble bar, and the London skyline at sunset',
+  { id: 'rooftop', name: 'Rooftop', img: 'rooftop.webp', focus: [50, 55], sky: { outdoor: true, lights: [[44, 47, 27, 0.95, [0.8, 0.9, 1]], [95, 54, 9, 1.2, [1, 0.6, 0.3]], [62, 68, 14, 0.9, [1, 0.72, 0.42]], [30, 80, 20, 0.5, [1, 0.72, 0.42]], [86, 52, 12, 0.4, [1, 0.8, 0.6]]] }, alt: 'The roof terrace: a blue padel court with glass walls, a marble bar, and the London skyline at sunset',
     things: [
       { at: [41.6, 67], label: 'The rackets', k: 'On court', t: 'Padel',
         p: "I play it too. Four players, one small court, walls in play: it's built to be social.",

@@ -1,7 +1,8 @@
 # Builds the light masks for the virtual world's rooms: one small PNG per room, three masks packed into its channels.
 #   red   = glass: where the outside is seen (the window panes; on the rooftop, the sky)
 #   green = things that make their own light (the fire, LED strips, lit cabinets): they stay bright at night
-#   blue  = how much daylight a spot gets: strongest by the windows, fading into the room
+#   blue  = how much daylight a spot gets: strongest by the windows, fading into the room.
+#           Outdoors everything is under the sky, so blue is used for something else: the distant city.
 # Each window is a generous outline; inside it, only pixels that actually look like glass (bright, not warm) are kept,
 # so frames, cushions and anything standing in front of the window are left out.
 # Run from exposure/:  python3 tools/masks.py [debug-dir]
@@ -66,7 +67,15 @@ def build(room, cfg, debug=None):
     spill = np.asarray(Image.fromarray((hard * 255).astype('uint8')).filter(ImageFilter.GaussianBlur(150))).astype('float32') / 255
     spill = np.clip(spill * 2.6, 0, 1)
     if cfg.get('sky'):
-        spill[:] = 1.0  # outdoors, everything is under the sky
+        # the far city: hazy, pale, low in colour, in the band between the sky and the terrace. The cage, the trees and
+        # the court in front of it are darker or more coloured, so they fall out and the city shows between them.
+        mx, mn = np.maximum(np.maximum(r, g), b), np.minimum(np.minimum(r, g), b)
+        sat = (mx - mn) / np.maximum(mx, 1)
+        yy = np.linspace(0, H - 1, H)[:, None]
+        band = np.clip((yy - 120) / 50, 0, 1) * np.clip((440 - yy) / 90, 0, 1)
+        far = ((lum > 98) & (lum < 222) & (sat < 0.3)).astype('float32')
+        far = np.asarray(Image.fromarray((far * 255).astype('uint8')).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(1.6))).astype('float32') / 255
+        spill = far * band
 
     out = np.stack([glass, glow, spill], -1)
     Image.fromarray((np.clip(out, 0, 1) * 255).astype('uint8')).resize((1000, 558), Image.LANCZOS).save(f'public/rooms/masks/{room}.png', optimize=True)
@@ -77,7 +86,7 @@ def build(room, cfg, debug=None):
         tint[..., 1] = np.clip(tint[..., 1] * (1 - glow) + 255 * glow, 0, 255)
         tint[..., 2] = np.clip(tint[..., 2] * (1 - glass * 0.75), 0, 255)
         Image.fromarray(tint.astype('uint8')).save(f'{debug}/mask-{room}.jpg', quality=85)
-        Image.fromarray((spill * 255).astype('uint8')).resize((500, 279)).save(f'{debug}/spill-{room}.jpg', quality=80)
+        Image.fromarray((spill * 255).astype('uint8')).resize((1000, 558)).save(f'{debug}/spill-{room}.jpg', quality=80)
     return glass.mean()
 
 

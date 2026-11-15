@@ -28,9 +28,9 @@ const LOOK = [
   [12, [1, 1, 1], [1, 1, 1], [1, 1, 1], [0, 0, 0], 0, 0],
   [5, [1, 0.95, 0.86], [1.12, 0.9, 0.68], [1.0, 0.86, 0.68], [0.04, 0.01, 0], 0.12, 0],
   [0.5, [0.86, 0.78, 0.74], [1.0, 0.74, 0.58], [0.82, 0.58, 0.5], [0.07, 0.02, 0.01], 0.5, 0.1],
-  [-3, [0.6, 0.58, 0.66], [0.62, 0.66, 0.88], [0.3, 0.34, 0.52], [0.05, 0.03, 0.05], 0.9, 0.5],
-  [-7, [0.42, 0.42, 0.52], [0.5, 0.56, 0.82], [0.14, 0.17, 0.3], [0.02, 0.016, 0.03], 1, 0.9],
-  [-12, [0.34, 0.34, 0.42], [0.46, 0.52, 0.78], [0.07, 0.08, 0.14], [0.02, 0.014, 0.016], 1, 1],
+  [-3, [0.63, 0.59, 0.61], [0.62, 0.66, 0.88], [0.3, 0.34, 0.52], [0.05, 0.03, 0.05], 0.9, 0.5],
+  [-7, [0.45, 0.42, 0.44], [0.5, 0.56, 0.82], [0.14, 0.17, 0.3], [0.02, 0.016, 0.03], 1, 0.9],
+  [-12, [0.37, 0.34, 0.345], [0.46, 0.52, 0.78], [0.07, 0.08, 0.14], [0.02, 0.014, 0.016], 1, 1],
 ];
 // the rooftop picture was rendered at golden hour, so its untouched state belongs at a low sun, not at noon
 const LOOK_OUT = [
@@ -84,8 +84,9 @@ vec3 bead(vec2 px, vec2 c, float r) { vec2 d = (px - c) / r; float l = length(d)
 
 // Rain on the glass. Columns of the pane each carry a drop that hangs, then runs, leaving beads behind it that dry out;
 // between them the glass is stippled with small beads that come and go.
+float gTrail;
 vec3 rain(vec2 px, float t, float amount) {
-  vec3 acc = vec3(0.);
+  vec3 acc = vec3(0.); gTrail = 0.;
   for (int k = 0; k < 2; k++) {
     float fk = float(k), cw = 46. + fk * 31., ch = 520. + fk * 170.;
     vec2 g = vec2(px.x / cw + fk * .37, px.y / ch + fk * .21), id = floor(g); float n = h21(id + fk * 17.);
@@ -97,6 +98,7 @@ vec3 rain(vec2 px, float t, float amount) {
       vec3 b = bead(px, c, r); acc = mix(acc, b, b.z);
       // the trail: beads left along the path, smaller and drier the further behind
       float back = c.y - px.y;
+      if (back > 0. && back < 300.) gTrail = max(gTrail, (1. - back / 300.) * smoothstep(r * 1.5, r * .5, abs(px.x - c.x)));
       if (back > r && back < 240. && abs(px.x - c.x) < 9.) {
         float step_ = 15. + 6. * h21(id + 11.), yi = floor(px.y / step_), dry = 1. - back / 240.;
         vec2 tc = vec2(c.x + (h21(vec2(yi, id.x)) - .5) * 5., (yi + .5) * step_);
@@ -113,47 +115,67 @@ vec3 rain(vec2 px, float t, float amount) {
 }
 
 // The city at night: small lit windows where the picture shows a building rather than open sky.
-vec3 city(vec2 px, float building) {
+// (blur: how misted the glass in front of them is. Through wet glass a point of light spreads into a soft disc.)
+vec3 city(vec2 px, float building, float blur) {
   vec3 acc = vec3(0.);
   for (int k = 0; k < 2; k++) {
     float fk = float(k); vec2 g = px / (vec2(6., 8.5) * (1. + fk * 1.1)) + fk * 3.3, id = floor(g); float n = h21(id + fk * 31.);
-    vec2 f = fract(g) - .5 - (vec2(h21(id + 13.), h21(id + 21.)) - .5) * .5;
-    float on = step(1. - .26 * building, n), dot_ = smoothstep(.38 + .1 * h21(id + 6.), .05, length(f * vec2(1., 1.2)));
+    vec2 f = fract(g) - .5 - (vec2(h21(id + 13.), h21(id + 21.)) - .5) * .14;   // each light a little off its grid, but never so far its disc is cut by the cell
+    float busy = .25 + .95 * h21(floor(px / vec2(74., 118.)) + fk * 5.);           // some towers are mostly dark, some mostly lit
+    float on = step(1. - .3 * building * busy, n), dot_ = smoothstep(.3 + .06 * h21(id + 6.) + blur * .07, .05 + blur * .05, length(f * vec2(1., 1.2))) * (1. - blur * .3);
     vec3 c = mix(vec3(1., .66, .3), vec3(.7, .84, 1.), step(.88, h21(id + 9.)));
     acc += c * dot_ * on * (.35 + .9 * h21(id + 4.)) * (1. - fk * .45);
   }
   return acc;
 }
 
+// the view as seen through glass that is wet and misted: soft, and a little milky
+vec3 soft(vec2 uv, float r) { vec3 s = vec3(0.); for (int i = 0; i < 8; i++) { float a = float(i) * .7854 + .3; s += texture2D(uImg, uv + vec2(cos(a), sin(a)) * r / RES).rgb; } return s / 8.; }
+
 void main() {
-  vec2 px = v * RES; vec3 I = texture2D(uImg, v).rgb, M = texture2D(uMask, v).rgb; float glass = M.r, glow = M.g, spill = M.b;
+  vec2 px = v * RES; vec3 I = texture2D(uImg, v).rgb, M = texture2D(uMask, v).rgb; float glass = M.r, glow = M.g;
+  float spill = mix(M.b, 1., uOut), far = M.b * uOut;   // indoors blue is the reach of daylight; on the roof it marks the distant city
 
   /* the room: its own light, plus daylight where daylight reaches, plus the lamps once they are on */
   vec3 day = mix(vec3(1.), vec3(.84, .87, .93), uOver * (1. - uNight));          // cloud takes the warmth and some of the strength out of daylight
   vec3 amb = uAmb * mix(vec3(1.), uSpill * day, spill);
-  vec3 lamp = vec3(0.);
-  for (int i = 0; i < 6; i++) { vec2 d = (px - uL[i].xy) / max(uL[i].z, 1.); lamp += uLC[i] * uL[i].w * exp(-dot(d, d) * 1.5); }
+  vec3 lamp = vec3(0.), wide = vec3(0.);
+  for (int i = 0; i < 6; i++) { vec2 d = (px - uL[i].xy) / max(uL[i].z, 1.); float q = dot(d, d); lamp += uLC[i] * uL[i].w * exp(-q * 1.5); wide += uLC[i] * uL[i].w * exp(-q * .3); }
   vec3 room = I * amb + I * lamp * uLamp + lamp * uLamp * .035;
-  room = mix(room, max(room, I * (1. + .1 * uNight)), glow);                       // what glows keeps glowing
+  room = mix(room, max(room, I * (1. + .12 * uNight)), glow);                      // what glows keeps glowing
+  // and spills a little light around itself, the way a flame or an LED strip does in a dim room
+  float halo = 0.; for (int i = 0; i < 8; i++) { float a = float(i) * .7854; halo += texture2D(uMask, v + vec2(cos(a), sin(a)) * 30. / RES).g; }
+  room += vec3(1., .6, .32) * (halo / 8.) * (1. - glow) * .16 * uLamp;
 
   /* outside: the view through the glass (or, on the roof, the sky) */
-  vec2 uv = v; vec3 wet = vec3(0.);
+  vec2 uv = v; vec3 wet = vec3(0.); gTrail = 0.;
   if (uRain > 0. && uOut < .5) { wet = rain(px, uTime, uRain); vec2 to = v + wet.xy * wet.z / RES; if (texture2D(uMask, to).r > .6) uv = to; }
-  vec3 V = texture2D(uImg, uv).rgb; float lv = lum(V);
+  vec3 V = texture2D(uImg, uv).rgb; float sharp = lum(V);
+  if (uRain > 0. && uOut < .5) {                                                   // wet glass mists over; beads and fresh trails are the clear places in it
+    float mist = uRain * .9 * (1. - wet.z) * (1. - gTrail * .85);
+    V = mix(V, soft(v, 6.) * .96 + .03, mist);
+  }
+  float lv = lum(V), misted = uOut < .5 ? uRain * (1. - wet.z) * (1. - gTrail * .85) : 0.;
   V = mix(V, vec3(lv) * vec3(.84, .88, .95), uOver * .7 * (1. - uNight * .6));
   if (uOut > .5) V *= 1. + (fbm(v * vec2(3., 6.) + vec2(uTime * .012, 0.)) - .5) * .5 * uOver * (1. - uNight);   // cloud moving across the sky
   // as the light goes, buildings stop being pale shapes in a bright sky and become dark ones against a lit one
-  // (indoors the towers are pale against a white sky; on the roof the real skyline is darker than the haze, and sits low)
-  float building = uOut > .5 ? smoothstep(.76, .56, lum(I)) * smoothstep(90., 190., px.y) : smoothstep(.97, .83, lum(I));
-  float sil = building * clamp((1. - lum(uWin)) * .95, 0., .68);
+  float building = uOut > .5 ? far * smoothstep(.86, .5, lum(I)) : smoothstep(.97, .83, sharp);
+  float dark = clamp((1. - lum(uWin)) * .95, 0., .68), sil = building * dark;
   vec3 view = (V * uWin + uGlow * lv) * (1. - sil);
-  view += city(px, building) * uNight;
-  view += vec3(.05, .036, .026) * uLamp * uNight * (1. - uOut);                    // the lit room, faintly, in its own windows
+  if (uOut > .5) {                                                                 // an open sky is never one flat colour: deeper overhead, lit from below toward the horizon
+    float h = clamp(px.y / 400., 0., 1.), low = dark * (1. - uNight * .75);
+    view *= mix(vec3(1.), mix(vec3(.72, .8, 1.06), vec3(1.34, 1.04, .8), h * h), low);
+    view += vec3(.08, .05, .035) * h * h * uNight;                                 // the city's own glow on the haze
+  }
+  view += city(uv * RES, building, misted) * uNight;
+  view += (wide * .075 + vec3(.022, .016, .012)) * uLamp * uNight * (1. - uOut);   // the lit room, faintly, in its own windows: warmest nearest the lamps
   // a bead of water: a bright fleck where the sky catches it, a dark edge where it meets the glass
   float edge = wet.z * smoothstep(.0, 1., length(wet.xy) / 12.);
   view = view * (1. - .35 * edge) + wet.z * (.05 + .22 * lum(uWin)) * pow(max(0., dot(normalize(vec3(-wet.xy, 6.)), normalize(vec3(-.5, -.7, .5)))), 6.);
 
   vec3 col = mix(room, view, glass);
+  // on the roof the city carries on below the sky, behind the cage and the trees: it darkens and lights up there too
+  if (uOut > .5) { float f = far * (1. - glass); col = col * (1. - f * dark * .5) + city(px, building, uRain * .6) * uNight * f; }
 
   /* on the roof the rain is in the air: fine streaks, and the far city going to mist */
   if (uOut > .5 && uRain > 0.) {
@@ -162,8 +184,9 @@ void main() {
       float fk = float(k); vec2 q = vec2((px.x + px.y * .06) / (3.2 + fk * 2.), px.y / (110. + fk * 60.) - uTime * (7. - fk * 2.)); vec2 id = floor(q);
       float f = fract(q.y); s += smoothstep(.22, 0., abs(fract(q.x) - .5)) * step(.9 - uRain * .08, h21(id + fk * 7.)) * smoothstep(0., .25, f) * smoothstep(1., .5, f);
     }
-    col = mix(col, vec3(lum(col)) * vec3(.9, .94, 1.), uRain * .2) + s * (.05 + .1 * lum(uWin)) * uRain;
+    col = mix(col, vec3(lum(col)) * vec3(.9, .94, 1.), uRain * (.2 + .35 * far)) + s * (.05 + .1 * lum(uWin)) * uRain;
   }
+  col += (h21(px + 3.7) - .5) / 200.;                                              // a grain of noise, so the long dark gradients do not band
   gl_FragColor = vec4(clamp(col, 0., 1.), 1.);
 }`;
 

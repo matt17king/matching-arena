@@ -40,20 +40,28 @@ function load(r) { // the picture, and with it the room's light mask. Resolves o
 
 /* ---------- London's light: the hour and the weather there, live, relighting each room (see sky.js) */
 const coarse = matchMedia('(pointer: coarse)').matches, sky = params.has('nosky') ? null : createSky(coarse), locLabel = $('[data-loc]');
-const light = { sun: 40, cloud: 0, rain: 0, label: '' }; let liveWeather = null, clock = 0;
+const light = { sun: 40, cloud: 0, rain: 0, label: '' }, aim = { sun: 40, cloud: 0, rain: 0 }; let liveWeather = null, clock = 0, settled = false;
 // for looking at a particular moment: ?time=night (or day, golden, sunset, dusk, or 21:30) and ?weather=rain (or clear, cloudy, storm)
 let forced = params.get('time'), forcedWeather = params.get('weather') in WEATHERS ? params.get('weather') : null; const londonTime = d => d.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' });
 function setLight() {
   const now = new Date(); let when = londonTime(now);
-  if (forced in TIMES) { light.sun = TIMES[forced]; when = forced[0].toUpperCase() + forced.slice(1); }
+  if (forced in TIMES) { aim.sun = TIMES[forced]; when = forced[0].toUpperCase() + forced.slice(1); }
   else if (/^\d{1,2}:\d\d$/.test(forced || '')) { // that time today, in London
     const [h, m] = forced.split(':').map(Number), [lh, lm] = londonTime(now).split(':').map(Number), off = (lh * 60 + lm) - (now.getUTCHours() * 60 + now.getUTCMinutes());
-    light.sun = sunHeight(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, h * 60 + m - off))); when = forced;
-  } else light.sun = sunHeight(now);
+    aim.sun = sunHeight(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, h * 60 + m - off))); when = forced;
+  } else aim.sun = sunHeight(now);
   const weather = forcedWeather ? WEATHERS[forcedWeather] : liveWeather;
-  light.cloud = weather ? weather.cloud : 0; light.rain = weather ? weather.rain : 0; light.label = weather ? weather.label : '';
+  aim.cloud = weather ? weather.cloud : 0; aim.rain = weather ? weather.rain : 0; light.label = weather ? weather.label : '';
+  if (!settled || reduced) Object.assign(light, aim);   // the first time, and for anyone who has asked for less motion, it is simply set
   if (locLabel) locLabel.textContent = [LOC.name, LOC.place, sky && when, sky && light.label].filter(Boolean).join(' · ');
-  root.classList.toggle('wd-raining', !!sky && light.rain > 0);
+  root.classList.toggle('wd-raining', !!sky && aim.rain > 0);
+}
+// afterwards it moves there: the sun travels, so a change of hour passes through the hours between
+const easing = () => Math.abs(aim.sun - light.sun) > 0.02 || Math.abs(aim.cloud - light.cloud) > 0.004 || Math.abs(aim.rain - light.rain) > 0.004;
+function ease(dt) {
+  const k = 1 - Math.exp(-dt * 2.6), go = (a, b, min) => (Math.abs(b - a) < min ? b : a + (b - a) * k + Math.sign(b - a) * min * 0.5);
+  light.sun = go(light.sun, clamp(aim.sun, -14, 16), 0.04); if (Math.abs(clamp(aim.sun, -14, 16) - light.sun) < 0.05) light.sun = aim.sun;
+  light.cloud = go(light.cloud, aim.cloud, 0.006); light.rain = go(light.rain, aim.rain, 0.006);
 }
 // in clear daylight an indoor room is exactly its picture, so nothing is drawn over it
 const plain = r => !r.sky.outdoor && light.sun >= 12 && light.cloud < 0.05 && !light.rain;
@@ -64,7 +72,7 @@ function paint(r) {
   if (r.lit.width !== sky.width) { r.lit.width = sky.width; r.lit.height = sky.height; }
   sky.draw(r, light, reduced ? 0 : clock, r.lit); r.lit.classList.add('on');
 }
-{ let last = 0; const frame = t => { requestAnimationFrame(frame); if (t - last < 33 || document.hidden) return; const r = rooms[cur]; if (!entered || !moving(r) || cinemaOf) return; clock += Math.min(0.1, (t - last) / 1000); last = t; paint(r); }; requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); }); }
+{ let last = 0; const frame = t => { requestAnimationFrame(frame); if (t - last < 33 || document.hidden) return; const r = rooms[cur]; const dt = Math.min(0.1, (t - last) / 1000), turning = easing(); if (!entered || cinemaOf || !(turning || moving(r))) { last = t; return; } if (turning) ease(dt); clock += dt; last = t; paint(r); }; requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); }); }
 function relight() { setLight(); paint(rooms[cur]); }
 if (sky) { setInterval(relight, 60000); const ask = () => londonWeather().then(w => { if (w) { liveWeather = w; relight(); } }); ask(); setInterval(ask, 15 * 60000); }
 
@@ -231,4 +239,4 @@ function go() {
 fit();
 { const start = Math.max(0, rooms.findIndex(r => r.id === location.hash.slice(1))); cur = start; const r = rooms[start];
   r.el.classList.add('on'); label(); warm(r);
-  setLight(); load(r).then(go); }
+  setLight(); settled = true; load(r).then(go); }
