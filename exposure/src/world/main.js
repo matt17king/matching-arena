@@ -40,9 +40,9 @@ function load(r) { // the picture, and with it the room's light mask. Resolves o
 
 /* ---------- London's light: the hour and the weather there, live, relighting each room (see sky.js) */
 const coarse = matchMedia('(pointer: coarse)').matches, sky = params.has('nosky') ? null : createSky(coarse), locLabel = $('[data-loc]');
-const light = { sun: 40, cloud: 0, rain: 0, label: '' }; let weather = WEATHERS[params.get('weather')] || null, clock = 0;
+const light = { sun: 40, cloud: 0, rain: 0, label: '' }; let liveWeather = null, clock = 0;
 // for looking at a particular moment: ?time=night (or day, golden, sunset, dusk, or 21:30) and ?weather=rain (or clear, cloudy, storm)
-const forced = params.get('time'), londonTime = d => d.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' });
+let forced = params.get('time'), forcedWeather = params.get('weather') in WEATHERS ? params.get('weather') : null; const londonTime = d => d.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' });
 function setLight() {
   const now = new Date(); let when = londonTime(now);
   if (forced in TIMES) { light.sun = TIMES[forced]; when = forced[0].toUpperCase() + forced.slice(1); }
@@ -50,6 +50,7 @@ function setLight() {
     const [h, m] = forced.split(':').map(Number), [lh, lm] = londonTime(now).split(':').map(Number), off = (lh * 60 + lm) - (now.getUTCHours() * 60 + now.getUTCMinutes());
     light.sun = sunHeight(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, h * 60 + m - off))); when = forced;
   } else light.sun = sunHeight(now);
+  const weather = forcedWeather ? WEATHERS[forcedWeather] : liveWeather;
   light.cloud = weather ? weather.cloud : 0; light.rain = weather ? weather.rain : 0; light.label = weather ? weather.label : '';
   if (locLabel) locLabel.textContent = [LOC.name, LOC.place, sky && when, sky && light.label].filter(Boolean).join(' · ');
   root.classList.toggle('wd-raining', !!sky && light.rain > 0);
@@ -65,7 +66,24 @@ function paint(r) {
 }
 { let last = 0; const frame = t => { requestAnimationFrame(frame); if (t - last < 33 || document.hidden) return; const r = rooms[cur]; if (!entered || !moving(r) || cinemaOf) return; clock += Math.min(0.1, (t - last) / 1000); last = t; paint(r); }; requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); }); }
 function relight() { setLight(); paint(rooms[cur]); }
-if (sky) { setInterval(relight, 60000); if (!weather) { const ask = () => londonWeather().then(w => { if (w) { weather = w; relight(); } }); ask(); setInterval(ask, 15 * 60000); } }
+if (sky) { setInterval(relight, 60000); const ask = () => londonWeather().then(w => { if (w) { liveWeather = w; relight(); } }); ask(); setInterval(ask, 15 * 60000); }
+
+/* ---------- the test panel: step through every hour and every weather without waiting for London to oblige.
+   It is only there on previews and local builds (or with ?test); the live addresses never show it. */
+if (sky && (params.has('test') || !/(^|\.)bymattking\.com$/.test(location.hostname))) {
+  const el = document.createElement('aside'); el.className = 'wd-test'; el.setAttribute('aria-label', 'Test the light');
+  const row = (name, opts, get, set) => `<div class="wd-test-row" data-row="${name}"><span class="mono">${name}</span>${opts.map(o => `<button type="button" class="mono" data-v="${o || ''}">${o || 'Live'}</button>`).join('')}</div>`;
+  el.innerHTML = `<button type="button" class="wd-test-x mono" data-fold aria-expanded="true">Test · hide</button>` + row('Time', [null, ...Object.keys(TIMES)]) + row('Weather', [null, ...Object.keys(WEATHERS)]) + '<p class="mono wd-test-note">Preview only. Not shown on the live site.</p>';
+  document.body.append(el);
+  const mark = () => { $$('[data-row="Time"] button', el).forEach(b => b.setAttribute('aria-pressed', (b.dataset.v || null) === (forced in TIMES ? forced : null))); $$('[data-row="Weather"] button', el).forEach(b => b.setAttribute('aria-pressed', (b.dataset.v || null) === forcedWeather)); };
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.hasAttribute('data-fold')) { const shut = el.classList.toggle('shut'); b.textContent = shut ? 'Test' : 'Test · hide'; b.setAttribute('aria-expanded', !shut); return; }
+    if (b.closest('[data-row="Time"]')) forced = b.dataset.v || null; else forcedWeather = b.dataset.v || null;
+    mark(); relight();
+  });
+  mark();
+}
 
 /* ---------- screens: a video laid onto a screen in the picture. The video is a flat 640 × 360 box; a perspective
    transform pins its four corners to the screen's four corners, so it sits on the TV at whatever angle the TV is drawn. */
