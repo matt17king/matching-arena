@@ -138,11 +138,12 @@ const wrap = i => (i + rooms.length) % rooms.length;
 // the room to one side, within the place you are in: the arrows never leave it
 const side = d => { const mine = rooms.map((r, i) => i).filter(i => rooms[i].loc === rooms[cur].loc); return mine[(mine.indexOf(cur) + d + mine.length) % mine.length]; };
 const first = l => rooms.findIndex(r => r.loc === l), fly = $('[data-fly]');
-// Explore lists the places; under the one you are in, its rooms
+// Explore: on the left the rooms of the penthouse, as it always was; in the bottom right corner, the other places, by name
+const places = $('[data-places]'), home = LOCATIONS[0];
 function buildMenu() {
-  menu.innerHTML = ''; const here = rooms[cur].loc;
-  const add = (text, sub_, i, cls) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'wd-menu-i' + cls; b.innerHTML = esc(text) + (sub_ ? `<small>${esc(sub_)}</small>` : ''); if (i === cur) b.setAttribute('aria-current', 'true'); b.addEventListener('click', () => { closeMenu(); show(i); }); menu.append(b); };
-  for (const l of LOCATIONS) { add(l.name, l.place, first(l), l === here ? ' here' : ''); if (l === here && l.rooms.length > 1) rooms.forEach((r, i) => r.loc === l && add(r.name, '', i, ' wd-menu-r')); }
+  const add = (to, text, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'wd-menu-i'; b.textContent = text; if (i === cur) b.setAttribute('aria-current', 'true'); b.addEventListener('click', () => { closeMenu(); show(i); }); to.append(b); };
+  menu.innerHTML = ''; rooms.forEach((r, i) => r.loc === home && add(menu, r.name, i));
+  places.innerHTML = ''; LOCATIONS.forEach(l => l !== home && add(places, l.hub ? l.name : l.place, first(l)));
 }
 // travelling: on the jet, the list of places to land; anywhere else, the way back to the jet
 function buildFly() {
@@ -176,8 +177,8 @@ function show(i, dir) {
 prevBtn.addEventListener('click', () => show(side(-1), -1)); nextBtn.addEventListener('click', () => show(side(1), 1));
 
 /* ---------- Explore: the list of rooms, over the blurred room */
-function openMenu() { closeCard(); root.classList.add('wd-exploring'); explore.setAttribute('aria-expanded', 'true'); menu.inert = false; rooms[cur].el.inert = true; }
-function closeMenu(refocus) { if (!root.classList.contains('wd-exploring')) return; root.classList.remove('wd-exploring'); explore.setAttribute('aria-expanded', 'false'); menu.inert = true; rooms[cur].el.inert = false; if (refocus) explore.focus({ preventScroll: true }); }
+function openMenu() { closeCard(); root.classList.add('wd-exploring'); explore.setAttribute('aria-expanded', 'true'); menu.inert = false; places.inert = false; rooms[cur].el.inert = true; }
+function closeMenu(refocus) { if (!root.classList.contains('wd-exploring')) return; root.classList.remove('wd-exploring'); explore.setAttribute('aria-expanded', 'false'); menu.inert = true; places.inert = true; rooms[cur].el.inert = false; if (refocus) explore.focus({ preventScroll: true }); }
 explore.addEventListener('click', () => (root.classList.contains('wd-exploring') ? closeMenu() : openMenu()));
 shade.addEventListener('click', () => closeMenu());
 
