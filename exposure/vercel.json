@@ -12,7 +12,7 @@
       "dest": "/world/index.html"
     },
     {
-      "src": "/(penthouse|jet|vegas|miami|monaco)/?",
+      "src": "/(penthouse|jet|miami|monaco)/?",
       "has": [
         {
           "type": "host",

@@ -38,7 +38,6 @@ html.wd .hd::before { inset: 0 0 -44px 0; -webkit-backdrop-filter: none; backdro
 .wd-exploring .wd-menu:hover .wd-menu-i, .wd-exploring .wd-menu:focus-within .wd-menu-i { opacity: .32; transition-delay: 0s; }
 .wd-exploring .wd-menu .wd-menu-i:hover, .wd-exploring .wd-menu .wd-menu-i:focus-visible { opacity: 1; }
 .wd-menu-i:focus-visible { outline: none; }
-.wd-menu-i[aria-current="true"] { font-style: italic; }
 /* the other places: bottom right, by name */
 .wd-places { position: fixed; z-index: 22; right: var(--gut); bottom: clamp(16px, 3.4vh, 30px); justify-items: end; text-align: right; }
 .wd-exploring .wd-places, .wd-exploring .wd-places .wd-menu-i { pointer-events: auto; }

@@ -144,14 +144,6 @@ const JET = [
         p: 'Sport, fashion and culture, and why fans fall for stories, not fixtures.', link: ['Invite me on', '../book/?for=podcast'] },
     ] },
 ];
-const VEGAS = [
-  { id: 'casino', name: 'The casino', img: 'casino.webp', focus: [48, 60], alt: 'A private gaming room above the Las Vegas Strip at night: a blackjack table, a roulette table and three slot machines',
-    things: [
-      { at: [29.4, 50.4], label: 'Play blackjack', t: 'Blackjack', game: 'blackjack' },
-      { at: [58.4, 73.6], label: 'Play roulette', t: 'Roulette', game: 'roulette' },
-      { at: [85.9, 47.6], label: 'Play the slots', t: 'The slots', game: 'slots' },
-    ] },
-];
 const MIAMI = [
   { id: 'villa', name: 'The villa', img: 'miami.webp', focus: [62, 55], alt: 'A waterfront villa in Miami: a pool terrace with loungers and palms, a padel court, and a living room open to it',
     things: [
@@ -179,11 +171,10 @@ const MONACO = [
 ];
 
 // The places, in the order Explore lists them. `name` and `place` make the line in the header. The one marked `hub` is the
-// jet: from it you choose where to land, and every other place has a way back to it. A new place is another entry here.
+// jet: from it you choose where to land. A new place is another entry here.
 export const LOCATIONS = [
   { id: 'penthouse', name: 'The penthouse', place: 'London', rooms: PENTHOUSE },
   { id: 'jet', name: 'The jet', place: 'In the air', hub: true, rooms: JET },
-  { id: 'vegas', name: 'The casino', place: 'Las Vegas', rooms: VEGAS },
   { id: 'miami', name: 'The villa', place: 'Miami', rooms: MIAMI },
   { id: 'monaco', name: 'The yacht', place: 'Monaco', rooms: MONACO },
 ];

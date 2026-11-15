@@ -145,12 +145,12 @@ function buildMenu() {
   menu.innerHTML = ''; rooms.forEach((r, i) => r.loc === home && add(menu, r.name, i));
   places.innerHTML = ''; LOCATIONS.forEach(l => l !== home && add(places, l.hub ? l.name : l.place, first(l)));
 }
-// travelling: on the jet, the list of places to land; anywhere else, the way back to the jet
+// travelling: on the jet, the list of places to land
 function buildFly() {
   const here = rooms[cur].loc, hub = LOCATIONS.find(l => l.hub); if (!hub) return (fly.hidden = true);
   fly.classList.toggle('board', here === hub);
   fly.innerHTML = here === hub ? `<p class="mono">Where to?</p>${LOCATIONS.filter(l => l !== hub).map(l => `<button type="button" data-to="${l.id}"><b>${esc(l.place)}</b><span class="mono">${esc(l.name)}</span></button>`).join('')}`
-    : `<button type="button" data-to="${hub.id}"><i aria-hidden="true">✈</i><b>Board the jet</b></button>`;
+    : '';   // off the jet there is nothing here: Explore is the way around
 }
 fly.addEventListener('click', e => { const b = e.target.closest('[data-to]'); if (b) show(first(LOCATIONS.find(l => l.id === b.dataset.to))); });
 function label() {
