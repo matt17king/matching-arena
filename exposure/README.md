@@ -99,5 +99,5 @@ The virtual world is meant to live at `world.bymattking.com`, with the story at 
 
 - Fonts (Inter Tight, Geist, Geist Mono) ship in the bundle via Fontsource; nothing loads from a third party at runtime.
 - Review switches: `?nogl` forces the no-WebGL fallback, `?still` forces reduced motion, `?debug` exposes `__mk` (pins, `go(id)`).
-- `og:image` points at `./og.jpg`. Once this has its own domain, make that an absolute URL and add `og:url` and a canonical link.
+- Link previews: the story uses `public/og.jpg` and the virtual world uses `public/og-world.jpg`, both by their full live addresses, because social sites ignore relative ones. A preview deployment therefore shows the live site's image.
 - The logo masks were made from the Arena logo files; to add one, drop a transparent PNG whose alpha is the mark into `public/logos` and reference it in `content.js`.
