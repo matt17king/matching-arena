@@ -147,8 +147,11 @@ const JET = [
 const MIAMI = [
   { id: 'villa', name: 'The villa', img: 'miami.webp', focus: [62, 55], alt: 'A waterfront villa in Miami: a pool terrace with loungers and palms, a padel court, and a living room open to it',
     things: [
-      { at: [80.8, 31.2], label: 'The pennant', k: 'Florida', t: 'Webber International University',
-        p: 'Where I went to university: Babson Park, Florida.',
+      { at: [80.8, 31.2], label: 'The pennant', k: 'Babson Park, Florida · 2023', t: 'Webber International University',
+        p: 'Bachelor of Science in General Business Studies, conferred in August 2023.',
+        photo: ['diploma.jpg', "Matt's degree certificate from Webber International University: Bachelor of Science, General Business Studies"] },
+      { at: [77.6, 41.6], label: 'The photo', k: 'Florida', t: 'Graduation day',
+        p: 'Cap, gown and diploma, by the lake at Webber.',
         photo: ['graduation.jpg', 'Matt in a cap and gown on graduation day, holding his diploma by a lake in Florida'] },
       { at: [55.4, 84.4], label: 'The race pass', k: 'F1 Miami', t: 'Race weekend',
         p: 'Represent tee, race weekend in a new market. Fashion is everywhere in sport.',
