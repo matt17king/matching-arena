@@ -147,7 +147,7 @@ const JET = [
 const MIAMI = [
   { id: 'villa', name: 'The villa', img: 'miami.webp', focus: [62, 55], alt: 'A waterfront villa in Miami: a pool terrace with loungers and palms, a padel court, and a living room open to it',
     things: [
-      { at: [80.8, 31.2], label: 'The pennant', k: 'Babson Park, Florida', t: 'Webber International University',
+      { at: [84.5, 28.3], label: 'The pennant', k: 'Babson Park, Florida', t: 'Webber International University',
         p: 'Bachelor of Science in General Business Studies.',
         photo: ['diploma.jpg', "Matt's degree certificate from Webber International University: Bachelor of Science, General Business Studies"] },
       { at: [77.6, 41.6], label: 'The photo', k: 'Florida', t: 'Graduation day',
