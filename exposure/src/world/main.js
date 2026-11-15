@@ -39,7 +39,8 @@ function load(r) { // the picture, and with it the room's light mask. Resolves o
 }
 
 /* ---------- London's light: the hour and the weather there, live, relighting each room (see sky.js) */
-const coarse = matchMedia('(pointer: coarse)').matches, sky = params.has('nosky') ? null : createSky(coarse), locLabel = $('[data-loc]');
+const coarse = matchMedia('(pointer: coarse)').matches, sky = params.has('sky') ? createSky(coarse) : null,   // switched off for now: it only runs when ?sky is added to the address
+   locLabel = $('[data-loc]');
 const light = { sun: 40, cloud: 0, rain: 0, label: '' }, aim = { sun: 40, cloud: 0, rain: 0 }; let liveWeather = null, clock = 0, settled = false;
 // for looking at a particular moment: ?time=night (or day, golden, sunset, dusk, or 21:30) and ?weather=rain (or clear, cloudy, storm)
 let forced = params.get('time'), forcedWeather = params.get('weather') in WEATHERS ? params.get('weather') : null; const londonTime = d => d.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit' });
