@@ -621,7 +621,7 @@ em.hi .w::before { content: ""; position: absolute; z-index: -1; inset: .2em -.2
 .pf-key .w:nth-child(2)::before { transition-delay: .08s; } .pf-key .w:nth-child(n+3)::before { transition-delay: .16s; }
 .pf-head.lit .pf-key .w::before { transform: scaleX(1); }
 .pf-foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--gut); }
-.pf-line { max-width: 36ch; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.45; margin: 0; text-wrap: pretty; will-change: opacity, transform; }
+.pf-line { max-width: 36ch; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.45; margin: 0; text-wrap: pretty; will-change: opacity, transform; } .pf-link { white-space: nowrap; color: var(--ink); text-underline-offset: 3px; } .pf-link:hover { color: var(--hi-ink, var(--poppy)); }
 .pf-ph { margin: 0; } .pf-ph img { display: block; height: clamp(140px, 29vh, 300px); max-width: min(42vw, 640px); object-fit: cover; border-radius: 14px; opacity: 0; }
 .no-gl .pf-ph img { opacity: 1; filter: grayscale(1) contrast(1.2); }
 

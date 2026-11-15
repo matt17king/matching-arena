@@ -141,7 +141,7 @@ export function renderAll() {
         <header class="pf-meta mono"><span>${esc(p.source)}</span><span>Story ${pad2(i + 1)} / ${pad2(PRESS.length)}</span><span>${esc(p.date)}</span></header>
         <h3 class="pf-head">${pfHead(p)}</h3>
         <div class="pf-foot">
-          <p class="pf-line">${esc(p.line)}</p>
+          <p class="pf-line">${esc(p.line)}${p.url ? ` <a class="pf-link" href="${p.url}" target="_blank" rel="noopener">Read the article ↗</a>` : ''}</p>
           <figure class="pf-ph" data-pf-ph><img src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="aspect-ratio:${p.ar};object-position:${p.pos}"></figure>
         </div>
       </article>`).join('')}</div>
