@@ -47,37 +47,17 @@ const prog = p => (p ? clamp((scrollY - p.top) / p.len) : 0);
 const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; const el = e.target; io.unobserve(el); el.classList.add('in'); if (el.dataset.r === 'smear') smear(el); }), { rootMargin: '0px 0px -7% 0px', threshold: 0.08 });
 $$('[data-r]').forEach(el => io.observe(el));
 
-/* ---------- the hero: a split-flap board. It runs through the record once and lands on the name; a click flips to the
-   next number and it finds its way back. Wide screens get one row of nine flaps, phones two rows of five. */
-const board = $('[data-board]'), narrow = matchMedia('(max-width: 820px)').matches, CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+%';
-const NAME = { d: 'MATT KING', m: ['MATT', 'KING'], c: 'SPORT FASHION CULTURE' };
-const FLIPS = [
-  { d: '3M+', m: ['3M+', 'FANS'], c: 'FANS BROUGHT TO DAZN' },
-  { d: '+600%', m: ['+600%', 'REACH'], c: 'REACH WITH PHIL FODEN' },
-  { d: '8', m: ['8', 'RIGHTS'], c: 'FOOTBALL RIGHTS LED' },
-  { d: '+450%', m: ['+450%', 'CREWE'], c: 'FAN ENGAGEMENT AT CREWE' },
-];
-const rowsOf = f => [...(narrow ? f.m : [f.d]), f.c], sizes = narrow ? [5, 5, 23] : [9, 23];
-board.innerHTML = sizes.map((n, i) => `<span class="v-row ${i === sizes.length - 1 ? 'cap' : 'big'}" style="--n:${n}">${'<span class="fl"><b></b></span>'.repeat(n)}</span>`).join('');
-const flaps = $$('.v-row', board).map(r => $$('.fl b', r)); let flipRun = 0, flipAt = -1, back = 0;
-function flip(frame, quick) {
-  const run = ++flipRun;
-  rowsOf(frame).forEach((text, r) => {
-    const cells = flaps[r], padL = Math.floor((cells.length - text.length) / 2);
-    cells.forEach((b, i) => {
-      const to = text[i - padL] || ' '; if (b.dataset.c === to) return; b.dataset.c = to;
-      if (reduced) { b.textContent = to; return; }
-      const steps = quick ? 3 : 4 + Math.floor(Math.random() * 5), gap = r === cells.length ? 0 : (r < flaps.length - 1 ? 60 : 16) * i;
-      for (let k = 0; k <= steps; k++) setTimeout(() => { if (run !== flipRun && k < steps) return; b.textContent = k === steps ? b.dataset.c : CHARS[Math.floor(Math.random() * CHARS.length)]; b.classList.remove('f'); void b.offsetWidth; b.classList.add('f'); }, gap + k * 58);
-    });
-  });
+/* ---------- the hero: the name in bronze. A highlight sits on the lettering and follows the pointer; with no pointer
+   (a phone) it crosses the name as the page starts to scroll. It only moves when something moves it. */
+const nameEl = $('[data-name]'), glint = { x: 24, y: 30, tx: 24, ty: 30 }; let pointed = false;
+$('[data-hero]').addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; const r = nameEl.getBoundingClientRect(); pointed = true; glint.tx = clamp((e.clientX - r.left) / r.width, -0.2, 1.2) * 100; glint.ty = clamp((e.clientY - r.top) / r.height, -0.5, 1.5) * 100; }, { passive: true });
+function shine(dt) {
+  if (scrollY > vh) return; if (!pointed) { const t = clamp(scrollY / (vh * 0.6)); glint.tx = 24 + t * 60; glint.ty = 30 + t * 30; }
+  const k = reduced ? 1 : 1 - Math.exp(-dt * 5); glint.x += (glint.tx - glint.x) * k; glint.y += (glint.ty - glint.y) * k;
+  nameEl.style.setProperty('--mx', `${glint.x.toFixed(2)}%`); nameEl.style.setProperty('--my', `${glint.y.toFixed(2)}%`);
 }
-if (reduced) flip(NAME); else { // the opening: three numbers, then the name
-  [FLIPS[0], FLIPS[1], FLIPS[2], NAME].forEach((f, i) => setTimeout(() => { if (flipAt < 0) flip(f); }, 350 + i * 1050));
-}
-board.addEventListener('click', () => { flipAt = (flipAt + 1) % FLIPS.length; flip(FLIPS[flipAt], true); root.classList.add('v-focused'); clearTimeout(back); back = setTimeout(() => flip(NAME), 2800); });
 
-/* ---------- the scenes *//* ---------- the scenes */
+/* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes */
 const ideas = $$('[data-idea]'), ideaSteps = $$('[data-list="idea-steps"] span'), ideaCount = $('[data-ideas-count]'); let ideaAt = -1;
 $('.v-ideas').style.setProperty('--len', (ideas.length * 0.85).toFixed(2));
 const track = $('[data-track]'), worldBg = $('[data-world-bg] img'), bar = $('[data-bar]');
@@ -105,7 +85,7 @@ function tick(now) {
   const z = zones.find(z => sy + vh * 0.55 >= z.top && sy + vh * 0.55 < z.bottom);
   if (z) { theme.to(z.name); const k = 1 - Math.exp(-dt * 2.2); for (let i = 0; i < 4; i++) scene.blob[i] = lerp(scene.blob[i], z.blob[i], k); scene.energy = lerp(scene.energy, z.energy, k); }
   theme.ease(reduced ? 1 : 1 - Math.exp(-dt * 5.5));
-  scenes();
+  scenes(); shine(dt);
   if (field) field.frame({ time, dt, scroll: sy / vh, flow: d / (canvas.clientHeight || vh), vel, grain: 0.05, theme: theme.gl, blob: scene.blob, energy: scene.energy, quads: [], duoLo: C.raven, duoHi: C.sky, accent: C.poppy });
   requestAnimationFrame(tick);
 }
