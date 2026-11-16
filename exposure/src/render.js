@@ -137,13 +137,14 @@ export function renderAll() {
   const pfHead = p => { const at = p.key ? p.headline.indexOf(p.key) : -1; if (at < 0) return pfWords(p.headline); const a = p.headline.slice(0, at), b = p.headline.slice(at + p.key.length); return `${a.trim() ? pfWords(a) + ' ' : ''}<em class="pf-key">${pfWords(p.key, true)}</em>${b.trim() ? ' ' + pfWords(b) : ''}`; };
   fill('press', `<div class="pin pf" style="--len:${(PRESS.length * 0.95).toFixed(2)}" data-pin="press">
     <div class="pin-in">
+      <header class="pf-top mono"><h2>In the press</h2><span data-pf-count>01 / ${pad2(PRESS.length)}</span><span>On the record</span></header>
       <div class="pf-stage">${PRESS.map((p, i) => `<article class="pf-item" data-pf="${i}">
-        <header class="pf-meta mono"><span>${esc(p.source)}</span><span>Story ${pad2(i + 1)} / ${pad2(PRESS.length)}</span><span>${esc(p.date)}</span></header>
-        <h3 class="pf-head">${pfHead(p)}</h3>
-        <div class="pf-foot">
+        <div class="pf-text">
+          <p class="pf-meta mono"><b>${esc(p.source)}</b><span>${esc(p.date)}</span></p>
+          <h3 class="pf-head">${pfHead(p)}</h3>
           <p class="pf-line">${esc(p.line)}${p.url ? ` <a class="pf-link" href="${p.url}" target="_blank" rel="noopener">Read the article ↗</a>` : ''}</p>
-          <figure class="pf-ph" data-pf-ph><img src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="aspect-ratio:${p.ar};object-position:${p.pos}"></figure>
         </div>
+        <figure class="pf-ph" data-pf-ph style="--ar:${p.ar}"><img src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="object-position:${p.pos}"></figure>
       </article>`).join('')}</div>
       <div class="steps" aria-hidden="true">${PRESS.map((p, i) => `<span><i></i><b class="mono">${pad2(i + 1)} — ${esc(p.source)}</b></span>`).join('')}</div>
     </div>

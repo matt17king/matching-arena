@@ -296,9 +296,10 @@ function marketsScene(p) {
   mkItems.forEach((li, i) => { const d = Math.abs(i - mkF), t = clamp(d - 0.15); li.style.opacity = (1 - Math.min(0.8, t * 0.5)).toFixed(3); li.style.filter = t < 0.01 || reduced ? 'none' : `blur(${Math.min(12, t * 6).toFixed(1)}px)`; });
   const at = clamp(Math.round(mkF), 0, n - 1); if (at !== mkAt) { mkAt = at; mkItems.forEach((li, i) => li.classList.toggle('on', i === at)); mkN.textContent = `Market ${pad2(at + 1)} / ${pad2(n)}`; }
 }
-// press: one story per screen. Each headline arrives out of focus; the words that matter come sharp first, then the rest,
-// then the line that was written about it, while the photo streaks in and settles beside it.
-const pfItems = $$('[data-pf]').map(el => ({ el, key: $$('.pf-head .w.k', el), rest: $$('.pf-head .w:not(.k)', el), head: $('.pf-head', el), line: $('.pf-line', el), ph: $('[data-pf-ph] img', el) })), pfSteps = $$('.pf .steps span');
+// press: one story per screen, the headline on the left and its picture, large, on the right. Each headline arrives out of
+// focus; the words that matter come sharp first, then the rest, then the line written about it. The picture streaks in
+// beside it and settles into its own colours.
+const pfItems = $$('[data-pf]').map(el => ({ el, key: $$('.pf-head .w.k', el), rest: $$('.pf-head .w:not(.k)', el), head: $('.pf-head', el), line: $('.pf-line', el), ph: $('[data-pf-ph] img', el) })), pfSteps = $$('.pf .steps span'), pfCount = $('[data-pf-count]'); let pfAt = -1;
 const pfFocus = (ws, t, soft) => ws.forEach(w => { w.style.opacity = (0.4 + 0.6 * t).toFixed(3); w.style.filter = t > 0.995 ? 'none' : `blur(${((1 - t) * soft).toFixed(3)}em)`; });
 function pressScene(p) {
   const n = pfItems.length, pin = pins.press; if (!n || !pin) return; const x = clamp(p, 0, 0.9999) * n, at = Math.floor(x);
@@ -311,8 +312,9 @@ function pressScene(p) {
     pfFocus(it.key, reduced ? 1 : sstep(0.04, 0.3, u), 0.12); pfFocus(it.rest, reduced ? 1 : sstep(0.28, 0.6, u), 0.075);
     it.head.classList.toggle('lit', reduced || u > 0.6);
     const c = reduced ? 1 : sstep(0.42, 0.64, u); it.line.style.opacity = c.toFixed(3); it.line.style.transform = `translateY(${((1 - c) * 20).toFixed(1)}px)`;
-    if (field && it.ph && vis > 0.01) { const e = reduced ? 1 : sstep(0.08, 0.5, u); place(it.ph, PH.press + i, { blur: (1 - e) * 1.2, dx: (1 - e) * vw * 0.2, alpha: vis * clamp(u * 5), rad: 14, leak: 0.35 }); }
+    if (field && it.ph && vis > 0.01) { const e = reduced ? 1 : sstep(0.08, 0.5, u); place(it.ph, PH.press + i, { blur: (1 - e) * 1.2, dx: (1 - e) * vw * 0.16, alpha: vis * clamp(u * 5), rad: 16, leak: 0.3 * (1 - e), duo: 1 - e }); }
   });
+  if (at !== pfAt && pfCount) { pfAt = at; pfCount.textContent = `${pad2(at + 1)} / ${pad2(n)}`; }
   pfSteps.forEach((st, i) => { st.style.setProperty('--f', clamp(x - i).toFixed(3)); st.classList.toggle('on', i === at); });
 }
 
