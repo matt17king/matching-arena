@@ -83,7 +83,7 @@ The six routes and six topics come from `SEATS` and `TOPICS` in `content.js` (ea
 - **Games:** a thing with `game: 'blackjack'` (or `'roulette'`, `'slots'`) is a table to play at. The games are in `src/world/games.js`, use play chips only (remembered in the browser, never real money) and are downloaded only when a table is first opened. No room uses them at the moment (the casino was taken out); `?game=blackjack` on the world page opens one directly.
 - **Music:** a thing with `spotify: '<link>'` (a track, album or playlist copied from Spotify's Share menu) is a music marker. It opens Spotify's own player in the corner, which stays open from room to room. Nothing loads from Spotify until the marker is clicked. The speaker in the living room is the first.
 - **Photos in cards** are shown whole, at their own shape: an upright photo stands beside the words, a wide one sits above them.
-- **Phones held upright** show the picture at a little over half the screen's height, so about half the room is in view (covering the height would show a quarter), with a soft dark copy of the picture filling above and below. It can be dragged sideways; each room's `focus` is where it starts.
+- **Small screens** show the picture at full height and let it be dragged sideways; each room's `focus` is where it starts. The picture is re-measured whenever the screen's size settles, and the page itself cannot be zoomed by a double tap or a pinch.
 
 The story links to it from the footer and the index. The page opens straight into the living room; there is no title screen.
 

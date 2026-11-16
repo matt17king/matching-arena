@@ -1,6 +1,6 @@
 /* The casino's tables. One panel over the room; each game fills its body. */
 .gm { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 14px; background: rgb(9 3 3 / .72); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); opacity: 0; transition: opacity .35s ease; overflow: auto; }
-.gm[hidden] { display: none; } .gm.on { opacity: 1; }
+.gm { touch-action: pan-y; } .gm[hidden] { display: none; } .gm.on { opacity: 1; }
 .gm-in { position: relative; width: min(880px, 100%); display: grid; gap: clamp(12px, 2.2vh, 20px); padding: clamp(16px, 2.4vw, 28px); border-radius: 24px; border: 1px solid var(--line-strong); color: var(--ink);
   background: radial-gradient(120% 90% at 100% 0%, rgb(226 11 33 / .2), transparent 60%), radial-gradient(90% 80% at 0% 100%, rgb(87 179 238 / .14), transparent 60%), rgb(9 3 3 / .94); box-shadow: 0 40px 120px rgb(0 0 0 / .6); transform: translateY(18px) scale(.985); transition: transform .6s var(--expo); }
 .gm.on .gm-in { transform: none; }

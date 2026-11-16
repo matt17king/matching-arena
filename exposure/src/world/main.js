@@ -113,21 +113,23 @@ function screens(r, on) { for (const t of r.tvs) { if (on && !reduced) { if (!t.
 let W = 1, H = 1, pw = 1, ph = 1, cur = 0, entered = false;
 function place(r) {
   const hx = Math.min(0.5, W / 2 / pw), hy = Math.min(0.5, H / 2 / ph); r.c.x = clamp(r.c.x, hx, 1 - hx); r.c.y = clamp(r.c.y, hy, 1 - hy);
-  // where the picture is shorter than the screen (a phone held upright) it sits a little above the middle
-  const y = ph < H ? (H - ph) * 0.44 : H / 2 - r.c.y * ph;
-  r.plate.style.transform = `translate3d(${(W / 2 - r.c.x * pw).toFixed(1)}px,${y.toFixed(1)}px,0)`;
+  r.plate.style.transform = `translate3d(${(W / 2 - r.c.x * pw).toFixed(1)}px,${(H / 2 - r.c.y * ph).toFixed(1)}px,0)`;
 }
 function fit() {
   W = stage.clientWidth; H = stage.clientHeight;
-  // On a wide screen the picture covers it. On a phone held upright, covering the height would show barely a quarter of the
-  // room, so the picture is drawn at a little over half the height instead: twice as much of the room is in view, and a
-  // soft, dark copy of the picture fills the space above and below.
-  const tall = H > W * 1.15, s = Math.max(W / IW, (tall ? H * 0.56 : H) / IH); pw = IW * s; ph = IH * s; root.classList.toggle('wd-tall', tall);
-  root.style.setProperty('--plate-b', `${((H - ph) * 0.44 + ph).toFixed(0)}px`);   // where the picture ends, for the arrows to sit under it on a phone
+  if (W < 2 || H < 2) return;   // not laid out yet: wait for the next measure rather than size the picture to nothing
+  const s = Math.max(W / IW, H / IH); pw = IW * s; ph = IH * s;
   rooms.forEach(r => { r.plate.style.width = pw.toFixed(1) + 'px'; r.plate.style.height = ph.toFixed(1) + 'px'; place(r); for (const t of r.tvs) t.b.style.transform = pin(t.quad.map(([x, y]) => [x / 100 * pw, y / 100 * ph])); });
   root.classList.toggle('wd-pan', pw - W > 24 || ph - H > 24); root.classList.toggle('wd-far', pw > W * 1.3);
 }
-addEventListener('resize', fit);
+// The picture is sized from the screen, so it has to be measured again whenever the screen's size settles. Phones do not
+// always say so with a resize: a page opened inside another app, restored from the back button, or loaded while the
+// address bar is still moving can report one size and end up another, which left the picture drawn too large until a
+// reload. So the stage itself is watched, and the size is checked again at every moment it could have changed.
+addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 250)); addEventListener('pageshow', fit);
+window.visualViewport?.addEventListener('resize', fit);
+if ('ResizeObserver' in window) new ResizeObserver(fit).observe(stage);
+addEventListener('load', () => { fit(); setTimeout(fit, 400); setTimeout(fit, 1500); });
 
 /* ---------- drag to look around (only does anything when the picture is bigger than the screen) */
 { let p = null;
