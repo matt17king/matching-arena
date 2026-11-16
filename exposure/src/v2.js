@@ -27,6 +27,10 @@ fill('press', PRESS.map((p, i) => `<article class="v-card" data-r="fade" style="
 fill('routes', SEATS.map(([what, , , , key]) => `<li><a href="${B}book/?for=${key}"><span>${esc(what)}</span><i aria-hidden="true">→</i></a></li>`).join(''));
 fill('contact', `<a href="mailto:${EMAIL}">${EMAIL}</a><a href="${LINKEDIN}" target="_blank" rel="noopener">LinkedIn ↗</a><a href="${INSTAGRAM}" target="_blank" rel="noopener">Instagram ↗</a>`);
 
+// the hero's wall: Matt in the middle of it, the grounds around him. Built twice: once streaked, once sharp.
+const WALL = ['portrait.jpg', 'man-city-match.jpg', 'f1-miami.jpg', 'super-bowl.jpg', 'padel.jpg', 'foden-couture.jpg', 'goodwood.jpg', 'barcelona.jpg', 'boxing.jpg', 'paris-marathon.jpg', 'tennis.jpg', 'national-league-awards.jpg', 'man-city-couture.jpg', 'radio.jpg', 'track.jpg'];
+$$('[data-wall]').forEach(w => (w.innerHTML = WALL.map((f, i) => `<img class="${i ? '' : 'me'}" src="${B}photos/s/${f}" alt="" decoding="async" draggable="false">`).join('')));
+
 { const g = grainURL(); $('[data-grain]').style.backgroundImage = g; }
 $$('[data-split]').forEach(split);
 const sayEl = $('[data-say]'); split(sayEl); const sayWords = $$('.w', sayEl), saySub = $('[data-say-sub]');
@@ -46,6 +50,22 @@ function measure() {
 const prog = p => (p ? clamp((scrollY - p.top) / p.len) : 0);
 const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; const el = e.target; io.unobserve(el); el.classList.add('in'); if (el.dataset.r === 'smear') smear(el); }), { rootMargin: '0px 0px -7% 0px', threshold: 0.08 });
 $$('[data-r]').forEach(el => io.observe(el));
+
+/* ---------- the hero: a circle of focus on a streaked wall. It follows the pointer and, left alone, goes back to Matt. */
+const hero = $('[data-hero]'), sharp = $('[data-wall="sharp"]'), me = $('.me', sharp);
+const lens = { x: 0, y: 0, r: 0, tx: 0, ty: 0, held: false, born: performance.now(), seen: false };
+function home() { const a = sharp.getBoundingClientRect(), b = me.getBoundingClientRect(); lens.tx = b.left - a.left + b.width / 2; lens.ty = b.top - a.top + b.height * 0.42; }
+function aim(e) { const a = sharp.getBoundingClientRect(); lens.tx = e.clientX - a.left; lens.ty = e.clientY - a.top; lens.held = true; if (!lens.seen) { lens.seen = true; root.classList.add('v-focused'); } }
+hero.addEventListener('pointermove', aim, { passive: true }); hero.addEventListener('pointerdown', aim, { passive: true });
+const rest = () => { lens.held = false; home(); }; hero.addEventListener('pointerleave', rest); hero.addEventListener('pointercancel', rest); hero.addEventListener('pointerup', e => { if (e.pointerType !== 'mouse') rest(); });
+function focus(now, dt) {
+  if (scrollY > vh * 1.1) return; if (!lens.held) home();
+  // it opens with everything sharp, then the focus closes down onto him: the blur is what is left
+  const t = clamp((now - lens.born - 500) / 1900), e = 1 - Math.pow(1 - t, 4), at = Math.min(vw, vh) * (vw < 700 ? 0.3 : 0.23), R = reduced ? at : lerp(Math.hypot(vw, vh) * 1.2, at, e);
+  const k = reduced ? 1 : 1 - Math.exp(-dt * (lens.held ? 9 : 3.5));
+  if (!lens.r) { lens.x = lens.tx; lens.y = lens.ty; } lens.x += (lens.tx - lens.x) * k; lens.y += (lens.ty - lens.y) * k; lens.r = R;
+  sharp.style.setProperty('--x', `${lens.x.toFixed(1)}px`); sharp.style.setProperty('--y', `${lens.y.toFixed(1)}px`); sharp.style.setProperty('--r', `${R.toFixed(1)}px`);
+}
 
 /* ---------- the scenes */
 const ideas = $$('[data-idea]'), ideaSteps = $$('[data-list="idea-steps"] span'), ideaCount = $('[data-ideas-count]'); let ideaAt = -1;
@@ -75,7 +95,7 @@ function tick(now) {
   const z = zones.find(z => sy + vh * 0.55 >= z.top && sy + vh * 0.55 < z.bottom);
   if (z) { theme.to(z.name); const k = 1 - Math.exp(-dt * 2.2); for (let i = 0; i < 4; i++) scene.blob[i] = lerp(scene.blob[i], z.blob[i], k); scene.energy = lerp(scene.energy, z.energy, k); }
   theme.ease(reduced ? 1 : 1 - Math.exp(-dt * 5.5));
-  scenes();
+  scenes(); focus(now, dt);
   if (field) field.frame({ time, dt, scroll: sy / vh, flow: d / (canvas.clientHeight || vh), vel, grain: 0.05, theme: theme.gl, blob: scene.blob, energy: scene.energy, quads: [], duoLo: C.raven, duoHi: C.sky, accent: C.poppy });
   requestAnimationFrame(tick);
 }
