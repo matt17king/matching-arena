@@ -96,6 +96,10 @@ The virtual world is meant to live at `world.bymattking.com`, with the story at 
 - **Places** are the `LOCATIONS` list at the bottom of `src/world/rooms.js`: the penthouse, the jet, the villa in Miami and the yacht in Monaco. The arrows stay within a place; Explore lists the penthouse's rooms on the left and the other places, by name, in the bottom right corner. The jet is the hub (`hub: true`): on it a small board offers the places to land. A new place needs an entry there, its pictures in `public/rooms/`, and its id added to the second route in `vercel.json`.
 - To switch it on: add `world.bymattking.com` to the project's domains in Vercel and add the DNS record Vercel shows.
 
+## The look
+
+Every colour on all three pages comes from five tokens set in `src/styles/site.css` (`--raven-c`, `--sky-c`, `--poppy-c`, `--ice-c`, `--glow-c`) and mirrored in `LOOKS` in `src/kit.js`, which also feeds the WebGL field and the photo duotone. A look is one entry in `LOOKS`; `DEFAULT_LOOK` is the one the live site wears. On previews a small picker on the right edge tries the others on (it is never shown on `bymattking.com` unless `?look=` is in the address).
+
 ## Notes
 
 - Fonts (Inter Tight, Geist, Geist Mono) ship in the bundle via Fontsource; nothing loads from a third party at runtime.

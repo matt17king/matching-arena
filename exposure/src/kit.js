@@ -43,16 +43,44 @@ export function split(el) {
 
 /* ---------- colour: three themes, eased between as sections pass the middle of the screen */
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
-// glow is powder blue's own hue with the white taken out: what that light looks like as it falls off into black
-export const C = { raven: hex('#090303'), sky: hex('#b6dff8'), poppy: hex('#e20b21'), ice: hex('#f3f8fc'), ember: hex('#7a0611'), glow: hex('#57b3ee') };
+// A look is the palette: the dark that leads, the light ground, the accent, the near-white for type, the deep end of the
+// accent, and the colour of the second light. `original` is black, powder blue and poppy red. The walnut looks take their
+// neutrals from the virtual world's rooms (espresso, travertine, warm white, firelight) and differ only in the accent.
+export const LOOKS = {
+  original: { name: 'Original', raven: '#090303', sky: '#b6dff8', poppy: '#e20b21', ice: '#f3f8fc', ember: '#7a0611', glow: '#57b3ee' },
+  'walnut-red': { name: 'Walnut + red', raven: '#0f0a07', sky: '#e6dccd', poppy: '#e20b21', ice: '#f7f1e8', ember: '#6d0810', glow: '#d39a5a' },
+  'walnut-oxblood': { name: 'Walnut + oxblood', raven: '#0f0a07', sky: '#e6dccd', poppy: '#8e1b22', ice: '#f7f1e8', ember: '#3d0a0e', glow: '#d39a5a' },
+  'walnut-bronze': { name: 'Walnut + bronze', raven: '#0f0a07', sky: '#e6dccd', poppy: '#a5672f', ice: '#f7f1e8', ember: '#4a2a12', glow: '#e0b074' },
+};
+const DEFAULT_LOOK = 'original';
+// The live site always wears the default look. On a preview (or with ?look= anywhere) another can be tried on.
+const live = /(^|\.)bymattking\.com$/.test(location.hostname);
+let saved = null; try { saved = localStorage.getItem('mk-look'); } catch { /* no storage: the default look */ }
+export const look = [params.get('look'), live ? null : saved, DEFAULT_LOOK].find(k => k && LOOKS[k]);
+const L = LOOKS[look];
+export const C = Object.fromEntries(['raven', 'sky', 'poppy', 'ice', 'ember', 'glow'].map(k => [k, hex(L[k])]));
+for (const k of ['raven', 'sky', 'poppy', 'ice', 'glow']) root.style.setProperty(`--${k}-c`, C[k].map(v => Math.round(v * 255)).join(' '));
+document.querySelector('meta[name="theme-color"]')?.setAttribute('content', L.raven);
+root.dataset.look = look;
+if (!live || params.has('look')) addEventListener('DOMContentLoaded', () => {
+  const el = document.createElement('aside'); el.className = 'looks'; el.setAttribute('aria-label', 'Try a look');
+  el.innerHTML = `<button type="button" data-fold>Looks · hide</button><p>Preview only</p>` + Object.entries(LOOKS).map(([k, v]) => `<button type="button" data-look="${k}" aria-pressed="${k === look}"><i>${['raven', 'sky', 'poppy', 'glow'].map(c => `<b style="background:${v[c]}"></b>`).join('')}</i>${v.name}</button>`).join('');
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.fold !== undefined) { b.textContent = el.classList.toggle('shut') ? 'Looks' : 'Looks · hide'; return; }
+    try { localStorage.setItem('mk-look', b.dataset.look); } catch { /* fall through to the address */ }
+    const u = new URL(location.href); u.searchParams.delete('look'); if (live) u.searchParams.set('look', b.dataset.look); location.href = u.href; if (!live) location.reload();
+  });
+  document.body.append(el);
+});
 const a = (c, al = 1) => [...c, al];
 export const THEMES = {
-  // raven: the room with the lights off. Red and blue light bleed across it; type is ice white.
+  // raven: the room with the lights off. The accent and the second light bleed across it; type is near-white.
   raven: {
     css: { bg: a(C.raven), ink: a(C.ice), body: a(C.ice, 0.86), mute: a(C.sky, 0.7), line: a(C.sky, 0.18), 'line-strong': a(C.sky, 0.44), 'hi-ink': a(C.ice), 'hi-mark': a(C.poppy), 'btn-bg': a(C.poppy), 'btn-ink': a(C.ice) },
     gl: { bg: C.raven, a: C.poppy, b: C.glow, halo: C.poppy, core: C.ice, mix: [0.96, 0.62, 0.8, 0.92] },
   },
-  // sky: powder blue daylight, black type, red for the words that matter
+  // sky: the daylight sections. A light ground, dark type, the accent for the words that matter
   sky: {
     css: { bg: a(C.sky), ink: a(C.raven), body: a(C.raven, 0.88), mute: a(C.raven, 0.62), line: a(C.raven, 0.16), 'line-strong': a(C.raven, 0.46), 'hi-ink': a(C.poppy), 'hi-mark': a(C.poppy, 0), 'btn-bg': a(C.raven), 'btn-ink': a(C.sky) },
     gl: { bg: C.sky, a: C.ice, b: C.poppy, halo: C.poppy, core: C.raven, mix: [0.9, 0.8, 0.6, 0.6] },
