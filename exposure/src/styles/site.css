@@ -5,7 +5,7 @@
    rgb(var(--raven-c) / .5). The numbers here are the default look; kit.js rewrites them when another look is chosen.
    The theme variables below them are rewritten by main.js as you move between raven, sky and poppy sections. */
 :root {
-  --raven-c: 9 3 3; --sky-c: 182 223 248; --poppy-c: 226 11 33; --ice-c: 243 248 252; --glow-c: 87 179 238;
+  --raven-c: 9 3 3; --sky-c: 182 223 248; --poppy-c: 226 11 33; --ice-c: 243 248 252; --glow-c: 87 179 238; --bronze-c: 182 223 248;
   --raven: rgb(var(--raven-c)); --sky: rgb(var(--sky-c)); --poppy: rgb(var(--poppy-c)); --ice: rgb(var(--ice-c));
   --bg: var(--raven); --ink: var(--ice); --body: rgb(var(--ice-c) / .86); --mute: rgb(var(--sky-c) / .7);
   --line: rgb(var(--sky-c) / .18); --line-strong: rgb(var(--sky-c) / .44);

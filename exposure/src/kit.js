@@ -50,16 +50,20 @@ export const LOOKS = {
   original: { name: 'Original', raven: '#090303', sky: '#b6dff8', poppy: '#e20b21', ice: '#f3f8fc', ember: '#7a0611', glow: '#57b3ee' },
   'walnut-red': { name: 'Walnut + red', raven: '#0f0a07', sky: '#e6dccd', poppy: '#e20b21', ice: '#f7f1e8', ember: '#6d0810', glow: '#d39a5a' },
   'walnut-oxblood': { name: 'Walnut + oxblood', raven: '#0f0a07', sky: '#e6dccd', poppy: '#8e1b22', ice: '#f7f1e8', ember: '#3d0a0e', glow: '#d39a5a' },
+  // the two together: bronze for light, lines and labels; red kept for the few things that must be seen
+  walnut: { name: 'Walnut, bronze + red', raven: '#0f0a07', sky: '#e6dccd', poppy: '#e20b21', ice: '#f7f1e8', ember: '#6d0810', glow: '#c98d4e', bronze: '#c79a62' },
   'walnut-bronze': { name: 'Walnut + bronze', raven: '#0f0a07', sky: '#e6dccd', poppy: '#a5672f', ice: '#f7f1e8', ember: '#4a2a12', glow: '#e0b074' },
 };
 const DEFAULT_LOOK = 'original';
 // The live site always wears the default look. On a preview (or with ?look= anywhere) another can be tried on.
 const live = /(^|\.)bymattking\.com$/.test(location.hostname);
 let saved = null; try { saved = localStorage.getItem('mk-look'); } catch { /* no storage: the default look */ }
-export const look = [params.get('look'), live ? null : saved, DEFAULT_LOOK].find(k => k && LOOKS[k]);
+// (a page can also ask for a look outright, with data-look on its <html>)
+export const look = [params.get('look'), root.getAttribute('data-look'), live ? null : saved, DEFAULT_LOOK].find(k => k && LOOKS[k]);
 const L = LOOKS[look];
 export const C = Object.fromEntries(['raven', 'sky', 'poppy', 'ice', 'ember', 'glow'].map(k => [k, hex(L[k])]));
 for (const k of ['raven', 'sky', 'poppy', 'ice', 'glow']) root.style.setProperty(`--${k}-c`, C[k].map(v => Math.round(v * 255)).join(' '));
+root.style.setProperty('--bronze-c', hex(L.bronze || L.sky).map(v => Math.round(v * 255)).join(' '));
 document.querySelector('meta[name="theme-color"]')?.setAttribute('content', L.raven);
 root.dataset.look = look;
 if (!live || params.has('look')) addEventListener('DOMContentLoaded', () => {
@@ -91,6 +95,9 @@ export const THEMES = {
     gl: { bg: C.poppy, a: C.raven, b: C.ember, halo: C.raven, core: C.ice, mix: [0.6, 0.7, 0.5, 0.9] },
   },
 };
+// In a look that has bronze, bronze is the room's main light and the accent the smaller one; on the light ground the
+// second light is bronze too, so the daylight sections stay warm rather than turning pink.
+if (L.bronze) { Object.assign(THEMES.raven.gl, { a: C.glow, b: C.poppy, halo: C.glow, mix: [0.9, 0.5, 0.8, 0.9] }); Object.assign(THEMES.sky.gl, { b: C.glow, halo: C.glow }); THEMES.raven.css.mute = [...hex(L.bronze), 0.9]; THEMES.raven.css.line = [...hex(L.bronze), 0.22]; THEMES.raven.css['line-strong'] = [...hex(L.bronze), 0.5]; }
 const clone = t => ({ css: Object.fromEntries(Object.entries(t.css).map(([k, v]) => [k, [...v]])), gl: Object.fromEntries(Object.entries(t.gl).map(([k, v]) => [k, [...v]])) });
 // The live theme: `to(name)` picks a target, `ease(k)` moves the page's colours (CSS variables and the field) toward it.
 export function createTheme(start = 'raven') {
