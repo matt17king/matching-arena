@@ -1,6 +1,9 @@
 /* The virtual world: one full-screen picture per room. The page itself never scrolls. */
 html.wd, html.wd body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 html.wd body { background: #090303; }
+/* this page is a fixed stage, not a document: the browser must not zoom it. A quick double tap on an arrow, or a pinch,
+   would otherwise zoom the whole page in and leave it there until a reload. Things that scroll say so themselves. */
+html.wd, html.wd body { touch-action: none; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; } html.wd .wd-card { touch-action: pan-y; }
 
 .wd-stage { position: fixed; inset: 0; overflow: hidden; overflow: clip; touch-action: none; background: #090303; user-select: none; -webkit-user-select: none; }
 .wd-pan .wd-stage { cursor: grab; } .wd-stage.drag { cursor: grabbing; }
