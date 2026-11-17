@@ -28,13 +28,14 @@
 
 <main>
 
-<!-- 1. who: nothing but the name, lettered in bronze. The light on it moves with the pointer, the way light crosses metal. -->
+<!-- 1. who. Several heroes are being tried: src/v2.js fills the middle according to ?hero= (film, screen, type, bronze). -->
 <section class="v-hero" id="top" data-hero data-theme="raven" data-blob=".28,.9,1,.12" data-energy="1">
+  <div class="v-hero-bg" data-hero-bg aria-hidden="true"></div>
   <div class="v-hero-top">
     <p class="v-claim" data-r="fade" style="--d:.7s">Sport is a blur.<br><em>The story is what stays sharp.</em></p>
     <p class="mono v-role" data-r="fade" style="--d:.8s">Global Marketing Manager, Football — DAZN</p>
   </div>
-  <h1 class="v-name" data-name data-r="fade" style="--d:.15s">Matt <em>King</em></h1>
+  <div class="v-hero-mid" data-hero-mid></div>
   <div class="v-hero-foot">
     <p class="v-line" data-r="fade" style="--d:.9s">I take sport off the pitch and into culture.</p>
     <div class="v-go" data-r="fade" style="--d:1s">

@@ -47,17 +47,56 @@ const prog = p => (p ? clamp((scrollY - p.top) / p.len) : 0);
 const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; const el = e.target; io.unobserve(el); el.classList.add('in'); if (el.dataset.r === 'smear') smear(el); }), { rootMargin: '0px 0px -7% 0px', threshold: 0.08 });
 $$('[data-r]').forEach(el => io.observe(el));
 
-/* ---------- the hero: the name in bronze. A highlight sits on the lettering and follows the pointer; with no pointer
-   (a phone) it crosses the name as the page starts to scroll. It only moves when something moves it. */
-const nameEl = $('[data-name]'), glint = { x: 24, y: 30, tx: 24, ty: 30 }; let pointed = false;
-$('[data-hero]').addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; const r = nameEl.getBoundingClientRect(); pointed = true; glint.tx = clamp((e.clientX - r.left) / r.width, -0.2, 1.2) * 100; glint.ty = clamp((e.clientY - r.top) / r.height, -0.5, 1.5) * 100; }, { passive: true });
-function shine(dt) {
-  if (scrollY > vh) return; if (!pointed) { const t = clamp(scrollY / (vh * 0.6)); glint.tx = 24 + t * 60; glint.ty = 30 + t * 30; }
-  const k = reduced ? 1 : 1 - Math.exp(-dt * 5); glint.x += (glint.tx - glint.x) * k; glint.y += (glint.ty - glint.y) * k;
-  nameEl.style.setProperty('--mx', `${glint.x.toFixed(2)}%`); nameEl.style.setProperty('--my', `${glint.y.toFixed(2)}%`);
+/* ---------- the hero. Four are being tried, chosen with ?hero= and the switcher at the top of the page:
+   film    the name as a window: match footage plays inside the letters
+   screen  the footage fills the screen, the name over it
+   type    three rows of very large type that slide past each other as the page scrolls
+   bronze  the name in bronze, lit by the pointer */
+const KINDS = { film: 'Film in the name', screen: 'Full-screen film', type: 'Moving type', bronze: 'Bronze lettering' };
+const kind = params.get('hero') in KINDS ? params.get('hero') : 'film', hero = $('[data-hero]'), mid = $('[data-hero-mid]'), VIDEO = `${B}video/tv.mp4`, POSTER = `${B}video/tv.jpg`;
+hero.dataset.kind = kind; let heroTick = () => {};
+{ const nav = document.createElement('nav'); nav.className = 'v-kinds mono'; nav.setAttribute('aria-label', 'Try a hero'); nav.innerHTML = '<span>Hero</span>' + Object.entries(KINDS).map(([k, n]) => `<a href="?hero=${k}"${k === kind ? ' aria-current="true"' : ''}>${n}</a>`).join(''); document.body.append(nav); }
+
+if (kind === 'film') {
+  mid.innerHTML = `<h1 class="wd-sr">Matt King</h1><canvas class="v-filmname" data-film aria-hidden="true"></canvas><video class="v-src" muted loop playsinline preload="auto" poster="${POSTER}" src="${VIDEO}"></video>`;
+  const cv = $('[data-film]'), g = cv.getContext('2d'), vid = $('.v-src', mid), still = new Image(); still.src = POSTER; let fs = 0, wM = 0, ready = false;
+  const F = (it, px) => `${it ? 'italic ' : ''}600 ${px}px "Inter Tight Variable", "Helvetica Neue", Arial, sans-serif`;
+  function size() { // the name is set as wide as the page allows; the canvas is exactly as tall as the letters
+    const w = cv.clientWidth, dpr = Math.min(devicePixelRatio || 1, 2); if (w < 2) return;
+    g.letterSpacing = '-5px'; g.font = F(false, 100); const a = g.measureText('Matt ').width; g.font = F(true, 100); const b = g.measureText('King').width;
+    fs = 100 * (w * 0.985) / (a + b); wM = a * fs / 100; cv.width = Math.round(w * dpr); cv.height = Math.round(fs * 1.02 * dpr); cv.style.height = `${(fs * 1.02).toFixed(1)}px`; g.setTransform(dpr, 0, 0, dpr, 0, 0); ready = true;
+  }
+  document.fonts.ready.then(size); addEventListener('resize', size); size();
+  if (!reduced) vid.play().catch(() => {});
+  let lastDraw = 0;
+  heroTick = now => {
+    if (!ready || scrollY > vh || now - lastDraw < 38) return; lastDraw = now;
+    const w = cv.clientWidth, h = fs * 1.02, src = vid.readyState >= 2 ? vid : still.complete && still.naturalWidth ? still : null;
+    // the letters first, then the footage kept only where there are letters
+    g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, w, h); g.fillStyle = '#c79a62'; g.textBaseline = 'alphabetic'; g.letterSpacing = `${(-0.05 * fs).toFixed(2)}px`;
+    g.font = F(false, fs); g.fillText('Matt ', 0, fs * 0.8); g.font = F(true, fs); g.fillText('King', wM, fs * 0.8);
+    if (src) { const sw = src.videoWidth || src.naturalWidth, sh = src.videoHeight || src.naturalHeight, ch = sw * h / w; g.globalCompositeOperation = 'source-in'; g.drawImage(src, 0, (sh - ch) * 0.42, sw, ch, 0, 0, w, h); }
+  };
+} else if (kind === 'screen') {
+  $('[data-hero-bg]').innerHTML = `<video muted loop playsinline preload="auto" poster="${POSTER}" src="${VIDEO}"></video>`;
+  if (!reduced) $('[data-hero-bg] video').play().catch(() => {});
+  mid.innerHTML = '<h1 class="v-name">Matt <em>King</em></h1>';
+} else if (kind === 'type') {
+  mid.innerHTML = `<div class="v-rows"><p class="v-rw o" aria-hidden="true">${'Sport · Fashion · Culture · '.repeat(4)}</p><h1 class="v-rw s">Matt <em>King</em></h1><p class="v-rw o" aria-hidden="true">${'Off the pitch · Into culture · '.repeat(4)}</p></div>`;
+  const [a, , c] = $$('.v-rw', mid);
+  heroTick = () => { if (scrollY > vh * 1.2) return; const t = reduced ? 0 : scrollY; a.style.transform = `translate3d(${(-vw * 0.06 - t * 0.45).toFixed(1)}px,0,0)`; c.style.transform = `translate3d(${(-vw * 0.9 + t * 0.45).toFixed(1)}px,0,0)`; };
+} else {
+  mid.innerHTML = '<h1 class="v-name v-bronze" data-name>Matt <em>King</em></h1>';
+  const nameEl = $('[data-name]'), glint = { x: 24, y: 30, tx: 24, ty: 30 }; let pointed = false;
+  hero.addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; const r = nameEl.getBoundingClientRect(); pointed = true; glint.tx = clamp((e.clientX - r.left) / r.width, -0.2, 1.2) * 100; glint.ty = clamp((e.clientY - r.top) / r.height, -0.5, 1.5) * 100; }, { passive: true });
+  heroTick = (now, dt) => {
+    if (scrollY > vh) return; if (!pointed) { const t = clamp(scrollY / (vh * 0.6)); glint.tx = 24 + t * 60; glint.ty = 30 + t * 30; }
+    const k = reduced ? 1 : 1 - Math.exp(-dt * 5); glint.x += (glint.tx - glint.x) * k; glint.y += (glint.ty - glint.y) * k;
+    nameEl.style.setProperty('--mx', `${glint.x.toFixed(2)}%`); nameEl.style.setProperty('--my', `${glint.y.toFixed(2)}%`);
+  };
 }
 
-/* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes */
+/* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes */
 const ideas = $$('[data-idea]'), ideaSteps = $$('[data-list="idea-steps"] span'), ideaCount = $('[data-ideas-count]'); let ideaAt = -1;
 $('.v-ideas').style.setProperty('--len', (ideas.length * 0.85).toFixed(2));
 const track = $('[data-track]'), worldBg = $('[data-world-bg] img'), bar = $('[data-bar]');
@@ -85,7 +124,7 @@ function tick(now) {
   const z = zones.find(z => sy + vh * 0.55 >= z.top && sy + vh * 0.55 < z.bottom);
   if (z) { theme.to(z.name); const k = 1 - Math.exp(-dt * 2.2); for (let i = 0; i < 4; i++) scene.blob[i] = lerp(scene.blob[i], z.blob[i], k); scene.energy = lerp(scene.energy, z.energy, k); }
   theme.ease(reduced ? 1 : 1 - Math.exp(-dt * 5.5));
-  scenes(); shine(dt);
+  scenes(); heroTick(now, dt);
   if (field) field.frame({ time, dt, scroll: sy / vh, flow: d / (canvas.clientHeight || vh), vel, grain: 0.05, theme: theme.gl, blob: scene.blob, energy: scene.energy, quads: [], duoLo: C.raven, duoHi: C.sky, accent: C.poppy });
   requestAnimationFrame(tick);
 }
