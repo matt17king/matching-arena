@@ -1,0 +1,42 @@
+# Tells Bing (and the other IndexNow search engines) the moment a page on bymattking.com is new or changed,
+# so new articles get found in hours, not days. Bing's index is also what ChatGPT search and Copilot use.
+# Runs on every push to main (which is what goes live), waits for Vercel to finish deploying, then submits
+# only the pages that changed. The key is public by design: it is also served at /<key>.txt to prove ownership.
+name: IndexNow
+
+on:
+  push:
+    branches: [main]
+    paths: ['exposure/**']
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Work out which pages changed
+        id: pages
+        run: |
+          # every changed HTML page under exposure/, turned into its live address
+          urls=$(git diff --name-only HEAD~1 HEAD -- 'exposure/*index.html' 'exposure/**/index.html' \
+            | grep -v '^exposure/dist/' | grep -v '^exposure/world/' \
+            | sed -e 's#^exposure/##' -e 's#index\.html$##' \
+            | sed -e 's#^#https://www.bymattking.com/#' | sort -u)
+          # a new article also changes the writing page, the home page and the sitemap
+          if [ -n "$urls" ]; then urls=$(printf '%s\nhttps://www.bymattking.com/sitemap.xml\n' "$urls" | sort -u); fi
+          echo "$urls"
+          { echo 'list<<EOF'; echo "$urls"; echo 'EOF'; } >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the deploy, then submit
+        if: steps.pages.outputs.list != ''
+        env:
+          LIST: ${{ steps.pages.outputs.list }}
+        run: |
+          sleep 180
+          key=37a32f308e2fd9469ff44ebd8d3ab2e4
+          json=$(printf '%s\n' "$LIST" | python3 -c "import sys,json;u=[l.strip() for l in sys.stdin if l.strip()];print(json.dumps({'host':'www.bymattking.com','key':'$key','keyLocation':'https://www.bymattking.com/$key.txt','urlList':u}))")
+          echo "$json"
+          curl -sS -X POST https://api.indexnow.org/indexnow -H 'Content-Type: application/json; charset=utf-8' -d "$json" -w '\nHTTP %{http_code}\n'
