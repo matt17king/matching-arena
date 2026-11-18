@@ -25,21 +25,14 @@
       "src": "/plays/(drive-to-survive|taylor-swift-chiefs|alcaraz-travis-scott-nike|baller-league)/?",
       "status": 301,
       "headers": {
-        "Location": "/thinking/$1/"
+        "Location": "/writing/$1/"
       }
     },
     {
       "src": "/plays/?",
       "status": 301,
       "headers": {
-        "Location": "/thinking/#latest"
-      }
-    },
-    {
-      "src": "/writing(?:/.*)?",
-      "status": 301,
-      "headers": {
-        "Location": "/thinking/#latest"
+        "Location": "/writing/"
       }
     },
     {

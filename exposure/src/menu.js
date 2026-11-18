@@ -8,7 +8,8 @@ export function createMenu() {
   // [where it goes, name, one line about it, picture shown beside the list on wide screens]
   const ITEMS = [
     ['about/', 'About', 'Who I am', 'photos/portrait.jpg'],
-    ['thinking/', 'The thinking', 'Three ideas, and something new every week', 'photos/foden-couture.jpg'],
+    ['thinking/', 'The thinking', 'Three ideas, and the toolkit', 'photos/foden-couture.jpg'],
+    ['writing/', 'Writing', "What's going on, every week", 'photos/f1-miami.jpg'],
     ['work/', 'The work', 'Results, rights, brands', 'photos/man-city-couture.jpg'],
     ['speaking/', 'Speaking', 'Talks, podcasts, panels', 'photos/radio.jpg'],
     ['press/', 'Press', 'In the news', 'photos/press-circle.jpg'],

@@ -80,7 +80,7 @@ const PENTHOUSE = [
         stat: ['+41%', 'Online sales from a rebuilt e-commerce strategy'], photo: ['man-city-couture.jpg', 'Matt carrying Couture Club bags into the Manchester City training ground'], link: ['See the record', '../#record'] },
       { at: [64.6, 19.8], label: 'The spotlit pair', k: 'Tennis × sneakers', t: 'Alcaraz × Travis Scott × Nike',
         p: "The shoe Carlos Alcaraz wore on court. A sneaker drop travels further than a match report: it put a tennis player in front of the sneaker world, on that world's terms.",
-        photo: ['alcaraz.jpg', 'Carlos Alcaraz walking on court in a brown Nike kit and the white and brown shoes'], link: ['Read the play', '../thinking/alcaraz-travis-scott-nike/'] },
+        photo: ['alcaraz.jpg', 'Carlos Alcaraz walking on court in a brown Nike kit and the white and brown shoes'], link: ['Read the play', '../writing/alcaraz-travis-scott-nike/'] },
       { at: [81.6, 53], label: 'The tracksuit', k: '2021', t: 'Gym King',
         p: 'Where the route here started, working with Tom Aspinall, Ash Cain and Alex Bowen.',
         link: ['See the route', '../#company'] },
@@ -172,7 +172,7 @@ const MONACO = [
         link: ['Read the idea', '../thinking/the-side-door/'] },
       { at: [92.4, 26.6], label: 'The circuit', k: 'F1 × Netflix', t: 'A play worth stealing',
         p: 'F1 let the cameras into the paddock and handed the story to Netflix: the rivalries, the team bosses, the drivers as people.',
-        link: ['Read the play', '../thinking/alcaraz-travis-scott-nike/'] },
+        link: ['Read the play', '../writing/alcaraz-travis-scott-nike/'] },
     ] },
 ];
 

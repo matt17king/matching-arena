@@ -1,6 +1,6 @@
 // Copy to posts/YYYY-MM-DD-the-slug.js. Files starting with _ are not published. See posts/README.md.
 export default {
-  slug: 'the-slug',                    // the address: /thinking/the-slug/
+  slug: 'the-slug',                    // the address: /writing/the-slug/
   date: '2026-01-01',                  // publish date
   topic: 'Sport',                      // Sport | Marketing | Culture
   title: 'The title in plain words',   // used for the browser tab, search results and cards

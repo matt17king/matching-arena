@@ -2,8 +2,8 @@
 
 One file per article. The build (`node tools/pages.mjs`, run by `npm run build`) finds every file here and:
 
-- builds the article at `/thinking/<slug>/`, beside the idea pages and in the same design
-- lists it under Latest on `/thinking/` (newest first, filterable by topic)
+- builds the article at `/writing/<slug>/`, in the same design as the idea pages
+- lists it on `/writing/` (newest first, filterable by topic)
 - shows the three newest on the home page
 - if it connects to one of the three ideas, lists it on that idea's page
 - adds it to `public/sitemap.xml` and `public/feed.xml` (RSS)
@@ -30,4 +30,4 @@ The body is a list of blocks, so articles are laid out, not one block of text:
 | callout box | `['callout', ['The takeaway', 'One or two sentences.']]` |
 | photo | `['img', ['file.jpg', 'Caption', 'Alt text']]` |
 
-Links inside an article are written from `/thinking/<slug>/`, so an idea or another article is `../the-slug/`, and the home page is `../../`.
+Links inside an article are written from `/writing/<slug>/`, so another article is `../the-slug/`, an idea is `../../thinking/dormant-demand/`, and the home page is `../../`.
