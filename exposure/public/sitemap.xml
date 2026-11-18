@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://www.bymattking.com/</loc></url>
-  <url><loc>https://www.bymattking.com/about/</loc></url>
-  <url><loc>https://www.bymattking.com/thinking/</loc></url>
-  <url><loc>https://www.bymattking.com/work/</loc></url>
-  <url><loc>https://www.bymattking.com/plays/</loc></url>
-  <url><loc>https://www.bymattking.com/press/</loc></url>
-  <url><loc>https://www.bymattking.com/book/</loc></url>
+  <url><loc>https://www.bymattking.com/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/about/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/thinking/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/work/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/plays/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/speaking/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/press/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/thinking/dormant-demand/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/thinking/the-side-door/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/thinking/idols-sell-influencers-inform/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/thinking/the-clipping-economy/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/thinking/ai-is-the-pit-crew/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/plays/drive-to-survive/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/plays/taylor-swift-chiefs/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/plays/alcaraz-travis-scott-nike/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/plays/baller-league/</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://www.bymattking.com/book/</loc><lastmod>2026-11-18</lastmod></url>
   <url><loc>https://world.bymattking.com/</loc></url>
 </urlset>

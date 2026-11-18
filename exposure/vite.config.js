@@ -1,7 +1,10 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 
 const page = p => fileURLToPath(new URL(p, import.meta.url));
+// every page tools/pages.mjs wrote (it lists them in tools/pages.json)
+const reading = Object.fromEntries(JSON.parse(readFileSync(page('./tools/pages.json'), 'utf8')).map(f => [f.replace('/index.html', '').replace(/\//g, '-'), page('./' + f)]));
 
 // Relative base so the build works from any host path (root domain, subpath, preview URL).
 // The reading pages (thinking, work, plays, press) are written by tools/pages.mjs from src/content.js.
@@ -11,6 +14,6 @@ export default defineConfig({
   build: {
     target: 'es2022',
     rollupOptions: { input: { main: page('./index.html'), book: page('./book/index.html'), world: page('./world/index.html'),
-      about: page('./about/index.html'), thinking: page('./thinking/index.html'), work: page('./work/index.html'), plays: page('./plays/index.html'), press: page('./press/index.html') } },
+      ...reading } },
   },
 });

@@ -55,7 +55,7 @@ html.v2 .hd-cta { border-color: rgb(var(--bronze-c) / .55); } html.v2 .v-cta-red
 .v-stage { display: grid; min-height: 0; }
 .v-idea { grid-area: 1 / 1; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 72px); min-height: 0; opacity: 0; visibility: hidden; transition: opacity .5s ease, visibility 0s linear .5s; }
 .v-idea.on { opacity: 1; visibility: visible; transition: opacity .6s ease .1s; }
-.v-idea-t { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: clamp(12px, 2.4vh, 26px); padding: clamp(4px, 1.4vh, 16px) 0; min-height: 0; }
+.v-idea-t { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; gap: clamp(12px, 2.4vh, 26px); padding: clamp(4px, 1.4vh, 16px) 0; min-height: 0; }
 .v-idea-n { color: var(--bz); }
 .v-idea-h { align-self: center; font: 600 clamp(44px, min(6.6vw, 13.5vh), 132px)/.9 var(--disp); letter-spacing: -.045em; color: var(--ink); margin: 0; text-wrap: balance; transform: translateX(-3vw); filter: blur(14px); transition: transform 1.1s var(--expo), filter .8s ease; }
 .v-idea-h em { font-style: italic; color: var(--poppy); } .v-idea.on .v-idea-h { transform: none; filter: none; } .v-idea.was .v-idea-h { transform: translateX(3vw); }

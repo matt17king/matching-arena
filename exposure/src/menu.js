@@ -4,18 +4,18 @@ import { $, $$ } from './kit.js';
 import { EMAIL, LINKEDIN, INSTAGRAM } from './content.js';
 
 export function createMenu() {
-  const root = document.documentElement, B = root.classList.contains('pg') ? '../' : './';
+  const root = document.documentElement, B = root.dataset.root || (root.classList.contains('pg') ? '../' : './');
   // [where it goes, name, one line about it, picture shown beside the list on wide screens]
   const ITEMS = [
-    ['', 'Home', 'Start here', 'rooms/trophies.webp'],
     ['about/', 'About', 'Who I am', 'photos/portrait.jpg'],
     ['thinking/', 'The thinking', 'How fans are made', 'photos/foden-couture.jpg'],
     ['work/', 'The work', 'Results, rights, brands', 'photos/man-city-couture.jpg'],
     ['plays/', 'Plays worth stealing', 'Four moves, broken down', 'photos/super-bowl.jpg'],
+    ['speaking/', 'Speaking', 'Talks, podcasts, panels', 'photos/radio.jpg'],
     ['press/', 'Press', 'In the news', 'photos/press-circle.jpg'],
     ['world/', 'The virtual world', 'Step inside', 'rooms/living.webp'],
   ];
-  const here = location.pathname.replace(/index\.html$/, ''), at = Math.max(0, ITEMS.findIndex(([k]) => k && here.endsWith('/' + k)));
+  const here = location.pathname.replace(/index\.html$/, ''), at = ITEMS.findIndex(([k]) => here.includes('/' + k)), first = Math.max(0, at);
 
   const btn = document.createElement('button');
   btn.className = 'mn-btn'; btn.type = 'button'; btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'menu');
@@ -27,7 +27,7 @@ export function createMenu() {
   el.innerHTML = `<div class="mn-glow" aria-hidden="true"></div>
   <div class="mn-in">
     <nav class="mn-list" aria-label="All pages">${ITEMS.map(([k, n, s], i) => `<a href="${B}${k}" style="--n:${i}" data-i="${i}"${i === at ? ' aria-current="page"' : ''}><span class="mono">0${i + 1}</span><b>${n}</b><em class="mono">${s}</em><i aria-hidden="true">→</i></a>`).join('')}</nav>
-    <div class="mn-pic" aria-hidden="true">${ITEMS.map(([, , , p], i) => `<img src="${B}${p}" alt="" loading="lazy" decoding="async" data-i="${i}"${i === at ? ' class="on"' : ''}>`).join('')}</div>
+    <div class="mn-pic" aria-hidden="true">${ITEMS.map(([, , , p], i) => `<img src="${B}${p}" alt="" loading="lazy" decoding="async" data-i="${i}"${i === first ? ' class="on"' : ''}>`).join('')}</div>
     <div class="mn-foot" style="--n:${ITEMS.length}">
       <a class="btn" href="${B}book/"><span>Book Matt</span><i aria-hidden="true">→</i></a>
       <p><a href="mailto:${EMAIL}">${EMAIL}</a><a href="${LINKEDIN}" rel="noopener">LinkedIn ↗</a><a href="${INSTAGRAM}" rel="noopener">Instagram ↗</a></p>
@@ -37,7 +37,7 @@ export function createMenu() {
 
   const pics = $$('.mn-pic img', el), show = i => pics.forEach(p => p.classList.toggle('on', +p.dataset.i === +i));
   $$('.mn-list a', el).forEach(a => { a.addEventListener('pointerenter', () => show(a.dataset.i)); a.addEventListener('focus', () => show(a.dataset.i)); });
-  $('.mn-list', el).addEventListener('pointerleave', () => show(at));
+  $('.mn-list', el).addEventListener('pointerleave', () => show(first));
 
   let open = false;
   function set(on) {

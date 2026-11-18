@@ -5,7 +5,8 @@ import { root, $, $$, clamp, lerp, pad2, params, reduced, split, smear, C, creat
 import './styles/home.css';
 import { createField } from './gl/field.js';
 import { createMenu } from './menu.js';
-import { FRAMES, RECORD, WORKED_WITH, TALENT, STANDS, PRESS, SEATS, EMAIL, LINKEDIN, INSTAGRAM } from './content.js';
+import { IDEAS } from './writing.js';
+import { RECORD, WORKED_WITH, TALENT, STANDS, PRESS, SEATS, EMAIL, LINKEDIN, INSTAGRAM } from './content.js';
 
 const B = './', esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fill = (name, html) => { const el = $(`[data-list="${name}"]`); if (el) el.innerHTML = html; };
@@ -17,11 +18,11 @@ const FOCUS = { 'super-bowl.jpg': 'center 86%' };
 fill('stats', [RECORD[0], RECORD[1], RECORD[5], RECORD[4]].map(([v, what, where], i) => `<div class="v-stat" data-r="fade" style="--d:${i * 0.08}s"><b>${esc(v)}</b><p>${esc(what)}</p><span class="mono">${esc(where)}</span></div>`).join(''));
 fill('logos', WORKED_WITH.map(([n, f]) => `<li><span class="lg" role="img" aria-label="${esc(n)}" style="-webkit-mask-image:url(${B}logos/${f});mask-image:url(${B}logos/${f})"></span></li>`).join(''));
 fill('names', ['Lamine Yamal', ...TALENT.map(t => t[0])].slice(0, 9).map(esc).join('<i aria-hidden="true"> · </i>'));
-fill('ideas', FRAMES.map((f, i) => `<article class="v-idea${i ? '' : ' on'}" data-idea="${i}">
-  <div class="v-idea-t"><p class="mono v-idea-n">${f.n} / 05</p><h3 class="v-idea-h">${f.title.join(' ')}</h3><p class="v-idea-p">${esc(f.intro)}</p></div>
-  <figure class="v-idea-ph"><img src="${B}photos/${f.photo[0]}" alt="${esc(f.photo[3])}" loading="lazy" decoding="async"${FOCUS[f.photo[0]] ? ` style="object-position:${FOCUS[f.photo[0]]}"` : ''}><figcaption class="mono">${esc(f.photo[1])}</figcaption></figure>
+fill('ideas', IDEAS.map((f, i) => `<article class="v-idea${i ? '' : ' on'}" data-idea="${i}">
+  <div class="v-idea-t"><p class="mono v-idea-n">${f.n} / ${pad2(IDEAS.length)} · ${esc(f.kind)}</p><h3 class="v-idea-h">${f.title.join(' ')}</h3><p class="v-idea-p">${esc(f.intro)}</p><a class="v-more mono" href="${B}thinking/${f.id}/"><span>Read the idea</span><i aria-hidden="true">→</i></a></div>
+  <figure class="v-idea-ph"><img src="${B}photos/${f.photo[0]}" alt="${esc(f.photo[3])}" loading="lazy" decoding="async"${f.photo[4] || FOCUS[f.photo[0]] ? ` style="object-position:${f.photo[4] || FOCUS[f.photo[0]]}"` : ''}><figcaption class="mono">${esc(f.photo[1])}</figcaption></figure>
 </article>`).join(''));
-fill('idea-steps', FRAMES.map(f => `<span><i></i><b class="mono">${f.n}</b></span>`).join(''));
+fill('idea-steps', IDEAS.map(f => `<span><i></i><b class="mono">${f.n}</b></span>`).join(''));
 fill('stands', STANDS.map(([f, t, l]) => `<figure class="v-shot"><img src="${B}photos/${f}" alt="${esc(t)}" loading="lazy" decoding="async"><figcaption><b>${esc(t)}</b><span class="mono">${esc(l)}</span></figcaption></figure>`).join(''));
 fill('press', PRESS.map((p, i) => `<article class="v-card" data-r="fade" style="--d:${i * 0.08}s">
   <figure><img src="${B}photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="object-position:${p.pos}"></figure>
