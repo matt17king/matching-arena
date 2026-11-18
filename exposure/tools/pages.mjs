@@ -212,6 +212,12 @@ const about = shell({
   <p class="pg-p" data-r="fade" style="--d:.15s">My work is about the people who don't watch yet. I reach them through what they already love, the music, the fashion, the creators, and then put the sport in that world.</p></div></div>
 </section>
 
+<section class="v-sec" id="company" data-theme="raven" data-blob=".5,.5,.5,.5" data-energy=".5">
+  ${top('The company I keep', '03', 'Clubs, leagues, brands, people')}
+  <ul class="pg-logos">${C.WORKED_WITH.map(([n, f]) => `<li data-r="fade">${lg(n, f)}<span class="mono">${esc(n)}</span></li>`).join('')}</ul>
+  <ul class="pg-talent">${C.TALENT.map(([n, w]) => `<li data-r="fade"><b>${esc(n)}</b><span class="mono">${esc(w)}</span></li>`).join('')}</ul>
+</section>
+
 <section class="v-sec" id="route" data-theme="sky" data-blob=".8,.3,.2,.8" data-energy=".6">
   ${top('The route', '02', 'Newest first')}
   <ol class="pg-steps pg-career">${C.CAREER.map(([y, n, d]) => `<li data-r="fade"><span class="mono">${esc(y)}</span><h4>${esc(n)}</h4><p>${esc(d)}</p></li>`).join('')}</ol>
@@ -288,15 +294,9 @@ const work = shell({
 </section>
 
 <section class="v-sec" id="route" data-theme="sky" data-blob=".8,.3,.2,.8" data-energy=".6">
-  ${top('The route here', '03', '2021 to now')}
+  ${top('The route here', '04', '2021 to now')}
   <ol class="pg-route">${C.ROUTE.map(([y, n, f], i) => `<li data-r="fade" style="--d:${i * 0.06}s"><span class="mono">${y}</span>${lg(n, f)}<h4>${esc(n)}</h4></li>`).join('')}</ol>
   <article class="pg-case" data-r="fade"><p class="mono">${esc(C.RUNWAY.stat[2])}</p><b>${esc(C.RUNWAY.stat[0])}</b><div><h4>${esc(C.RUNWAY.h)}</h4><p>${esc(C.RUNWAY.p)}</p></div></article>
-</section>
-
-<section class="v-sec" id="company" data-theme="raven" data-blob=".5,.5,.5,.5" data-energy=".5">
-  ${top('The company I keep', '04', 'Clubs, leagues, brands, people')}
-  <ul class="pg-logos">${C.WORKED_WITH.map(([n, f]) => `<li data-r="fade">${lg(n, f)}<span class="mono">${esc(n)}</span></li>`).join('')}</ul>
-  <ul class="pg-talent">${C.TALENT.map(([n, w]) => `<li data-r="fade"><b>${esc(n)}</b><span class="mono">${esc(w)}</span></li>`).join('')}</ul>
 </section>
 
 <section class="v-sec" id="kit" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".7">
