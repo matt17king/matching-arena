@@ -212,12 +212,6 @@ const about = shell({
   <p class="pg-p" data-r="fade" style="--d:.15s">My work is about the people who don't watch yet. I reach them through what they already love, the music, the fashion, the creators, and then put the sport in that world.</p></div></div>
 </section>
 
-<section class="v-sec" id="company" data-theme="raven" data-blob=".5,.5,.5,.5" data-energy=".5">
-  ${top('The company I keep', '03', 'Clubs, leagues, brands, people')}
-  <ul class="pg-logos">${C.WORKED_WITH.map(([n, f]) => `<li data-r="fade">${lg(n, f)}<span class="mono">${esc(n)}</span></li>`).join('')}</ul>
-  <ul class="pg-talent">${C.TALENT.map(([n, w]) => `<li data-r="fade"><b>${esc(n)}</b><span class="mono">${esc(w)}</span></li>`).join('')}</ul>
-</section>
-
 <section class="v-sec" id="route" data-theme="sky" data-blob=".8,.3,.2,.8" data-energy=".6">
   ${top('The route', '02', 'Newest first')}
   <ol class="pg-steps pg-career">${C.CAREER.map(([y, n, d]) => `<li data-r="fade"><span class="mono">${esc(y)}</span><h4>${esc(n)}</h4><p>${esc(d)}</p></li>`).join('')}</ol>
@@ -291,6 +285,12 @@ const work = shell({
   <p class="pg-names" data-r="fade">${C.RIGHTS.map(esc).join('<i aria-hidden="true"> · </i>')}</p>
   <div class="pg-split pg-markets"><div><h3 class="pg-h3" data-r="fade">${esc(C.MARKETS.h)}</h3><p class="pg-p" data-r="fade" style="--d:.1s">${esc(C.MARKETS.p)}</p></div>
   <ol class="pg-list">${C.MARKETS.list.map((m, i) => `<li data-r="fade" style="--d:${i * 0.04}s"><span class="mono">${pad(i + 1)}</span>${esc(m)}</li>`).join('')}</ol></div>
+</section>
+
+<section class="v-sec" id="company" data-theme="raven" data-blob=".5,.5,.5,.5" data-energy=".5">
+  ${top('The company I keep', '03', 'Clubs, leagues, brands, people')}
+  <ul class="pg-logos">${C.WORKED_WITH.map(([n, f]) => `<li data-r="fade">${lg(n, f)}<span class="mono">${esc(n)}</span></li>`).join('')}</ul>
+  <ul class="pg-talent">${C.TALENT.map(([n, w]) => `<li data-r="fade"><b>${esc(n)}</b><span class="mono">${esc(w)}</span></li>`).join('')}</ul>
 </section>
 
 <section class="v-sec" id="route" data-theme="sky" data-blob=".8,.3,.2,.8" data-energy=".6">
