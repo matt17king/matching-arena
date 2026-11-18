@@ -26,7 +26,12 @@ const day = (d, o = { day: 'numeric', month: 'long', year: 'numeric' }) => new D
 const person = () => ({ '@type': 'Person', '@id': ME, name: C.PERSON.name, url: `${SITE}/`, image: `${SITE}/photos/portrait.jpg`, description: C.DESCRIPTOR,
   jobTitle: C.PERSON.jobTitle, worksFor: { '@type': 'Organization', name: C.PERSON.employer[0], url: C.PERSON.employer[1] },
   alumniOf: { '@type': 'CollegeOrUniversity', name: C.PERSON.alumni }, workLocation: C.PERSON.based.map(name => ({ '@type': 'Place', name: `${name}, UK` })), knowsAbout: C.PERSON.knowsAbout, sameAs: [C.LINKEDIN, C.INSTAGRAM] });
-const ld = graph => `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c')}</script>`;
+// The companies on Matt's route, with their real logos, so search engines and AI tools don't guess (80 Four's is often confused).
+const ORGS = [
+  { '@type': 'Organization', '@id': `${SITE}/#80-four`, name: '80 Four', description: 'A sport, health and lifestyle marketing agency, co-founded in 2025 by Matt King, James Parker-Aiken and Emily Martin. Finalist, Circle Networks Start Up of the Year 2025.',
+    logo: `${SITE}/logos/80-four.png`, image: `${SITE}/logos/80-four.png`, foundingDate: '2025', founder: [{ '@id': ME }, { '@type': 'Person', name: 'James Parker-Aiken' }, { '@type': 'Person', name: 'Emily Martin' }] },
+];
+const ld = graph => `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': [...graph, ...ORGS] }).replace(/</g, '\\u003c')}</script>`;
 const pageLd = (path, title, desc, extra = [], type) => ld([person(), { '@type': type || (path === 'about' ? 'ProfilePage' : 'WebPage'), '@id': `${SITE}/${path}/`, url: `${SITE}/${path}/`, name: title, description: desc,
   isPartOf: { '@id': `${SITE}/#site` }, about: { '@id': ME }, ...(path === 'about' ? { mainEntity: { '@id': ME } } : {}) }, ...extra]);
 const crumbs = list => ({ '@type': 'BreadcrumbList', itemListElement: list.map(([name, path], i) => ({ '@type': 'ListItem', position: i + 1, name, item: `${SITE}/${path ? path + '/' : ''}` })) });
