@@ -185,3 +185,7 @@ html.pg main { position: relative; z-index: 1; }
 .v-writing .pg-feat figure { aspect-ratio: 16 / 9; }
 [data-feed] > [hidden] { display: none; } #latest .wr-filter { margin-top: -6px; }
 @media (max-width: 1180px) { .hd-nav { display: none; } } @media (min-width: 1181px) { .hd-nav { display: flex; } }
+
+/* photos inside an article keep their own shape; credits for images that aren't Matt's */
+.ar-body .ar-ph.ar-in img { aspect-ratio: auto; height: auto; max-height: 88vh; object-fit: contain; background: rgb(var(--raven-c)); }
+.ar-credit { white-space: nowrap; color: var(--mute); } .ar-credit a { color: inherit; }

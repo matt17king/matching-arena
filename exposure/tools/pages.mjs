@@ -102,12 +102,14 @@ ${pageLd(path, title, desc, ldExtra, ldType === 'Article' ? 'WebPage' : ldType)}
 
 
 /* ---------- writing: blocks, idea cards, the sign-up */
+// a credit for an image that isn't Matt's: [who, link]
+const credit = c => c ? ` <span class="ar-credit">Image: ${c[1] ? `<a href="${c[1]}" target="_blank" rel="noopener">${esc(c[0])}</a>` : esc(c[0])}</span>` : '';
 const slug = t => t.toLowerCase().replace(/<[^>]+>/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const toc = list => `<nav class="ar-toc" aria-label="In this piece"><p class="mono">In this piece</p><ol>${list.filter(([k]) => k === 'h').map(([, v]) => `<li><a href="#${slug(v)}">${v}</a></li>`).join('')}</ol></nav>`;
 const blocks = (list, R = '../../') => list.map(([k, v]) => k === 'h' ? `<h2 class="ar-h" id="${slug(v)}" data-r="fade">${v}</h2>`
   : k === 'stat' ? `<figure class="ar-stat" data-r="fade"><b>${esc(v[0])}</b><figcaption>${v[1]}${v[2] ? `<span class="mono">${esc(v[2])}</span>` : ''}</figcaption></figure>`
   : k === 'callout' ? `<aside class="ar-call" data-r="fade"><p class="mono">${esc(v[0])}</p><p>${v[1]}</p></aside>`
-  : k === 'img' ? `<figure class="ar-ph" data-r="fade"><img src="${R}photos/${v[0]}" alt="${esc(v[2] || '')}" loading="lazy" decoding="async"><figcaption>${v[1]}</figcaption></figure>`
+  : k === 'img' ? `<figure class="ar-ph ar-in" data-r="fade"><img src="${R}photos/${v[0]}" alt="${esc(v[2] || '')}" loading="lazy" decoding="async"><figcaption>${v[1]}${credit(v[3])}</figcaption></figure>`
   : k === 'p' ? `<p data-r="fade">${v}</p>`
   : k === 'q' ? `<blockquote class="ar-q" data-r="fade"><p>${v}</p></blockquote>`
   : k === 'list' ? `<ul class="ar-list" data-r="fade">${v.map(x => `<li>${x}</li>`).join('')}</ul>`
@@ -215,7 +217,7 @@ const postPages = POSTS.map((w, i) => {
       <p class="mono ar-share"><span>Share</span>${share.map(([n, u]) => `<a href="${u}" target="_blank" rel="noopener">${n} ↗</a>`).join('')}<button type="button" class="mono" data-copy-link="${url}">Copy link</button></p>
     </aside>
     <article class="ar-body">
-      ${w.photo ? `<figure class="ar-ph" data-r="fade"><img src="../../photos/${w.photo[0]}" alt="${esc(w.photo[3])}" decoding="async"${w.photo[4] ? ` style="object-position:${w.photo[4]}"` : ''}><figcaption><b>${esc(w.photo[1])}</b> ${esc(w.photo[2])}</figcaption></figure>` : ''}
+      ${w.photo ? `<figure class="ar-ph" data-r="fade"><img src="../../photos/${w.photo[0]}" alt="${esc(w.photo[3])}" decoding="async" style="${w.coverRatio ? `aspect-ratio:${w.coverRatio};` : ''}${w.photo[4] ? `object-position:${w.photo[4]}` : ''}"><figcaption><b>${esc(w.photo[1])}</b> ${esc(w.photo[2])}${credit(w.credit)}</figcaption></figure>` : ''}
       ${w.intro ? `<p class="ar-intro" data-r="fade">${w.intro}</p>` : ''}
       ${blocks(w.body)}
       ${idea ? `<a class="ar-idea" href="../../thinking/${idea.id}/" data-r="fade"><span class="mono">${idea.n} · The idea behind it</span><b>${idea.title.join(' ')}</b><span>${esc(idea.define)}</span><span class="mono pg-feat-go">Read the idea <i aria-hidden="true">→</i></span></a>` : ''}
