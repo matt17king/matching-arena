@@ -4,6 +4,7 @@ import { root, $, $$, clamp, lerp, params, reduced, split, smear, C, createTheme
 import './styles/home.css';
 import './styles/pages.css';
 import { createField } from './gl/field.js';
+import { createMenu } from './menu.js';
 
 { const g = grainURL(); $('[data-grain]').style.backgroundImage = g; }
 $$('[data-split]').forEach(split);
@@ -33,3 +34,4 @@ addEventListener('pointermove', e => { if (field && e.pointerType !== 'touch') f
 addEventListener('resize', () => { field?.resize?.(); measure(); }); addEventListener('load', measure);
 if ('ResizeObserver' in window) new ResizeObserver(measure).observe(document.body);
 measure(); theme.snap('raven'); requestAnimationFrame(tick);
+createMenu();

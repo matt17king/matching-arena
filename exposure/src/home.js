@@ -4,6 +4,7 @@
 import { root, $, $$, clamp, lerp, pad2, params, reduced, split, smear, C, createTheme, grainURL } from './kit.js';
 import './styles/home.css';
 import { createField } from './gl/field.js';
+import { createMenu } from './menu.js';
 import { FRAMES, RECORD, WORKED_WITH, TALENT, STANDS, PRESS, SEATS, EMAIL, LINKEDIN, INSTAGRAM } from './content.js';
 
 const B = './', esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -90,3 +91,4 @@ addEventListener('resize', () => { field?.resize?.(); measure(); });
 addEventListener('load', measure); if ('ResizeObserver' in window) new ResizeObserver(measure).observe(document.body);
 document.addEventListener('click', e => { const a = e.target.closest('a[href^="#"]'); if (!a) return; const el = document.getElementById(a.getAttribute('href').slice(1)); if (!el) return; e.preventDefault(); scrollTo({ top: el.id === 'top' ? 0 : top(el), behavior: reduced ? 'auto' : 'smooth' }); });
 measure(); theme.snap('raven'); requestAnimationFrame(tick);
+createMenu();
