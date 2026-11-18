@@ -4,6 +4,8 @@ A second, separate site built from the same story as the Arena site in `../site`
 
 Where Arena is a night at five stadiums, this one is a single long-exposure photograph. Sport is the blur; the idea is the part that stays sharp. Everything that moves leaves light behind it, and things come into focus when you stop.
 
+> **Home page:** the home page was rebuilt in November 2026 (`index.html`, `src/home.js`, `src/styles/home.css`): eight sections in the walnut, bronze and red look, opening on a hero that says who, what, why and proof. The booking page wears the same look; the virtual world keeps its own. Parts of this README below still describe the earlier sixteen-section home page, whose scripts (`src/main.js`, `src/render.js`) were removed; its words are all still in `src/content.js`.
+
 ## Run
 
 ```sh
@@ -95,6 +97,10 @@ The virtual world is meant to live at `world.bymattking.com`, with the story at 
 - On the world address, links back to the story become absolute (`bymattking.com/#record`); on the live story domain, the links into the world point at the world address. On previews and local builds both stay relative, with the world at `/world/`.
 - **Places** are the `LOCATIONS` list at the bottom of `src/world/rooms.js`: the penthouse, the jet, the villa in Miami and the yacht in Monaco. The arrows stay within a place; Explore lists the penthouse's rooms on the left and the other places, by name, in the bottom right corner. The jet is the hub (`hub: true`): on it a small board offers the places to land. A new place needs an entry there, its pictures in `public/rooms/`, and its id added to the second route in `vercel.json`.
 - To switch it on: add `world.bymattking.com` to the project's domains in Vercel and add the DNS record Vercel shows.
+
+## The look
+
+Every colour on all three pages comes from five tokens set in `src/styles/site.css` (`--raven-c`, `--sky-c`, `--poppy-c`, `--ice-c`, `--glow-c`) and mirrored in `LOOKS` in `src/kit.js`, which also feeds the WebGL field and the photo duotone. A look is one entry in `LOOKS`; `DEFAULT_LOOK` is the one the live site wears. On previews a small picker on the right edge tries the others on (it is never shown on `bymattking.com` unless `?look=` is in the address).
 
 ## Notes
 

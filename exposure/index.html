@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-look="walnut" class="v2">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#090303">
+<meta name="theme-color" content="#0f0a07">
 <title>Matt King — Sport · Fashion · Culture</title>
 <meta name="description" content="Matt King on sport, fashion and culture. I take sport off the pitch and into culture: how fans are made, why culture is the side door, and the plays worth stealing.">
 <meta property="og:type" content="website">
@@ -23,228 +23,115 @@
 
 <canvas class="field" data-field aria-hidden="true"></canvas>
 <div class="grain" data-grain aria-hidden="true"></div>
-<div class="veil" data-veil aria-hidden="true"></div>
 <svg class="defs" width="0" height="0" aria-hidden="true"><defs data-defs></defs></svg>
 
 <header class="hd">
-  <a class="hd-name" href="#top" aria-label="Matt King — back to the start">Matt King</a>
-  <p class="hd-label mono" data-hd-label aria-hidden="true">Sport · Fashion · Culture</p>
+  <a class="hd-name" href="#top" aria-label="Matt King — back to the top">Matt King</a>
+  <p class="hd-label mono" aria-hidden="true">Sport · Fashion · Culture</p>
   <div class="hd-right">
-    <span class="hd-count mono" data-hd-count aria-hidden="true">00 / 11</span>
     <a class="hd-cta hd-world" href="./world/">The world</a>
-    <a class="hd-cta" href="./book/">Book Matt</a>
-    <button class="hd-index" data-index-open aria-expanded="false" aria-controls="index"><span>Index</span><i aria-hidden="true"></i></button>
+    <a class="hd-cta v-cta-red" href="./book/">Book Matt</a>
   </div>
   <div class="hd-bar" aria-hidden="true"><i data-bar></i></div>
 </header>
 
-<nav class="ix" id="index" data-index hidden aria-label="Index">
-  <div class="ix-in">
-    <p class="mono ix-k">Index — one way of thinking about how fans are made</p>
-    <div class="ix-main">
-      <div class="ix-groups" data-list="index"></div>
-      <!-- the section under the pointer: its photo and one line -->
-      <figure class="ix-pv" data-ix-pv aria-hidden="true">
-        <div class="ix-pv-ph"><img alt="" data-ix-a><img alt="" data-ix-b></div>
-        <figcaption><span class="mono" data-ix-n></span><b data-ix-t></b><span data-ix-l></span></figcaption>
-      </figure>
-      <div class="ix-go">
-        <a class="ix-card ix-world" href="./world/"><span class="mono">The virtual world</span><b>Step inside the penthouse</b><i aria-hidden="true">→</i></a>
-        <a class="ix-card ix-book" href="./book/"><span class="mono">Podcasts · talks · panels · brands · press</span><b>Book Matt</b><i aria-hidden="true">→</i></a>
-      </div>
-    </div>
-    <div class="ix-foot">
-      <a href="mailto:Matt17King@gmail.com">Matt17King@gmail.com</a>
-      <a href="https://linkedin.com/in/mattking17" target="_blank" rel="noopener">LinkedIn ↗</a>
-      <a href="https://instagram.com/mattking.17" target="_blank" rel="noopener">Instagram ↗</a>
-    </div>
-  </div>
-</nav>
-
 <main>
 
-<!-- 00 · the opening frame -->
-<section class="hero" id="top" data-theme="raven" data-label="Sport · Fashion · Culture" data-scene data-blob=".62,.78,.02,1.02" data-energy="1">
-  <!-- the portrait is drawn by the field, out of the blur; this is its position and the fallback without WebGL -->
-  <figure class="hero-ph" data-hero-ph><img src="./photos/portrait.jpg" alt="Matt King" decoding="async"></figure>
-  <div class="hero-top">
-    <p class="hero-claim" data-r="fade" style="--d:.5s">Sport is a blur.<br><em>The story is what stays sharp.</em></p>
-    <p class="hero-role mono" data-r="fade" style="--d:.62s">Sport · Fashion · Culture<br>By day: Global Marketing Manager, Football — DAZN</p>
+<!-- 1. the hero answers three things in order, fast: who this is, what he does, why you would want him. Then proof. -->
+<section class="v-hero" id="top" data-theme="raven" data-blob=".28,.9,1,.12" data-energy=".7">
+  <div class="v-hero-top mono" data-r="fade" style="--d:.1s">
+    <p class="v-who"><b>Matt King</b> · Sports marketing</p>
+    <p class="v-role">Global Marketing Manager, Football — DAZN</p>
   </div>
-  <div class="hero-main">
-    <h1 class="hero-name" data-r="smear" data-smear="90" data-dur="1900" aria-label="Matt King"><span aria-hidden="true">Matt</span> <em aria-hidden="true">King</em></h1>
-    <div class="hero-foot">
-      <p class="hero-line" data-r="fade" style="--d:.75s">I take sport off the pitch and into culture.</p>
-      <div class="hero-cta" data-r="fade" style="--d:.88s">
-        <a class="btn" href="mailto:Matt17King@gmail.com"><span>Let's talk</span><i aria-hidden="true">→</i></a>
-        <a class="btn btn-line" href="https://linkedin.com/in/mattking17" target="_blank" rel="noopener"><span>LinkedIn</span><i aria-hidden="true">↗</i></a>
-        <a class="btn btn-line" href="https://instagram.com/mattking.17" target="_blank" rel="noopener"><span>Instagram</span><i aria-hidden="true">↗</i></a>
-      </div>
+  <h1 class="v-h1" data-r="smear" data-split data-smear="50" style="--d:.15s">I take sport off the pitch and <em class="hi">into culture.</em></h1>
+  <div class="v-pitch">
+    <p class="v-why" data-r="fade" style="--d:.45s">I help sport find new fans, through the music, fashion and things people already love.</p>
+    <div class="v-go" data-r="fade" style="--d:.55s">
+      <a class="btn" href="./book/"><span>Book Matt</span><i aria-hidden="true">→</i></a>
+      <a class="btn btn-line" href="#record"><span>See the record</span><i aria-hidden="true">↓</i></a>
     </div>
   </div>
-  <div class="hero-base mono" data-r="fade" style="--d:1.1s">
-    <span>Scroll <i aria-hidden="true">↓</i></span>
-    <span class="only-fine">Move. Everything in motion leaves a trail.</span>
-    <span class="only-touch">Tap. Everything leaves a mark.</span>
-  </div>
+  <figure class="v-banner" data-banner data-r="fade" style="--d:.65s">
+    <div class="v-bn"><img src="./rooms/trophies.webp" alt="A walnut trophy room: eight football trophies, each lit in its own bay" fetchpriority="high" data-banner-img></div>
+    <figcaption>
+      <p><b>3M+</b><span>new fans brought onto DAZN</span></p>
+      <p><b>8</b><span>football rights portfolios led</span></p>
+      <p><b>+600%</b><span>reach, with Phil Foden &amp; Molly-Mae Hague</span></p>
+    </figcaption>
+  </figure>
 </section>
 
-<!-- the idea: words come into focus as you scroll -->
-<section class="pin thesis" id="idea" style="--len:2.3" data-pin="thesis" data-theme="sky" data-label="The idea" data-scene data-blob=".2,.25,.9,.85" data-energy=".9">
+<!-- 2. the one idea, held while it comes into focus -->
+<section class="pin v-say" style="--len:1.3" data-pin="say" data-theme="sky" data-blob=".8,.3,.2,.8" data-energy=".6">
   <div class="pin-in">
-    <p class="mono th-k">The idea</p>
-    <h2 class="th-q" data-words><span class="ln">Nobody falls for 90&nbsp;minutes.</span> <span class="ln">They fall for <em>the story.</em></span></h2>
-    <div class="th-b" data-th-b>
-      <p class="lead">Most sports marketing assumes people will just watch. I don't. I look for the story off the pitch, and for the side doors into it: music, fashion, sneakers, creators.</p>
-      <p class="mono th-n">First, how a fan is made. Then five ideas for making more of them.</p>
-    </div>
+    <p class="mono v-k">The idea</p>
+    <h2 class="v-q" data-say>Nobody falls for 90&nbsp;minutes. They fall for <em>the story.</em></h2>
+    <p class="v-q-sub" data-say-sub>Reach people through what they already love. Then put the sport in that world.</p>
   </div>
 </section>
 
-<!-- how a fan is made: the model everything else hangs off -->
-<section class="jr-sec" id="journey" data-theme="raven" data-label="How a fan is made" data-scene data-blob=".9,.85,.05,.1" data-energy=".6">
-  <div class="sec jr-intro">
-    <div class="sec-k mono"><span>The model</span><span>Seven stages</span></div>
-    <h2 class="h2" data-r="smear" data-split>How a fan <em class="hi">is made.</em></h2>
-    <p class="lead sec-lead" data-r="fade">Nobody is born a fan. They pass through seven stages, and most of them happen a long way from the pitch.</p>
-  </div>
-  <div data-list="journey"></div>
-</section>
-
-<!-- who I've done it with: proof early, before the five ideas -->
-<section class="sec company" id="company" data-theme="raven" data-label="The company" data-scene data-blob=".88,.15,.1,.9" data-energy=".7">
-  <div class="sec-k mono"><span>The company</span><span>Who I've worked with</span></div>
-  <h2 class="h2" data-r="smear" data-split>Talent, clubs <em class="hi">&amp; brands.</em></h2>
-  <ul class="logos" data-list="logos" aria-label="Leagues, clubs and brands"></ul>
-  <div class="talent">
-    <p class="mono talent-k">Talent partnerships</p>
-    <ol class="talent-list" data-list="talent" data-focus></ol>
+<!-- 3. proof: four numbers, then who it was with -->
+<section class="v-sec v-proof" id="record" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".7">
+  <p class="mono v-k" data-r="fade">The record</p>
+  <div class="v-stats" data-list="stats"></div>
+  <div class="v-with" id="company">
+    <p class="mono v-k" data-r="fade">Worked with</p>
+    <ul class="v-logos" data-list="logos" data-r="fade"></ul>
+    <p class="v-names" data-list="names" data-r="fade"></p>
   </div>
 </section>
 
-<!-- contact sheet: the five frames -->
-<section class="sheet" id="frames" data-theme="sky" data-label="Five frames" data-scene data-blob=".95,.2,.05,.9" data-energy=".7">
-  <div class="sec-k mono"><span>Contact sheet</span><span>Five frames</span></div>
-  <h2 class="h2" data-r="smear" data-split>Five ideas I keep <em class="hi">coming back to.</em></h2>
-  <ol class="sheet-list" data-list="sheet"></ol>
-</section>
-
-<!-- the five frames (built from FRAMES in content.js) -->
-<div data-list="frames"></div>
-
-<!-- plays worth stealing -->
-<section class="sec plays" id="plays" data-theme="sky" data-label="Plays worth stealing" data-scene data-blob=".85,.8,.1,.3" data-energy=".8">
-  <div class="sec-k mono"><span>The film room</span><span>Plays worth stealing</span></div>
-  <h2 class="h2" data-r="smear" data-split>Plays worth <em class="hi">stealing.</em></h2>
-  <p class="lead sec-lead" data-r="fade">Four plays I keep coming back to, and what I'd steal from each.</p>
-  <div class="film" data-list="film"></div>
-</section>
-
-<!-- how I work -->
-<section class="sec kit-sec" id="kit" data-theme="raven" data-label="How I work" data-scene data-blob=".1,.2,.92,.85" data-energy=".7">
-  <div class="sec-k mono"><span>How I work</span><span>The kit</span></div>
-  <h2 class="h2" data-r="smear" data-split>AI is the pit crew, <em class="hi">not the driver.</em></h2>
-  <div class="kit" data-list="kit"></div>
-</section>
-
-<!-- the record -->
-<section class="sec record" id="record" data-theme="raven" data-label="The record" data-scene data-blob=".1,.8,.95,.15" data-energy=".75">
-  <div class="sec-k mono"><span>The record</span><span>Proof, not theory</span></div>
-  <h2 class="h2" data-r="smear" data-split>The thinking has <em class="hi">a track record.</em></h2>
-  <div class="stats" data-list="record"></div>
-  <div class="ticker" data-r="fade" aria-label="Football properties at DAZN"><div class="ticker-k mono">At DAZN</div><div class="ticker-run" data-list="rights"></div></div>
-  <div class="route" data-r="fade">
-    <p class="mono route-k">The route here</p>
-    <ol class="route-list" data-list="route"></ol>
+<!-- 4. five ideas, one at a time -->
+<section class="pin v-ideas" id="frames" data-pin="ideas" data-theme="raven" data-blob=".9,.6,.1,.1" data-energy=".6">
+  <div class="pin-in">
+    <header class="v-top mono"><h2>Five ideas</h2><span data-ideas-count>01 / 05</span><span>How I think about fans</span></header>
+    <div class="v-stage" data-list="ideas"></div>
+    <div class="steps" data-list="idea-steps" aria-hidden="true"></div>
   </div>
 </section>
 
-<!-- in the stands: the strip -->
-<section class="stands" id="stands" data-theme="sky" data-label="In the stands" data-scene data-blob=".5,1.1,.5,-.1" data-energy=".55">
-  <div class="sec st-head">
-    <div class="sec-k mono"><span>In the stands</span><span>A fan first</span></div>
-    <h2 class="h2" data-r="smear" data-split>I don't just market sport. <em class="hi">I'm in it.</em></h2>
-    <p class="lead sec-lead" data-r="fade">Matchdays, fight nights, race weekends, start lines. The best ideas come from being a fan first.</p>
+<!-- 5. the virtual world -->
+<section class="v-world" id="world" data-theme="raven" data-blob=".5,.5,.5,.5" data-energy=".3">
+  <div class="v-world-bg" data-world-bg><img src="./rooms/living.webp" alt="" loading="lazy" decoding="async"></div>
+  <div class="v-world-in">
+    <p class="mono v-k" data-r="fade">The virtual world</p>
+    <h2 class="v-h2" data-r="smear" data-split>Step <em>inside.</em></h2>
+    <p class="lead v-world-p" data-r="fade" style="--d:.15s">A penthouse above London, a jet, a villa in Miami, a yacht in Monaco. Everything in them opens something I've worked on.</p>
+    <a class="btn" href="./world/" data-r="fade" style="--d:.25s"><span>Enter the virtual world</span><i aria-hidden="true">→</i></a>
   </div>
-  <div class="pin strip" style="--len:3.4" data-pin="strip">
-    <div class="pin-in" data-strip-stage>
-      <ul class="strip-dom" data-list="strip"></ul>
-      <div class="strip-cap">
-        <p class="mono" data-strip-n>01 / 11</p>
-        <p class="strip-t" data-strip-t></p>
-        <p class="mono strip-l" data-strip-l></p>
-      </div>
-      <p class="strip-hint mono"><span class="only-fine">Drag or scroll. Hold still and it comes into focus.</span><span class="only-touch">Swipe or scroll. Hold still and it comes into focus.</span></p>
-    </div>
+  <ul class="v-places" data-r="fade" style="--d:.35s">
+    <li><a href="./world/#trophies"><img src="./rooms/trophies.webp" alt="" loading="lazy"><span class="mono">Trophy room</span></a></li>
+    <li><a href="./world/#office"><img src="./rooms/office.webp" alt="" loading="lazy"><span class="mono">Office</span></a></li>
+    <li><a href="./world/#villa"><img src="./rooms/miami.webp" alt="" loading="lazy"><span class="mono">Miami</span></a></li>
+    <li><a href="./world/#yacht"><img src="./rooms/monaco.webp" alt="" loading="lazy"><span class="mono">Monaco</span></a></li>
+  </ul>
+</section>
+
+<!-- 6. in the stands: a strip that moves as you scroll -->
+<section class="pin v-strip" id="stands" style="--len:1.5" data-pin="strip" data-theme="sky" data-blob=".2,.8,.8,.2" data-energy=".6">
+  <div class="pin-in">
+    <header class="v-top mono"><h2>In the stands</h2><span></span><span>I go to watch, too</span></header>
+    <div class="v-track" data-list="stands" data-track></div>
   </div>
 </section>
 
-<!-- in the press: one pinned scene. The section's name sits in its top rule; each story is a headline beside its picture. -->
-<section class="press-sec" id="press" data-theme="raven" data-label="In the press" data-scene data-blob=".9,.6,.1,.1" data-energy=".6">
-  <div data-list="press"></div>
+<!-- 7. press -->
+<section class="v-sec v-press" id="press" data-theme="raven" data-blob=".9,.6,.1,.1" data-energy=".6">
+  <p class="mono v-k" data-r="fade">In the press</p>
+  <div class="v-cards" data-list="press"></div>
 </section>
 
-<!-- book Matt -->
-<section class="sec book" id="book" data-theme="raven" data-label="Book Matt" data-scene data-blob=".15,.3,.9,.9" data-energy=".8">
-  <div class="sec-k mono"><span>Book Matt</span><span>Podcasts · Talks · Panels · Brands · Press</span></div>
-  <div class="bkh">
-    <div class="bkh-main">
-      <h2 class="h2" data-r="smear" data-split>Pull up <em class="hi">a chair.</em></h2>
-      <p class="lead sec-lead" data-r="fade">I'm available for podcasts, talks, panels, brand work and press comment. Pick one and the booking page writes the brief for you.</p>
-      <p class="mono bkh-k">What you can book</p>
-      <ol class="seats" data-list="seats"></ol>
-    </div>
-    <!-- the pass repeats the list beside it, so it is hidden from assistive tech -->
-    <aside class="bkh-side" aria-hidden="true">
-      <div class="pass-rig pass-home" data-home-pass>
-        <div class="pass-swing" data-home-swing>
-          <div class="strap"><span>Matt King · Sport · Fashion · Culture · Matt King · Sport · Fashion · Culture · Matt King · </span></div>
-          <div class="clip"><i></i></div>
-          <a class="tix tix-v pass" href="./book/" tabindex="-1" data-home-card>
-            <div class="tix-body">
-              <div class="tix-grain"></div>
-              <div class="pass-hole"></div>
-              <header class="pass-top"><b>Matt King</b><span class="mono">Booking pass</span></header>
-              <div class="pass-main">
-                <div class="pass-what"><p class="pass-code pv empty" data-hp="code" data-empty="•••"></p><p class="pass-name pv empty" data-hp="for" data-empty="Your booking"></p></div>
-                <div class="pass-date"><span class="mono">When</span><b class="pv empty" data-empty="Date"></b></div>
-              </div>
-              <div class="pass-stickers"></div>
-              <dl class="pass-rows">
-                <div><dt class="mono">Where</dt><dd class="pv empty" data-empty="Place"></dd></div>
-                <div><dt class="mono">From</dt><dd class="pv empty" data-empty="You"></dd></div>
-              </dl>
-              <div class="tix-glare"></div>
-            </div>
-            <footer class="tix-stub"><div class="pass-barcode"></div><div class="pass-no"><span class="mono">N° 17</span><span class="mono">Yours to fill in</span></div></footer>
-          </a>
-        </div>
-      </div>
-    </aside>
-  </div>
-  <div class="tp">
-    <div class="tp-head"><p class="mono">What I talk about</p><a class="btn" href="./book/"><span>Start a booking</span><i aria-hidden="true">→</i></a></div>
-    <ul class="tp-list" data-list="topics"></ul>
-  </div>
+<!-- 8. the ask -->
+<section class="v-close" id="book" data-theme="poppy" data-blob=".5,.5,.5,.5" data-energy=".9">
+  <p class="mono v-k" data-r="fade">Book Matt</p>
+  <h2 class="v-h2 v-close-h" data-r="smear" data-split>Off the pitch. <em>Into culture.</em></h2>
+  <ul class="v-routes" data-list="routes" data-r="fade"></ul>
+  <div class="v-contact" data-list="contact" data-r="fade"></div>
+  <p class="mono v-foot">© 2026 Matt King</p>
 </section>
 
 </main>
 
-<footer class="ft" id="contact" data-theme="poppy" data-label="Let's talk" data-scene data-blob=".8,.3,.15,.85" data-energy="1">
-  <p class="mono ft-k">Matt King — Sport · Fashion · Culture</p>
-  <p class="ft-big" data-r="smear" data-split data-smear="60"><span class="ln">Off the pitch.</span> <span class="ln"><em class="hi">Into culture.</em></span></p>
-  <div class="ft-links" data-r="fade">
-    <a class="btn" href="mailto:Matt17King@gmail.com"><span>Matt17King@gmail.com</span><i aria-hidden="true">→</i></a>
-    <a class="btn btn-line" href="https://linkedin.com/in/mattking17" target="_blank" rel="noopener"><span>LinkedIn</span><i aria-hidden="true">↗</i></a>
-    <a class="btn btn-line" href="https://instagram.com/mattking.17" target="_blank" rel="noopener"><span>@mattking.17</span><i aria-hidden="true">↗</i></a>
-    <a class="btn btn-line" href="./world/"><span>Enter the virtual world</span><i aria-hidden="true">→</i></a>
-  </div>
-  <div class="ft-base mono">
-    <span>© 2026 Matt King</span>
-    <a href="#top">Back to the first frame ↑</a>
-  </div>
-</footer>
-
-<script type="module" src="/src/main.js"></script>
+<script type="module" src="/src/home.js"></script>
 </body>
 </html>
