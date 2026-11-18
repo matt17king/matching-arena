@@ -8,15 +8,18 @@ export default {
   dek: 'One or two sentences that say what the piece argues. Shown under the title and in search results.',
   idea: null,                          // optional: dormant-demand | the-side-door | idols-sell-influencers-inform
   photo: ['goodwood.jpg', 'Caption title', 'Caption line', 'Alt text describing the photo', 'center 40%'],
-  points: [                            // the short version, at the top
-    'First point.',
-    'Second point.',
-    'Third point.',
-  ],
+  intro: `The opening paragraph, shown large under the photo. Two to four sentences that set up the piece.`,
   body: [
     ['h', 'First heading'],
-    ['p', 'Paragraph.'],
+    ['p', `Paragraph.`],
+    ['p', `Paragraph.`],
+    ['h', 'Second heading'],
+    ['p', `Paragraph.`],
     ['q', 'A line worth quoting.'],
-    ['callout', ['The takeaway', 'One or two sentences.']],
+    ['h', 'Steal this'],
+    ['steps', [
+      ['Step title', 'What to do and why.'],
+      ['Step title', 'What to do and why.'],
+    ]],
   ],
 };

@@ -13,6 +13,7 @@ One file per article. The build (`node tools/pages.mjs`, run by `npm run build`)
 1. Copy `_template.js` to `YYYY-MM-DD-the-slug.js` (the date is the publish date; files starting with `_` are ignored).
 2. Fill it in. `topic` is `Sport`, `Marketing` or `Culture`. `idea` is optional: `dormant-demand`, `the-side-door`, `idols-sell-influencers-inform`, or `null` when it doesn't fit one.
 3. Photos go in `public/photos/`. Use plain words and short sentences.
+   Aim for a proper article, like the idea pages: a strong `intro`, four to six headed sections, one pull quote, and a numbered "Steal this" to finish. Around 700 to 1,000 words.
 4. Run `npm run build` from `exposure/` and check it on the preview before it goes live.
 
 ## Blocks

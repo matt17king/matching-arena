@@ -113,7 +113,8 @@ const blocks = (list, R = '../../') => list.map(([k, v]) => k === 'h' ? `<h2 cla
   : k === 'list' ? `<ul class="ar-list" data-r="fade">${v.map(x => `<li>${x}</li>`).join('')}</ul>`
   : `<ol class="ar-steps">${v.map(([t, d], i) => `<li data-r="fade"><span class="mono">${pad(i + 1)}</span><div><h3>${t}</h3><p>${d}</p></div></li>`).join('')}</ol>`).join('\n');
 const minutes = a => Math.max(2, Math.round(words(a) / 220));
-const words = a => blocks(a.body).replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+const words = a => (String(a.intro || '') + ' ' + blocks(a.body)).replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+for (const a of ALL) a.read = minutes(a); // idea pages: reading time from the words, like the articles
 // a card for one idea or column. R is how far up the site root is from the page the card sits on.
 const card = (a, R, i = 0) => `<a class="pg-feat${a.photo ? '' : ' no-ph'}" href="${R}thinking/${a.id}/" data-r="fade" style="--d:${i * 0.08}s">
   ${a.photo ? `<figure><img src="${R}photos/${a.photo[0]}" alt="${esc(a.photo[3])}" loading="lazy" decoding="async"${a.photo[4] ? ` style="object-position:${a.photo[4]}"` : ''}></figure>` : ''}
@@ -215,7 +216,7 @@ const postPages = POSTS.map((w, i) => {
     </aside>
     <article class="ar-body">
       ${w.photo ? `<figure class="ar-ph" data-r="fade"><img src="../../photos/${w.photo[0]}" alt="${esc(w.photo[3])}" decoding="async"${w.photo[4] ? ` style="object-position:${w.photo[4]}"` : ''}><figcaption><b>${esc(w.photo[1])}</b> ${esc(w.photo[2])}</figcaption></figure>` : ''}
-      ${w.points?.length ? `<aside class="ar-points" data-r="fade"><p class="mono">The short version</p><ul>${w.points.map(x => `<li>${x}</li>`).join('')}</ul></aside>` : ''}
+      ${w.intro ? `<p class="ar-intro" data-r="fade">${w.intro}</p>` : ''}
       ${blocks(w.body)}
       ${idea ? `<a class="ar-idea" href="../../thinking/${idea.id}/" data-r="fade"><span class="mono">${idea.n} · The idea behind it</span><b>${idea.title.join(' ')}</b><span>${esc(idea.define)}</span><span class="mono pg-feat-go">Read the idea <i aria-hidden="true">→</i></span></a>` : ''}
       <footer class="ar-by" data-r="fade"><img src="../../photos/portrait.jpg" alt="" loading="lazy"><div><b>Matt King</b><p>${esc(C.DESCRIPTOR)} <a href="../../about/">More about Matt</a> · <a href="../../speaking/">Talks</a></p></div></footer>
