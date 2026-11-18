@@ -2,6 +2,7 @@
 export default {
   slug: 'the-slug',                    // the address: /writing/the-slug/
   date: '2026-01-01',                  // publish date
+  time: '09:00',                       // optional: orders two pieces published the same day
   topic: 'Sport',                      // Sport | Marketing | Culture
   title: 'The title in plain words',   // used for the browser tab, search results and cards
   h1: 'The title, with the <em>key words</em> picked out.',

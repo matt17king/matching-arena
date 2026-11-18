@@ -13,7 +13,7 @@ const PAGES = [['about', 'About'], ['thinking', 'The thinking'], ['writing', 'Wr
 // The weekly writing: one file per article in posts/ (see posts/README.md), newest first
 // Articles live at /writing/<slug>/. topic is Sport, Marketing or Culture; idea is optional.
 const POSTS = (await Promise.all(readdirSync(`${root}posts`).filter(f => /^\d{4}-\d\d-\d\d-.+\.js$/.test(f)).sort().reverse()
-  .map(async f => ({ file: f, ...(await import(pathToFileURL(`${root}posts/${f}`).href)).default })))).sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
+  .map(async f => ({ file: f, ...(await import(pathToFileURL(`${root}posts/${f}`).href)).default })))).sort((a, b) => `${b.date} ${b.time || '00:00'}`.localeCompare(`${a.date} ${a.time || '00:00'}`) || b.file.localeCompare(a.file));
 const TOPICS = ['Sport', 'Marketing', 'Culture'];
 for (const w of POSTS) {
   if (!TOPICS.includes(w.topic)) throw new Error(`posts/${w.file}: topic must be one of ${TOPICS.join(', ')}`);
