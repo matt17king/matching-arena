@@ -8,6 +8,7 @@ export function createMenu() {
   // [where it goes, name, one line about it, picture shown beside the list on wide screens]
   const ITEMS = [
     ['', 'Home', 'Start here', 'rooms/trophies.webp'],
+    ['about/', 'About', 'Who I am', 'photos/portrait.jpg'],
     ['thinking/', 'The thinking', 'How fans are made', 'photos/foden-couture.jpg'],
     ['work/', 'The work', 'Results, rights, brands', 'photos/man-city-couture.jpg'],
     ['plays/', 'Plays worth stealing', 'Four moves, broken down', 'photos/super-bowl.jpg'],

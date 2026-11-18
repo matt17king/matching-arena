@@ -1,19 +1,30 @@
 // Writes the reading pages (thinking/, work/, plays/, press/) as plain HTML, from the words in src/content.js.
 // They are real pages, not drawn by script, so search engines and AI crawlers read everything on them.
 // Run with `node tools/pages.mjs` (the build does it first). Edit the words in src/content.js, not in the pages.
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as C from '../src/content.js';
 
 const SITE = 'https://www.bymattking.com', root = fileURLToPath(new URL('..', import.meta.url));
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const pad = n => String(n).padStart(2, '0'), plain = s => s.replace(/<[^>]+>/g, '');
-const PAGES = [['thinking', 'The thinking'], ['work', 'The work'], ['plays', 'Plays'], ['press', 'Press']];
+const PAGES = [['about', 'About'], ['thinking', 'The thinking'], ['work', 'The work'], ['plays', 'Plays'], ['press', 'Press']];
+
+// Structured data: tells search engines and AI tools, in their own language, who Matt is and what each page is.
+const ME = `${SITE}/#matt`;
+const person = () => ({ '@type': 'Person', '@id': ME, name: C.PERSON.name, url: `${SITE}/`, image: `${SITE}/photos/portrait.jpg`, description: C.DESCRIPTOR,
+  jobTitle: C.PERSON.jobTitle, worksFor: { '@type': 'Organization', name: C.PERSON.employer[0], url: C.PERSON.employer[1] },
+  alumniOf: { '@type': 'CollegeOrUniversity', name: C.PERSON.alumni }, knowsAbout: C.PERSON.knowsAbout, sameAs: [C.LINKEDIN, C.INSTAGRAM] });
+const ld = graph => `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c')}</script>`;
+const pageLd = (id, title, desc, extra = []) => ld([person(), { '@type': id === 'about' ? 'ProfilePage' : 'WebPage', '@id': `${SITE}/${id}/`, url: `${SITE}/${id}/`, name: title, description: desc,
+  isPartOf: { '@id': `${SITE}/#site` }, about: { '@id': ME }, ...(id === 'about' ? { mainEntity: { '@id': ME } } : {}) }, ...extra]);
+export const SITE_LD = (title, desc, path = '') => ld([person(), { '@type': 'WebSite', '@id': `${SITE}/#site`, url: `${SITE}/`, name: 'Matt King', publisher: { '@id': ME } },
+  { '@type': 'WebPage', '@id': `${SITE}/${path}`, url: `${SITE}/${path}`, name: title, description: desc, isPartOf: { '@id': `${SITE}/#site` }, about: { '@id': ME } }]);
 
 const top = (h2, count, note) => `<header class="v-top mono" data-r="fade"><h2>${h2}</h2><span>${count || ''}</span><span>${note || ''}</span></header>`;
 const lg = (name, file) => `<span class="lg" role="img" aria-label="${esc(name)}" style="-webkit-mask-image:url(../logos/${file});mask-image:url(../logos/${file})"></span>`;
 
-function shell({ id, title, desc, h1, lead, body, next }) {
+function shell({ id, title, desc, h1, lead, body, next, ldExtra }) {
   const url = `${SITE}/${id}/`, at = PAGES.findIndex(p => p[0] === id);
   return `<!DOCTYPE html>
 <html lang="en" data-look="walnut" class="v2 pg">
@@ -21,17 +32,18 @@ function shell({ id, title, desc, h1, lead, body, next }) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f0a07">
-<title>${esc(title)} — Matt King</title>
+<title>${esc(title)} | Matt King, sports marketing</title>
 <meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${url}">
 <meta property="og:type" content="article">
 <meta property="og:url" content="${url}">
-<meta property="og:title" content="${esc(title)} — Matt King">
+<meta property="og:title" content="${esc(title)} | Matt King">
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:site_name" content="Matt King">
 <meta property="og:image" content="${SITE}/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+${pageLd(id, title, desc, ldExtra)}
 <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -72,6 +84,38 @@ ${body}
 </html>
 `;
 }
+
+
+/* ---------- about */
+const about = shell({
+  id: 'about', title: 'About',
+  desc: `${C.DESCRIPTOR} Matt King leads marketing across eight football rights portfolios at DAZN, and takes sport off the pitch and into culture.`,
+  h1: 'Matt <em class="hi">King.</em>', lead: esc(C.DESCRIPTOR), next: ['thinking', 'The thinking'],
+  ldExtra: [{ '@type': 'FAQPage', mainEntity: C.FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }],
+  body: `
+<section class="v-sec" id="short" data-theme="raven" data-blob=".9,.6,.1,.1" data-energy=".6">
+  ${top('In short', '01', 'Who I am')}
+  <div class="pg-split pg-about"><figure class="pg-ph" data-r="fade"><img src="../photos/portrait.jpg" alt="Matt King" loading="lazy" decoding="async"></figure>
+  <div><p class="pg-big pg-about-q" data-r="fade">I help sport find <em class="hi">new fans.</em></p>
+  <p class="pg-p" data-r="fade" style="--d:.1s">I'm Global Marketing Manager for Football at DAZN. I lead marketing across eight football rights portfolios, from the FIFA World Cup and the UEFA Champions League to Serie A, LaLiga and the Bundesliga, in seven market zones.</p>
+  <p class="pg-p" data-r="fade" style="--d:.15s">My work is about the people who don't watch yet. I reach them through what they already love, the music, the fashion, the creators, and then put the sport in that world.</p></div></div>
+</section>
+
+<section class="v-sec" id="route" data-theme="sky" data-blob=".8,.3,.2,.8" data-energy=".6">
+  ${top('The route', '02', 'Newest first')}
+  <ol class="pg-steps pg-career">${C.CAREER.map(([y, n, d]) => `<li data-r="fade"><span class="mono">${esc(y)}</span><h4>${esc(n)}</h4><p>${esc(d)}</p></li>`).join('')}</ol>
+</section>
+
+<section class="v-sec" id="bios" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".7">
+  ${top('Bios to copy', '03', 'For organisers, hosts and press')}
+  <div class="pg-bios">${C.BIOS.map(([k, b]) => `<article data-r="fade"><header><span class="mono">${esc(k)} · ${b.split(/\s+/).length} words</span><button class="mono pg-copy" type="button" data-copy>Copy</button></header><p>${esc(b)}</p></article>`).join('')}</div>
+</section>
+
+<section class="v-sec" id="faq" data-theme="raven" data-blob=".85,.8,.1,.3" data-energy=".6">
+  ${top('Questions people ask', '04', '')}
+  <dl class="pg-faq">${C.FAQ.map(([q, a]) => `<div data-r="fade"><dt>${esc(q)}</dt><dd>${esc(a)}</dd></div>`).join('')}</dl>
+</section>`,
+});
 
 /* ---------- the thinking */
 const thinking = shell({
@@ -180,7 +224,13 @@ const press = shell({
 </section>`,
 });
 
-for (const [id, html] of [['thinking', thinking], ['work', work], ['plays', plays], ['press', press]]) { mkdirSync(`${root}${id}`, { recursive: true }); writeFileSync(`${root}${id}/index.html`, html); }
+for (const [id, html] of [['about', about], ['thinking', thinking], ['work', work], ['plays', plays], ['press', press]]) { mkdirSync(`${root}${id}`, { recursive: true }); writeFileSync(`${root}${id}/index.html`, html); }
 writeFileSync(`${root}public/sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${['', ...PAGES.map(p => p[0] + '/'), 'book/'].map(u => `  <url><loc>${SITE}/${u}</loc></url>`).join('\n')}\n  <url><loc>https://world.bymattking.com/</loc></url>\n</urlset>\n`);
 writeFileSync(`${root}public/robots.txt`, `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
+for (const [f, title, desc, path] of [['index.html', 'Matt King | Global sports marketing leader', '', ''], ['book/index.html', 'Book Matt King', '', 'book/'], ['world/index.html', 'Matt King — The virtual world', '', 'world/']]) {
+  let s = readFileSync(`${root}${f}`, 'utf8'); const d = (s.match(/<meta name="description" content="([^"]*)"/) || [])[1] || '';
+  const block = `<!-- ld -->${SITE_LD(title, d, path)}<!-- /ld -->`;
+  s = s.includes('<!-- ld -->') ? s.replace(/<!-- ld -->[\s\S]*?<!-- \/ld -->/, block) : s.replace('</head>', `${block}\n</head>`);
+  writeFileSync(`${root}${f}`, s);
+}
 console.log('pages written:', PAGES.map(p => p[0]).join(', '));

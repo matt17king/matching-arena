@@ -35,3 +35,7 @@ addEventListener('resize', () => { field?.resize?.(); measure(); }); addEventLis
 if ('ResizeObserver' in window) new ResizeObserver(measure).observe(document.body);
 measure(); theme.snap('raven'); requestAnimationFrame(tick);
 createMenu();
+$$('[data-copy]').forEach(b => b.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(b.closest('article').querySelector('p').textContent); b.textContent = 'Copied'; } catch { b.textContent = 'Select and copy'; }
+  setTimeout(() => (b.textContent = 'Copy'), 1800);
+}));

@@ -5,6 +5,39 @@ export const EMAIL = 'Matt17King@gmail.com';
 export const LINKEDIN = 'https://linkedin.com/in/mattking17';
 export const INSTAGRAM = 'https://instagram.com/mattking.17';
 
+// Who Matt is, said the same way everywhere. Search engines and AI tools work out who a person is from repetition,
+// so the descriptor is copied word for word into every page title, the structured data, and the bios below.
+// Change it here and the whole site follows. Use the same words on LinkedIn, Instagram and every speaker profile.
+export const DESCRIPTOR = 'Global sports marketing leader. Football at DAZN.';
+export const PERSON = {
+  name: 'Matt King', jobTitle: 'Global Marketing Manager, Football', employer: ['DAZN', 'https://www.dazn.com'],
+  alumni: 'Webber International University', degree: 'Bachelor of Science, General Business Studies',
+  knowsAbout: ['Sports marketing', 'Football marketing', 'Fan growth', 'Sport and culture', 'Athlete and talent partnerships', 'Brand partnerships', 'Go-to-market strategy', 'Sports media rights marketing'],
+};
+// Bios for event organisers, podcast hosts and press. Third person, so they can be pasted straight in.
+export const BIOS = [
+  ['One line', 'Matt King is a global sports marketing leader, working on football at DAZN.'],
+  ['Short', 'Matt King is a global sports marketing leader. As Global Marketing Manager for Football at DAZN, he leads marketing across eight football rights portfolios, including the FIFA World Cup, the UEFA Champions League, Serie A, LaLiga and the Bundesliga, in seven market zones. His work takes sport off the pitch and into culture.'],
+  ['Full', 'Matt King is a global sports marketing leader. As Global Marketing Manager for Football at DAZN, he leads marketing across eight football rights portfolios, including the FIFA World Cup, the UEFA Champions League, Serie A, LaLiga and the Bundesliga, in seven market zones, and brought more than three million FIFA+ fans onto DAZN. Before DAZN he co-founded 80 Four, a sport, health and lifestyle marketing agency named a finalist for Circle Networks Start Up of the Year, and grew brands including The Couture Club, American Golf and Gym King through partnerships with Phil Foden, Molly-Mae Hague, Niall Horan and Judy Murray. His work takes sport off the pitch and into culture: reaching new fans through the music, fashion and creators they already love. He studied at Webber International University in Florida, where he played college soccer.'],
+];
+// The route, with what happened at each stop. [year, where, what]
+export const CAREER = [
+  ['2026', 'DAZN', 'Global Marketing Manager, Football. Eight football rights portfolios, seven market zones, a seven-figure annual budget, and more than three million FIFA+ fans brought onto DAZN.'],
+  ['2025', '80 Four', 'Co-founded a sport, health and lifestyle marketing agency with James Parker-Aiken and Emily Martin. Grew fan engagement at Crewe Alexandra FC by 450%. Finalist, Circle Networks Start Up of the Year.'],
+  ['2024', 'Swift', ''],
+  ['2023', 'The Couture Club', 'Reach up 600% with Molly-Mae Hague and Phil Foden, and online sales up 41% from a rebuilt e-commerce strategy. Influencers sold the womenswear; the menswear sold out once footballers wore it.'],
+  ['2022', 'American Golf', 'Channel growth of 400% with Niall Horan and Judy Murray.'],
+  ['2021', 'Gym King', 'Talent partnerships with Tom Aspinall, Ash Cain and Alex Bowen.'],
+  ['Before', 'Webber International University', 'Bachelor of Science, General Business Studies, in Babson Park, Florida. Right back for the men\'s soccer team, and Warrior of the Week in 2020.'],
+];
+// Questions people (and AI search tools) ask. Answered in plain words on the About page.
+export const FAQ = [
+  ['Who is Matt King?', 'Matt King is a global sports marketing leader. He is Global Marketing Manager for Football at DAZN, where he leads marketing across eight football rights portfolios in seven market zones.'],
+  ['What is Matt King known for?', 'Taking sport off the pitch and into culture. His view is that culture is the side door: you reach new fans through the music, fashion and creators they already love, then put the sport in that world.'],
+  ['Which athletes and brands has Matt King worked with?', 'Phil Foden, Lamine Yamal, Molly-Mae Hague, Niall Horan, Judy Murray, Kyle Walker, Conor McGregor and Tom Aspinall, among others, and brands and properties including DAZN, FIFA+, Manchester City, FC Barcelona, adidas, Puma and The Couture Club.'],
+  ['How do I book Matt King for a podcast, talk or panel?', 'Use the booking page on this site. Four quick questions build the brief and send it straight to him.'],
+];
+
 // The five frames: five ideas. Each opens on one photo, which comes into focus as the title lands.
 // photo: [file in public/photos, title, line, alt text]
 export const FRAMES = [
