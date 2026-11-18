@@ -22,6 +22,20 @@
       "dest": "/world/index.html"
     },
     {
+      "src": "/plays/(drive-to-survive|taylor-swift-chiefs|alcaraz-travis-scott-nike|baller-league)/?",
+      "status": 301,
+      "headers": {
+        "Location": "/writing/$1/"
+      }
+    },
+    {
+      "src": "/plays/?",
+      "status": 301,
+      "headers": {
+        "Location": "/writing/"
+      }
+    },
+    {
       "handle": "filesystem"
     }
   ]

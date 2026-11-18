@@ -1,4 +1,4 @@
-// The reading pages (thinking, work, plays, press). Their words are already in the HTML; this adds the moving light
+// The reading pages (about, thinking and its articles, work, speaking, press). Their words are already in the HTML; this adds the moving light
 // behind them, the changes of colour between sections, and the way things arrive as they come up the screen.
 import { root, $, $$, clamp, lerp, params, reduced, split, smear, C, createTheme, grainURL } from './kit.js';
 import './styles/home.css';
@@ -38,4 +38,13 @@ createMenu();
 $$('[data-copy]').forEach(b => b.addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(b.closest('article').querySelector('p').textContent); b.textContent = 'Copied'; } catch { b.textContent = 'Select and copy'; }
   setTimeout(() => (b.textContent = 'Copy'), 1800);
+}));
+// the writing page: show only the pieces on one idea
+$$('[data-filter]').forEach(b => b.addEventListener('click', () => {
+  const k = b.dataset.filter; $$('[data-filter]').forEach(x => x.classList.toggle('on', x === b));
+  $$('[data-feed] > [data-topic]').forEach(el => (el.hidden = k !== 'all' && el.dataset.topic !== k)); measure();
+}));
+$$('[data-copy-link]').forEach(b => b.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(b.dataset.copyLink); b.textContent = 'Copied'; } catch { b.textContent = b.dataset.copyLink; }
+  setTimeout(() => (b.textContent = 'Copy link'), 1800);
 }));
