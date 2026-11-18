@@ -1,0 +1,186 @@
+// Writes the reading pages (thinking/, work/, plays/, press/) as plain HTML, from the words in src/content.js.
+// They are real pages, not drawn by script, so search engines and AI crawlers read everything on them.
+// Run with `node tools/pages.mjs` (the build does it first). Edit the words in src/content.js, not in the pages.
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import * as C from '../src/content.js';
+
+const SITE = 'https://www.bymattking.com', root = fileURLToPath(new URL('..', import.meta.url));
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const pad = n => String(n).padStart(2, '0'), plain = s => s.replace(/<[^>]+>/g, '');
+const PAGES = [['thinking', 'The thinking'], ['work', 'The work'], ['plays', 'Plays'], ['press', 'Press']];
+
+const top = (h2, count, note) => `<header class="v-top mono" data-r="fade"><h2>${h2}</h2><span>${count || ''}</span><span>${note || ''}</span></header>`;
+const lg = (name, file) => `<span class="lg" role="img" aria-label="${esc(name)}" style="-webkit-mask-image:url(../logos/${file});mask-image:url(../logos/${file})"></span>`;
+
+function shell({ id, title, desc, h1, lead, body, next }) {
+  const url = `${SITE}/${id}/`, at = PAGES.findIndex(p => p[0] === id);
+  return `<!DOCTYPE html>
+<html lang="en" data-look="walnut" class="v2 pg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0a07">
+<title>${esc(title)} — Matt King</title>
+<meta name="description" content="${esc(desc)}">
+<link rel="canonical" href="${url}">
+<meta property="og:type" content="article">
+<meta property="og:url" content="${url}">
+<meta property="og:title" content="${esc(title)} — Matt King">
+<meta property="og:description" content="${esc(desc)}">
+<meta property="og:site_name" content="Matt King">
+<meta property="og:image" content="${SITE}/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+<!-- Written by tools/pages.mjs from src/content.js. Edit the words there, then run the build. -->
+<canvas class="field" data-field aria-hidden="true"></canvas>
+<div class="grain" data-grain aria-hidden="true"></div>
+<svg class="defs" width="0" height="0" aria-hidden="true"><defs data-defs></defs></svg>
+
+<header class="hd">
+  <a class="hd-name" href="../" aria-label="Matt King — home">Matt King</a>
+  <nav class="hd-label hd-nav mono" aria-label="Pages">${PAGES.map(([k, n]) => `<a href="../${k}/"${k === id ? ' aria-current="page"' : ''}>${n}</a>`).join('')}</nav>
+  <div class="hd-right">
+    <a class="hd-cta hd-world" href="../world/">The world</a>
+    <a class="hd-cta v-cta-red" href="../book/">Book Matt</a>
+  </div>
+  <div class="hd-bar" aria-hidden="true"><i data-bar></i></div>
+</header>
+
+<main>
+<section class="pg-hero" data-theme="raven" data-blob=".28,.9,1,.12" data-energy=".8">
+  <p class="mono pg-crumb" data-r="fade"><span><a href="../">Matt King</a> / ${esc(PAGES[at][1])}</span><span>${pad(at + 1)} / ${pad(PAGES.length)}</span></p>
+  <h1 class="pg-h1" data-r="smear" data-split data-smear="50" style="--d:.1s">${h1}</h1>
+  <p class="pg-lead" data-r="fade" style="--d:.4s">${lead}</p>
+</section>
+${body}
+<section class="pg-next" data-theme="poppy" data-blob=".5,.5,.5,.5" data-energy=".9">
+  <p class="mono" data-r="fade">Next</p>
+  <a class="pg-next-a" href="../${next[0]}/" data-r="fade"><span>${next[1]}</span><i aria-hidden="true">→</i></a>
+  <div class="pg-next-foot" data-r="fade">
+    <a class="btn" href="../book/"><span>Book Matt</span><i aria-hidden="true">→</i></a>
+    <nav class="pg-all" aria-label="All pages"><a href="../">Home</a>${PAGES.map(([k, n]) => `<a href="../${k}/">${n}</a>`).join('')}<a href="../world/">The virtual world</a></nav>
+    <p class="pg-contact"><a href="mailto:${C.EMAIL}">${C.EMAIL}</a><a href="${C.LINKEDIN}" rel="noopener">LinkedIn ↗</a><a href="${C.INSTAGRAM}" rel="noopener">Instagram ↗</a></p>
+  </div>
+</section>
+</main>
+<script type="module" src="/src/page.js"></script>
+</body>
+</html>
+`;
+}
+
+/* ---------- the thinking */
+const thinking = shell({
+  id: 'thinking', title: 'The thinking: how fans are made',
+  desc: 'How Matt King thinks about sports marketing: five ideas, the seven steps from stranger to fan, eleven rules for working with talent, and how a brief gets built.',
+  h1: 'How fans are <em class="hi">made.</em>', lead: 'Nobody falls for 90 minutes. They fall for the story. This is how I think about getting them there.', next: ['plays', 'Plays worth stealing'],
+  body: `
+<section class="v-sec pg-ideas" id="ideas" data-theme="raven" data-blob=".9,.6,.1,.1" data-energy=".6">
+  ${top('Five ideas', '01', 'What I believe')}
+  ${C.FRAMES.map((f, i) => `<article class="pg-idea${i % 2 ? ' flip' : ''}" id="${f.id}">
+    <div class="pg-idea-t"><p class="mono v-k" data-r="fade">${f.n} / 05</p><h3 class="pg-h3" data-r="fade">${f.title.join(' ')}</h3><p class="pg-p" data-r="fade" style="--d:.1s">${esc(f.intro)}</p></div>
+    <figure class="pg-ph" data-r="fade" style="--d:.15s"><img src="../photos/${f.photo[0]}" alt="${esc(f.photo[3])}" loading="lazy" decoding="async"${f.photo[0] === 'super-bowl.jpg' ? ' style="object-position:center 86%"' : ''}><figcaption><b>${esc(f.photo[1])}</b><span>${esc(f.photo[2])}</span></figcaption></figure>
+  </article>`).join('')}
+</section>
+
+<section class="v-sec pg-journey" id="journey" data-theme="sky" data-blob=".8,.3,.2,.8" data-energy=".6">
+  ${top('How a fan is made', '02', 'Seven steps')}
+  <h3 class="pg-big" data-r="smear" data-split>From a stranger to <em class="hi">a fan.</em></h3>
+  <ol class="pg-steps">${C.JOURNEY.map((j, i) => `<li data-r="fade" style="--d:${(i % 4) * 0.05}s"><span class="mono">${pad(i + 1)}</span><h4>${esc(j.name)}</h4><p class="pg-role">${esc(j.role)}</p><p>${esc(j.detail)}</p></li>`).join('')}</ol>
+</section>
+
+<section class="v-sec pg-rules" id="rules" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".7">
+  ${top('Working with talent', '03', 'Eleven rules')}
+  <h3 class="pg-big" data-r="smear" data-split>Fit beats <em class="hi">size.</em></h3>
+  <ol class="pg-cards">${C.RULES.map(([t, d], i) => `<li data-r="fade" style="--d:${(i % 3) * 0.06}s"><span class="mono">${pad(i + 1)}</span><h4>${esc(t)}</h4><p>${esc(d)}</p></li>`).join('')}</ol>
+</section>
+
+<section class="v-sec pg-brief" id="brief" data-theme="raven" data-blob=".85,.8,.1,.3" data-energy=".6">
+  ${top('The brief', '04', 'Four questions')}
+  <div class="pg-split"><div><h3 class="pg-h3" data-r="fade">${esc(C.BRIEF.h)}</h3><p class="pg-p" data-r="fade" style="--d:.1s">${esc(C.BRIEF.p)}</p></div>
+  <ol class="pg-rows">${C.BRIEF.steps.map(([n, label, chips, hot]) => `<li${hot ? ' class="hot"' : ''} data-r="fade"><span class="mono">${n}</span><h4>${esc(label)}</h4><p class="pg-chips">${chips.map(c => `<i>${esc(c)}</i>`).join('')}</p></li>`).join('')}</ol></div>
+</section>
+
+<section class="v-sec pg-formats" id="formats" data-theme="raven" data-blob=".2,.8,.8,.2" data-energy=".6">
+  ${top('Formats', '05', 'The format is the product')}
+  <div class="pg-trio">${C.FORMATS.map((f, i) => `<article data-r="fade" style="--d:${i * 0.08}s"><b>${esc(f.stat)}</b><span class="mono">${esc(f.unit)}</span><h4>${esc(f.h)}</h4><p>${esc(f.p)}</p></article>`).join('')}</div>
+</section>`,
+});
+
+/* ---------- the work */
+const work = shell({
+  id: 'work', title: 'The work: results, rights, brands and talent',
+  desc: 'Matt King\'s record in sports marketing: 3M+ fans brought onto DAZN, eight football rights portfolios, seven market zones, and work with Manchester City, FC Barcelona, adidas, Phil Foden and more.',
+  h1: 'A track <em class="hi">record.</em>', lead: 'The numbers, the rights, the brands and the people. Where the thinking has been put to work.', next: ['thinking', 'The thinking'],
+  body: `
+<section class="v-sec" id="record" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".7">
+  ${top('The record', '01', 'Eight numbers')}
+  <div class="pg-stats">${C.RECORD.map(([v, what, where], i) => `<div class="v-stat" data-r="fade" style="--d:${(i % 4) * 0.07}s"><b>${esc(v)}</b><p>${esc(what)}</p><span class="mono">${esc(where)}</span></div>`).join('')}</div>
+</section>
+
+<section class="v-sec" id="rights" data-theme="raven" data-blob=".9,.6,.1,.1" data-energy=".6">
+  ${top('At DAZN', '02', 'Football rights')}
+  <p class="pg-names" data-r="fade">${C.RIGHTS.map(esc).join('<i aria-hidden="true"> · </i>')}</p>
+  <div class="pg-split pg-markets"><div><h3 class="pg-h3" data-r="fade">${esc(C.MARKETS.h)}</h3><p class="pg-p" data-r="fade" style="--d:.1s">${esc(C.MARKETS.p)}</p></div>
+  <ol class="pg-list">${C.MARKETS.list.map((m, i) => `<li data-r="fade" style="--d:${i * 0.04}s"><span class="mono">${pad(i + 1)}</span>${esc(m)}</li>`).join('')}</ol></div>
+</section>
+
+<section class="v-sec" id="route" data-theme="sky" data-blob=".8,.3,.2,.8" data-energy=".6">
+  ${top('The route here', '03', '2021 to now')}
+  <ol class="pg-route">${C.ROUTE.map(([y, n, f], i) => `<li data-r="fade" style="--d:${i * 0.06}s"><span class="mono">${y}</span>${lg(n, f)}<h4>${esc(n)}</h4></li>`).join('')}</ol>
+  <article class="pg-case" data-r="fade"><p class="mono">${esc(C.RUNWAY.stat[2])}</p><b>${esc(C.RUNWAY.stat[0])}</b><div><h4>${esc(C.RUNWAY.h)}</h4><p>${esc(C.RUNWAY.p)}</p></div></article>
+</section>
+
+<section class="v-sec" id="company" data-theme="raven" data-blob=".5,.5,.5,.5" data-energy=".5">
+  ${top('The company I keep', '04', 'Clubs, leagues, brands, people')}
+  <ul class="pg-logos">${C.WORKED_WITH.map(([n, f]) => `<li data-r="fade">${lg(n, f)}<span class="mono">${esc(n)}</span></li>`).join('')}</ul>
+  <ul class="pg-talent">${C.TALENT.map(([n, w]) => `<li data-r="fade"><b>${esc(n)}</b><span class="mono">${esc(w)}</span></li>`).join('')}</ul>
+</section>
+
+<section class="v-sec" id="kit" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".7">
+  ${top('How I work', '05', 'AI is the pit crew, not the driver')}
+  <div class="pg-trio pg-kit">${C.KIT.map((k, i) => `<article data-r="fade" style="--d:${i * 0.08}s"><span class="mono">${esc(k.tag)}</span><h4>${esc(k.title)}</h4><p>${esc(k.detail)}</p><span class="mono pg-tools">${esc(k.tools)}</span></article>`).join('')}</div>
+</section>`,
+});
+
+/* ---------- plays */
+const plays = shell({
+  id: 'plays', title: 'Plays worth stealing: four moves from sport and culture',
+  desc: 'Four sports marketing plays worth stealing, broken down by Matt King: Drive to Survive, Taylor Swift and the Chiefs, Alcaraz × Travis Scott × Nike, and Baller League.',
+  h1: 'Plays worth <em class="hi">stealing.</em>', lead: 'Four moves from other people\'s playbooks: what they did, why it worked, and what to take from it.', next: ['work', 'The work'],
+  body: `
+${C.FILM.map((f, i) => `<section class="v-sec pg-play" id="play-${i + 1}" data-theme="${i === 1 ? 'sky' : 'raven'}" data-blob="${['.9,.6,.1,.1', '.8,.3,.2,.8', '.1,.2,.92,.85', '.2,.8,.8,.2'][i]}" data-energy=".6">
+  ${top(esc(f.tag), `${pad(i + 1)} / ${pad(C.FILM.length)}`, 'The film room')}
+  <h2 class="pg-big" data-r="smear" data-split>${esc(f.title)}</h2>
+  <div class="pg-three"><div data-r="fade"><p class="mono">The play</p><p>${esc(f.play)}</p></div><div data-r="fade" style="--d:.08s"><p class="mono">Why it worked</p><p>${esc(f.why)}</p></div><div class="steal" data-r="fade" style="--d:.16s"><p class="mono">Steal this</p><p>${esc(f.steal)}</p></div></div>
+</section>`).join('\n')}
+
+<section class="v-sec" id="lines" data-theme="raven" data-blob=".5,.5,.5,.5" data-energy=".5">
+  ${top('Three more', '', 'In one line each')}
+  <div class="pg-trio">${C.PLAYS.map((p, i) => `<article data-r="fade" style="--d:${i * 0.08}s"><span class="mono">${esc(p.rows.join(' × '))}</span><h4>${esc(p.h)}</h4><p>${esc(p.s)}</p><span class="mono pg-tools">${esc(p.x)}</span></article>`).join('')}</div>
+</section>`,
+});
+
+/* ---------- press */
+const press = shell({
+  id: 'press', title: 'Press: Matt King in the news',
+  desc: 'Press coverage of Matt King and 80 Four, the sport, health and lifestyle marketing agency he co-founded.',
+  h1: 'In the <em class="hi">press.</em>', lead: 'What has been written, and where.', next: ['work', 'The work'],
+  body: `
+<section class="v-sec pg-press" data-theme="raven" data-blob=".9,.6,.1,.1" data-energy=".6">
+  ${top('On the record', pad(C.PRESS.length), 'Newest first')}
+  ${C.PRESS.map((p, i) => `<article class="pg-story${i % 2 ? ' flip' : ''}">
+    <figure data-r="fade"><img src="../photos/${p.img}" alt="${esc(p.alt)}" loading="lazy" decoding="async" style="aspect-ratio:${p.ar}"></figure>
+    <div><p class="mono" data-r="fade"><b>${esc(p.source)}</b><span>${esc(p.date)}</span></p><h3 class="pg-h3" data-r="fade">${esc(p.headline)}</h3><p class="pg-p" data-r="fade" style="--d:.1s">${esc(p.line)}</p>${p.url ? `<a class="btn btn-line" href="${p.url}" target="_blank" rel="noopener" data-r="fade"><span>Read the article</span><i aria-hidden="true">↗</i></a>` : ''}</div>
+  </article>`).join('')}
+</section>`,
+});
+
+for (const [id, html] of [['thinking', thinking], ['work', work], ['plays', plays], ['press', press]]) { mkdirSync(`${root}${id}`, { recursive: true }); writeFileSync(`${root}${id}/index.html`, html); }
+writeFileSync(`${root}public/sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${['', ...PAGES.map(p => p[0] + '/'), 'book/'].map(u => `  <url><loc>${SITE}/${u}</loc></url>`).join('\n')}\n  <url><loc>https://world.bymattking.com/</loc></url>\n</urlset>\n`);
+writeFileSync(`${root}public/robots.txt`, `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
+console.log('pages written:', PAGES.map(p => p[0]).join(', '));
