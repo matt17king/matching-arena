@@ -4,6 +4,8 @@ A second, separate site built from the same story as the Arena site in `../site`
 
 Where Arena is a night at five stadiums, this one is a single long-exposure photograph. Sport is the blur; the idea is the part that stays sharp. Everything that moves leaves light behind it, and things come into focus when you stop.
 
+> **Home page:** the home page was rebuilt in November 2026 (`index.html`, `src/home.js`, `src/styles/home.css`): eight sections in the walnut, bronze and red look, opening on a hero that says who, what, why and proof. The booking page wears the same look; the virtual world keeps its own. Parts of this README below still describe the earlier sixteen-section home page, whose scripts (`src/main.js`, `src/render.js`) were removed; its words are all still in `src/content.js`.
+
 ## Run
 
 ```sh

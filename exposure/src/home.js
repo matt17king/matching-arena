@@ -1,12 +1,12 @@
-// The reworked home page (a preview, at /v2/). Eight sections, each with one job: who, the idea, the proof, five ideas,
+// The home page. Eight sections, each with one job: who, the idea, the proof, five ideas,
 // the virtual world, the stands, the press, the ask. The words come from content.js, cut to what a visitor needs; the
 // long form belongs on its own pages. It wears the walnut look: the rooms' neutrals, bronze for light, red for emphasis.
 import { root, $, $$, clamp, lerp, pad2, params, reduced, split, smear, C, createTheme, grainURL } from './kit.js';
-import './styles/v2.css';
+import './styles/home.css';
 import { createField } from './gl/field.js';
 import { FRAMES, RECORD, WORKED_WITH, TALENT, STANDS, PRESS, SEATS, EMAIL, LINKEDIN, INSTAGRAM } from './content.js';
 
-const B = '../', esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const B = './', esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fill = (name, html) => { const el = $(`[data-list="${name}"]`); if (el) el.innerHTML = html; };
 
 /* ---------- fill the lists */

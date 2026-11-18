@@ -9,6 +9,6 @@ export default defineConfig({
   base: './',
   build: {
     target: 'es2022',
-    rollupOptions: { input: { main: page('./index.html'), book: page('./book/index.html'), world: page('./world/index.html'), v2: page('./v2/index.html') } },
+    rollupOptions: { input: { main: page('./index.html'), book: page('./book/index.html'), world: page('./world/index.html') } },
   },
 });

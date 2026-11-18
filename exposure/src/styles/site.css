@@ -655,3 +655,7 @@ em.hi .w::before { content: ""; position: absolute; z-index: -1; inset: .2em -.2
 .looks button:hover { border-color: rgb(var(--ice-c)); } .looks button[aria-pressed="true"] { background: rgb(var(--ice-c)); color: rgb(var(--raven-c)); }
 .looks.shut button:not([data-fold]), .looks.shut p { display: none; } .looks [data-fold] { justify-content: center; border-style: dashed; }
 @media (max-width: 820px) { .looks { top: auto; bottom: 64px; transform: none; } }
+
+/* ---- the booking page in the home page's look: bronze for labels and lines, red kept for the one button that matters ---- */
+html.bk-walnut .hd-cta { border-color: rgb(var(--bronze-c) / .55); }
+html.bk-walnut [data-theme="raven"] .mono { color: rgb(var(--bronze-c)); } html.bk-walnut .hd .mono, html.bk-walnut .hd-label { color: var(--ink); }
