@@ -35,7 +35,7 @@ export const IDEAS = [
       ['h', 'The press conference that told the story'],
       ['p', `Ten times Serena. And Eala's talent is real: she beat defending champion Iga Swiatek at those Championships, won her first WTA title in September and reached a career-high ranking of 18. But talent doesn't explain a tenfold gap in attention.`],
       ['img', ['eala-press-conferences.jpg', 'Views of Wimbledon press conference videos on YouTube.', 'Wimbledon press conference thumbnails with their views: Novak Djokovic 34K and 70K, Serena Williams 65K, and Alexandra Eala 676K', ['Thumbnails: Wimbledon on YouTube', 'https://www.youtube.com/@Wimbledon']]],
-      ['p', `Eala is the first Filipino player to break through, and around ten million Filipinos live across the globe. At the Australian Open in January, her first-round match was on an outside court that holds 1,500 people. The queue stretched for several hundred metres.`],
+      ['p', `Eala is the first Filipino player to break through, and around ten million Filipinos live across the globe. At the Australian Open in January, her first-round match was on Court 6, an outside court that holds 1,500 people. The queue stretched for several hundred metres, back towards Rod Laver Arena.`],
       ['q', `Nobody marketed that queue into existence. It had been forming for decades, waiting for somewhere to stand.`],
       ['h', 'What dormant demand is'],
       ['p', `I call this dormant demand: passion that's fully formed but has never been given a product. The fans already care. They just haven't been offered anything to watch, buy or join.`],
