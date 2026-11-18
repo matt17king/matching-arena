@@ -30,8 +30,7 @@ export const IDEAS = [
     teaser: "Millions of people already care about sport's people. Most of them have never been given anything to watch. That gap is the biggest opportunity in sports marketing.",
     intro: `At Wimbledon this year, the most watched press conference didn't belong to Novak Djokovic. His did 70,000 views. Serena Williams, on her comeback, did 65,000. Alex Eala did 676,000.`,
     desc: "Dormant demand is passion that's fully formed but has never been given a product. Matt King on Alex Eala's 676,000-view press conference, the 48-team World Cup, and how to find the fans nobody has measured yet.",
-    photo: ['eala-cover.jpg', 'Alexandra Eala, Wimbledon', '676,000 views for one press conference.', 'Alexandra Eala smiling in her Wimbledon press conference, with the caption "I want to be the first me"', 'center 45%'],
-    credit: ['Wimbledon on YouTube', 'https://www.youtube.com/@Wimbledon'],
+    photo: ['dormant-demand-cover.jpg', 'Wimbledon press conference views', 'Alex Eala outdrew Djokovic and Serena by ten times.', 'Graphic: 676K views for Alex Eala, against 70K and 34K for Novak Djokovic and 65K for Serena Williams', 'left center'],
     body: [
       ['h', 'The press conference that told the story'],
       ['p', `Ten times Serena. And Eala's talent is real: she beat defending champion Iga Swiatek at those Championships, won her first WTA title in September and reached a career-high ranking of 18. But talent doesn't explain a tenfold gap in attention.`],
