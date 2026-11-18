@@ -95,6 +95,9 @@ ${pageLd(path, title, desc, ldExtra, ldType === 'Article' ? 'WebPage' : ldType)}
 </section>
 </main>
 <script type="module" src="/src/page.js"></script>
+<!-- visitor counts: Vercel Web Analytics, no cookies -->
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
 `, depth).replace('%%BODY%%', () => body);
@@ -405,6 +408,32 @@ ${POSTS.map(w => `<item><title>${xml(w.title)}</title><link>${SITE}/writing/${w.
   s = s.includes('application/rss+xml') ? s : s.replace('<link rel="icon"', `<link rel="alternate" type="application/rss+xml" title="Matt King: writing" href="${SITE}/feed.xml">\n<link rel="icon"`);
   writeFileSync(`${root}index.html`, s);
 }
+
+// llms.txt: a plain-language summary of who Matt is and what's on the site, for AI tools to read (llmstxt.org)
+writeFileSync(`${root}public/llms.txt`, `# Matt King
+
+> ${C.BIOS[1][1]}
+
+${C.BIOS[2][1]}
+
+## About
+- [About Matt King](${SITE}/about/): bio, career, bios to copy, and common questions
+- [The work](${SITE}/work/): results, football rights, brands and talent
+- [Speaking](${SITE}/speaking/): talks, podcasts and panels
+- [Press](${SITE}/press/): press coverage
+- [Book Matt](${SITE}/book/): podcasts, talks, panels, brand work and press comment
+
+## Ideas
+${ALL.map(a => `- [${a.name}](${SITE}/thinking/${a.id}/): ${a.define}`).join('\n')}
+
+## Writing
+${POSTS.map(w => `- [${w.title}](${SITE}/writing/${w.slug}/) (${w.date}, ${w.topic}): ${w.dek}`).join('\n')}
+
+## Contact
+- Email: ${C.EMAIL}
+- LinkedIn: ${C.LINKEDIN}
+- Instagram: ${C.INSTAGRAM}
+`);
 writeFileSync(`${root}public/robots.txt`, `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
 for (const [f, title, desc, path] of [['index.html', 'Matt King | Global sports marketing leader', '', ''], ['book/index.html', 'Book Matt King', '', 'book/'], ['world/index.html', 'Matt King — The virtual world', '', 'world/']]) {
   let s = readFileSync(`${root}${f}`, 'utf8'); const d = (s.match(/<meta name="description" content="([^"]*)"/) || [])[1] || '';
