@@ -20,7 +20,7 @@ fill('stats', [RECORD[0], RECORD[1], RECORD[5], RECORD[4]].map(([v, what, where]
 fill('logos', WORKED_WITH.map(([n, f]) => `<li><span class="lg" role="img" aria-label="${esc(n)}" style="-webkit-mask-image:url(${B}logos/${f});mask-image:url(${B}logos/${f})"></span></li>`).join(''));
 fill('names', ['Lamine Yamal', ...TALENT.map(t => t[0])].slice(0, 9).map(esc).join('<i aria-hidden="true"> · </i>'));
 fill('ideas', IDEAS.map((f, i) => `<article class="v-idea${i ? '' : ' on'}" data-idea="${i}">
-  <div class="v-idea-t"><p class="mono v-idea-n">${f.n} / ${pad2(IDEAS.length)} · ${esc(f.kind)}</p><h3 class="v-idea-h">${f.title.join(' ')}</h3><p class="v-idea-p">${esc(f.intro)}</p><a class="v-more mono" href="${B}thinking/${f.id}/"><span>Read the idea</span><i aria-hidden="true">→</i></a></div>
+  <div class="v-idea-t"><p class="mono v-idea-n">${f.n} / ${pad2(IDEAS.length)} · ${esc(f.kind)}</p><h3 class="v-idea-h">${f.title.join(' ')}</h3><p class="v-idea-p">${esc(f.teaser || f.intro)}</p><a class="v-more mono" href="${B}thinking/${f.id}/"><span>Read the idea</span><i aria-hidden="true">→</i></a></div>
   <figure class="v-idea-ph"><img src="${B}photos/${f.photo[0]}" alt="${esc(f.photo[3])}" loading="lazy" decoding="async"${f.photo[4] || FOCUS[f.photo[0]] ? ` style="object-position:${f.photo[4] || FOCUS[f.photo[0]]}"` : ''}><figcaption class="mono">${esc(f.photo[1])}</figcaption></figure>
 </article>`).join(''));
 fill('idea-steps', IDEAS.map(f => `<span><i></i><b class="mono">${f.n}</b></span>`).join(''));

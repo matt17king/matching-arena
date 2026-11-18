@@ -12,7 +12,7 @@ Find the three best stories from the **last 72 hours** that Matt could turn into
 Matt King is a global sports marketing leader (football at DAZN), based between London and Manchester. His site exists to make him known as an industry leader: someone who sees what's going on in sport, marketing and culture before others do, and explains why it works in plain words.
 
 His worldview: **sport's next fans already exist, they're just not watching yet.** His three ideas:
-- **Dormant demand**: the gap between how many people care about a sport's people and how many watch the sport.
+- **Dormant demand**: passion that's fully formed but has never been given a product. Fans who already care, with nothing to watch, buy or join (Alex Eala's 676,000-view Wimbledon press conference against Djokovic's 70,000 is the example he coined it with).
 - **The side door**: reach new fans through what they already love (music, fashion, creators, games), then put the sport in that world.
 - **Idols sell, influencers inform**: who carries the message decides whether people notice or buy.
 
