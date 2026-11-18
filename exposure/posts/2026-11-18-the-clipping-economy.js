@@ -1,6 +1,7 @@
 export default {
   slug: 'the-clipping-economy',
   date: '2026-11-18',
+  topic: 'Marketing',
   title: 'The clipping economy',
   h1: 'The clipping <em>economy.</em>',
   dek: 'Most people never see a full match. They see a clip, cut by someone else and posted somewhere else. Sport can learn a lot from how streamers handle that.',

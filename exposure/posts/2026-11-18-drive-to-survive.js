@@ -1,0 +1,25 @@
+export default {
+  slug: "drive-to-survive",
+  date: '2026-11-18',
+  topic: "Sport",
+  title: "What Drive to Survive got right",
+  h1: "What Drive to Survive <em>got right.</em>",
+  dek: "F1 let the cameras into the paddock and handed the story to Netflix: the rivalries, the team bosses, the drivers as people. What it did, why it worked, and what to steal from it.",
+  idea: "dormant-demand",
+  photo: ["f1-miami.jpg","F1 Miami","Race weekend in a new market. The series built the crowd.","Matt at F1 Miami in a Represent tee"],
+  points: [
+    "F1 handed its story to Netflix: the rivalries, the team bosses, the drivers as people.",
+    "It reached people who watch drama, not motorsport. They met the characters first.",
+    "Find where your future fans already spend their time, and tell the story there.",
+  ],
+  body: [
+    ['h', 'The play'],
+    ['p', "F1 let the cameras into the paddock and handed the story to Netflix: the rivalries, the team bosses, the drivers as people."],
+    ['p', "Before the series, Formula 1 mostly marketed the races. The series marketed the people instead: the team bosses, the rivalries, the drivers away from the car. It found an audience that liked the people long before it liked the racing."],
+    ['h', 'Why it worked'],
+    ['p', "It reached people who watch long-form drama, not motorsport. They met the characters first, and then they wanted the races."],
+    ['q', "Find where your future fans already spend their hours and tell the story there."],
+    ['h', 'Steal this'],
+    ['callout', ['The lesson', "Find where your future fans already spend their hours and tell the story there. Content made for new audiences beats paid ads aimed at old ones."]],
+  ],
+};

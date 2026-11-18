@@ -1,6 +1,7 @@
 export default {
   slug: 'ai-is-the-pit-crew',
   date: '2026-11-18',
+  topic: 'Marketing',
   title: 'AI is the pit crew, not the driver',
   h1: 'AI is the pit crew, not <em>the driver.</em>',
   dek: "AI changes the tyres fast. It doesn't drive the car. How I use it in sports marketing, what it can't do yet, and why effort isn't the same as authenticity.",

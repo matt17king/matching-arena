@@ -1,0 +1,25 @@
+export default {
+  slug: "taylor-swift-chiefs",
+  date: '2026-11-18',
+  topic: "Culture",
+  title: "Taylor Swift, the Chiefs and the side door",
+  h1: "Taylor Swift, the Chiefs and <em>the side door.</em>",
+  dek: "No campaign at all. Taylor Swift started turning up to watch Travis Kelce, and the broadcasts followed her. What it did, why it worked, and what to steal from it.",
+  idea: "the-side-door",
+  photo: ["super-bowl.jpg","Super Bowl LV","The NFL has always known the show is part of the product.","Matt at Super Bowl LV, in the stands above the field","center 86%"],
+  points: [
+    "No campaign at all: Taylor Swift went to games, and the broadcasts followed her.",
+    "Her fans had a reason to care about a sport many had never watched.",
+    "Ask who your new audience already follows, then put the sport in that world.",
+  ],
+  body: [
+    ['h', 'The play'],
+    ['p', "No campaign at all. Taylor Swift started turning up to watch Travis Kelce, and the broadcasts followed her."],
+    ['p', "Nobody planned it, and that is why it worked. A huge existing fanbase suddenly had a reason to watch a sport many of them had never followed, and the broadcasts leaned in rather than ignoring it."],
+    ['h', 'Why it worked'],
+    ['p', "Her fans suddenly had a reason to care about a game many had never watched. Someone they already loved was in the story."],
+    ['q', "Culture is the side door."],
+    ['h', 'Steal this'],
+    ['callout', ['The lesson', "Culture is the side door. Ask who your new audience already follows, then put the sport in that world."]],
+  ],
+};

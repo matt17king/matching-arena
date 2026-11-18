@@ -1,0 +1,25 @@
+export default {
+  slug: "baller-league",
+  date: '2026-11-18',
+  topic: "Sport",
+  title: "Baller League and the new format",
+  h1: "Baller League and <em>the new format.</em>",
+  dek: "Six-a-side football with its own rulebook, built for streams and short clips, with creators and famous faces in the dugouts. What it did, why it worked, and what to steal from it.",
+  idea: "the-side-door",
+  photo: ["barcelona.jpg","In the stands","Young fans watch football differently now.","A football stadium from the stands at FC Barcelona"],
+  points: [
+    "Six-a-side football with its own rulebook, built for streams and clips.",
+    "It didn't ask young fans to sit through 90 minutes.",
+    "The format is the product. Change the format and you change who turns up.",
+  ],
+  body: [
+    ['h', 'The play'],
+    ['p', "Six-a-side football with its own rulebook, built for streams and short clips, with creators and famous faces in the dugouts."],
+    ['p', "Instead of asking young fans to come to football as it is, it rebuilt football around how they already watch: short, loud, social and made to be clipped."],
+    ['h', 'Why it worked'],
+    ['p', "It didn't ask young fans to sit through 90 minutes. It met them in the formats they already watch."],
+    ['q', "The format is the product."],
+    ['h', 'Steal this'],
+    ['callout', ['The lesson', "The format is the product. Change the format and you change who turns up."]],
+  ],
+};

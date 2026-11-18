@@ -1,4 +1,4 @@
-// The writing: the big claim, the three ideas, the columns, the plays and the talks.
+// The thinking: the big claim, the three ideas, and the talks. Weekly articles live in posts/, one file each.
 // tools/pages.mjs turns each piece into its own page, so each one can be found by searching for its name.
 // Edit the words here, then run the build. Plain words, short sentences, nothing a ten-year-old would trip on.
 //
@@ -124,18 +124,6 @@ export const IDEAS = [
     ],
   },
 ];
-
-// Extra words for each play, keyed by its title in FILM (src/content.js). id is the page address: /plays/<id>/
-export const PLAY_PAGES = {
-  'Drive to Survive': { id: 'drive-to-survive', idea: 'dormant-demand',
-    context: "Before the series, Formula 1 mostly marketed the races. The series marketed the people instead: the team bosses, the rivalries, the drivers away from the car. It found an audience that liked the people long before it liked the racing." },
-  'Taylor Swift × the Chiefs': { id: 'taylor-swift-chiefs', idea: 'the-side-door',
-    context: 'Nobody planned it, and that is why it worked. A huge existing fanbase suddenly had a reason to watch a sport many of them had never followed, and the broadcasts leaned in rather than ignoring it.' },
-  'Alcaraz × Travis Scott × Nike': { id: 'alcaraz-travis-scott-nike', idea: 'idols-sell-influencers-inform',
-    context: "Tennis usually markets to tennis fans. This put one of the sport's biggest young stars inside sneaker culture, where the audience is younger, bigger and talks about the drop for weeks." },
-  'Baller League': { id: 'baller-league', idea: 'the-side-door',
-    context: 'Instead of asking young fans to come to football as it is, it rebuilt football around how they already watch: short, loud, social and made to be clipped.' },
-};
 
 // Speaking: the talks, the formats and where Matt has been heard
 export const TALKS = [

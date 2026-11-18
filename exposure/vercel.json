@@ -22,9 +22,25 @@
       "dest": "/world/index.html"
     },
     {
-      "src": "/thinking/(the-clipping-economy|ai-is-the-pit-crew)/?",
+      "src": "/plays/(drive-to-survive|taylor-swift-chiefs|alcaraz-travis-scott-nike|baller-league)/?",
       "status": 301,
-      "headers": { "Location": "/writing/$1/" }
+      "headers": {
+        "Location": "/thinking/$1/"
+      }
+    },
+    {
+      "src": "/plays/?",
+      "status": 301,
+      "headers": {
+        "Location": "/thinking/#latest"
+      }
+    },
+    {
+      "src": "/writing(?:/.*)?",
+      "status": 301,
+      "headers": {
+        "Location": "/thinking/#latest"
+      }
     },
     {
       "handle": "filesystem"

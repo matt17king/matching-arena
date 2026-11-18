@@ -1,0 +1,25 @@
+export default {
+  slug: "alcaraz-travis-scott-nike",
+  date: '2026-11-18',
+  topic: "Culture",
+  title: "Alcaraz, Travis Scott and the drop",
+  h1: "Alcaraz, Travis Scott and <em>the drop.</em>",
+  dek: "Carlos Alcaraz, tennis's It Boy, previewing Travis Scott's Nike tennis shoe. What it did, why it worked, and what to steal from it.",
+  idea: "idols-sell-influencers-inform",
+  photo: ["alcaraz.jpg","Carlos Alcaraz","A tennis player, on sneaker culture's terms.","Carlos Alcaraz walking on court in a brown Nike kit and the white and brown shoes"],
+  points: [
+    "Tennis's It Boy previewed Travis Scott's Nike tennis shoe.",
+    "A sneaker drop travels further than a match report.",
+    "Treat athletes like the culture figures they are. The tunnel, the warm-up and the drop are all a stage.",
+  ],
+  body: [
+    ['h', 'The play'],
+    ['p', "Carlos Alcaraz, tennis's It Boy, previewing Travis Scott's Nike tennis shoe."],
+    ['p', "Tennis usually markets to tennis fans. This put one of the sport's biggest young stars inside sneaker culture, where the audience is younger, bigger and talks about the drop for weeks."],
+    ['h', 'Why it worked'],
+    ['p', "A sneaker drop travels further than a match report. It put a tennis player in front of the sneaker world, on that world's terms."],
+    ['q', "Treat athletes like the culture figures they are."],
+    ['h', 'Steal this'],
+    ['callout', ['The lesson', "Treat athletes like the culture figures they are. The tunnel, the warm-up and the drop are all a stage."]],
+  ],
+};
