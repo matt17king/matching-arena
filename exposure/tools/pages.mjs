@@ -151,7 +151,7 @@ const articles = ALL.map((a, i) => {
       <p class="mono ar-meta"><span>By <a href="../../about/">Matt King</a></span><span>${new Date(W.PUBLISHED).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</span><span>${a.read} min read</span></p>
     </aside>
     <article class="ar-body">
-      ${a.photo ? `<figure class="ar-ph" data-r="fade"><img src="../../photos/${a.photo[0]}" alt="${esc(a.photo[3])}" decoding="async"${a.photo[4] ? ` style="object-position:${a.photo[4]}"` : ''}><figcaption><b>${esc(a.photo[1])}</b> ${esc(a.photo[2])}</figcaption></figure>` : ''}
+      ${a.photo ? `<figure class="ar-ph" data-r="fade"><img src="../../photos/${a.photo[0]}" alt="${esc(a.photo[3])}" decoding="async"${a.photo[4] ? ` style="object-position:${a.photo[4]}"` : ''}><figcaption><b>${esc(a.photo[1])}</b> ${esc(a.photo[2])}${credit(a.credit)}</figcaption></figure>` : ''}
       <p class="ar-intro" data-r="fade">${esc(a.intro)}</p>
       ${blocks(a.body)}
       <footer class="ar-by" data-r="fade"><img src="../../photos/portrait.jpg" alt="" loading="lazy"><div><b>Matt King</b><p>${esc(C.DESCRIPTOR)} <a href="../../about/">More about Matt</a> · <a href="../../speaking/">Talks</a></p></div></footer>
