@@ -1,0 +1,30 @@
+export default {
+  slug: 'the-clipping-economy',
+  date: '2026-11-18',
+  title: 'The clipping economy',
+  h1: 'The clipping <em>economy.</em>',
+  dek: 'Most people never see a full match. They see a clip, cut by someone else and posted somewhere else. Sport can learn a lot from how streamers handle that.',
+  idea: 'dormant-demand',
+  photo: ['man-city-match.jpg', 'Matchday', 'The moment happens once. The clips of it go everywhere.', 'A football match from the stands at Manchester City'],
+  points: [
+    'Fans and creators, not the people who own the rights, now share most of the sport people actually see.',
+    'Streamers worked this out first: the stream is the source, and the clips are the marketing.',
+    'Sport should choose which moments are the advert, make those easy to share, and always leave a route back.',
+  ],
+  body: [
+    ['h', 'Where people really watch'],
+    ['p', "For a lot of people, sport is a ten-second clip on a feed. A goal, a reaction, a line from a press conference, a moment in the tunnel. They didn't choose a broadcaster. Somebody else cut it, captioned it and posted it."],
+    ['callout', ['What it means', 'In the clipping economy, fans and creators, not the people who own the rights, share most of the sport that people actually see.']],
+    ['h', 'Streamers worked this out first'],
+    ['p', "The biggest streamers don't rely on people watching for hours live. They rely on clippers: fans and paid editors who cut the best moments into short videos and post them everywhere. Some streamers pay clippers by the view."],
+    ['q', 'The stream is the source. The clips are the marketing.'],
+    ['h', 'What sport can learn'],
+    ['steps', [
+      ['The clip is the shop window', 'Most new fans meet a sport through a clip before anything else. That is where <a href="../../thinking/dormant-demand/">dormant demand</a> first wakes up.'],
+      ['Decide which moments should travel', 'The personality, the reactions, the off-pitch moments. Those are marketing. Make them easy to share.'],
+      ['Always leave a route back', 'Every clip should make the full thing easy to find. Otherwise it is attention with nowhere to go.'],
+    ]],
+    ['h', 'The balance'],
+    ['p', "Live sport is valuable because it's protected, and that matters. This isn't about giving the match away. It's about choosing which moments are the advert, and letting those go as far as they can."],
+  ],
+};

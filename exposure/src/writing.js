@@ -125,56 +125,6 @@ export const IDEAS = [
   },
 ];
 
-// Columns: shorter pieces on what is happening now. Same page address pattern as the ideas.
-export const COLUMNS = [
-  {
-    id: 'the-clipping-economy', kind: 'Column', name: 'The clipping economy', read: 4,
-    title: ['The clipping', '<em>economy.</em>'],
-    define: 'In the clipping economy, fans and creators, not the people who own the rights, share most of the sport that people actually see.',
-    intro: 'Most people never see a full match. They see a clip, cut by someone else, posted somewhere else.',
-    desc: 'The clipping economy: why fans and creators now share most of the sport people see, what streamers worked out first, and what sport can learn from it. By Matt King.',
-    photo: ['man-city-match.jpg', 'Matchday', 'The moment happens once. The clips of it go everywhere.', 'A football match from the stands at Manchester City'],
-    body: [
-      ['h', 'Where people really watch'],
-      ['p', "For a lot of people, sport is a ten-second clip on a feed. A goal, a reaction, a line from a press conference, a moment in the tunnel. They didn't choose a broadcaster. Somebody else cut it, captioned it and posted it."],
-      ['h', 'Streamers worked this out first'],
-      ['p', 'The biggest streamers don\'t rely on people watching for hours live. They rely on clippers: fans and paid editors who cut the best moments into short videos and post them everywhere. Some streamers pay clippers by the view. The stream is the source. The clips are the marketing.'],
-      ['q', 'The stream is the source. The clips are the marketing.'],
-      ['h', 'What sport can learn'],
-      ['steps', [
-        ['The clip is the shop window', 'Most new fans meet a sport through a clip before anything else. That is where <a href="../dormant-demand/">dormant demand</a> first wakes up.'],
-        ['Decide which moments should travel', 'The personality, the reactions, the off-pitch moments. Those are marketing. Make them easy to share.'],
-        ['Always leave a route back', 'Every clip should make the full thing easy to find. Otherwise it is attention with nowhere to go.'],
-      ]],
-      ['h', 'The balance'],
-      ['p', "Live sport is valuable because it's protected, and that matters. This isn't about giving the match away. It's about choosing which moments are the advert, and letting those go as far as they can."],
-    ],
-  },
-  {
-    id: 'ai-is-the-pit-crew', kind: 'Column', name: 'AI is the pit crew, not the driver', read: 4,
-    title: ['AI is the', 'pit crew, not <em>the driver.</em>'],
-    define: 'Use AI for speed: research, versions, reporting and automations. Keep the creative calls human: the brief, the casting and the taste.',
-    intro: "AI changes the tyres fast. It doesn't drive the car.",
-    desc: "AI is the pit crew, not the driver: how Matt King uses AI in sports marketing, what it can't do yet, and why effort isn't the same as authenticity.",
-    photo: ['working.jpg', 'The desk', 'Where the ideas get built.', 'Matt working at a desk'],
-    body: [
-      ['h', "What it's great at"],
-      ['p', 'Research, versions, reporting and automations. Jobs that used to take an afternoon now take minutes. I use Claude, ChatGPT, Gemini and Make.com every week. That is the pit crew: fast, precise and essential.'],
-      ['h', "What it can't do yet"],
-      ['p', "It can't make the creative call. It doesn't know why a footballer in a twinset sells more menswear than an influencer does, or how to take something that worked in one market and land it in another. That is taste, and taste is the driver."],
-      ['q', "Effort isn't authenticity."],
-      ['h', "Effort isn't authenticity"],
-      ['p', 'When making content is cheap, audiences stop rewarding effort. They reward taste, access and truth: the real tunnel, the real reaction, the moment nobody could have planned. Content that only exists because it was easy to make tends to read that way.'],
-      ['h', 'How I run it'],
-      ['steps', [
-        ['Pit crew', 'AI for research, versions, reporting and automations.'],
-        ['Driver', 'People for the brief, the casting and the creative call.'],
-        ['Telemetry', 'Test, learn, scale. Google Analytics, Meta Ads Manager and Klaviyo tell us which idea earned the next lap.'],
-      ]],
-    ],
-  },
-];
-
 // Extra words for each play, keyed by its title in FILM (src/content.js). id is the page address: /plays/<id>/
 export const PLAY_PAGES = {
   'Drive to Survive': { id: 'drive-to-survive', idea: 'dormant-demand',
@@ -183,7 +133,7 @@ export const PLAY_PAGES = {
     context: 'Nobody planned it, and that is why it worked. A huge existing fanbase suddenly had a reason to watch a sport many of them had never followed, and the broadcasts leaned in rather than ignoring it.' },
   'Alcaraz × Travis Scott × Nike': { id: 'alcaraz-travis-scott-nike', idea: 'idols-sell-influencers-inform',
     context: "Tennis usually markets to tennis fans. This put one of the sport's biggest young stars inside sneaker culture, where the audience is younger, bigger and talks about the drop for weeks." },
-  'Baller League': { id: 'baller-league', idea: 'the-clipping-economy',
+  'Baller League': { id: 'baller-league', idea: 'the-side-door',
     context: 'Instead of asking young fans to come to football as it is, it rebuilt football around how they already watch: short, loud, social and made to be clipped.' },
 };
 

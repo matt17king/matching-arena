@@ -9,6 +9,7 @@ export function createMenu() {
   const ITEMS = [
     ['about/', 'About', 'Who I am', 'photos/portrait.jpg'],
     ['thinking/', 'The thinking', 'How fans are made', 'photos/foden-couture.jpg'],
+    ['writing/', 'Writing', 'A new piece every week', 'photos/working.jpg'],
     ['work/', 'The work', 'Results, rights, brands', 'photos/man-city-couture.jpg'],
     ['plays/', 'Plays worth stealing', 'Four moves, broken down', 'photos/super-bowl.jpg'],
     ['speaking/', 'Speaking', 'Talks, podcasts, panels', 'photos/radio.jpg'],

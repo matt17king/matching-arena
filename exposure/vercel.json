@@ -22,6 +22,11 @@
       "dest": "/world/index.html"
     },
     {
+      "src": "/thinking/(the-clipping-economy|ai-is-the-pit-crew)/?",
+      "status": 301,
+      "headers": { "Location": "/writing/$1/" }
+    },
+    {
       "handle": "filesystem"
     }
   ]

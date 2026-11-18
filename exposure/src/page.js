@@ -39,3 +39,12 @@ $$('[data-copy]').forEach(b => b.addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(b.closest('article').querySelector('p').textContent); b.textContent = 'Copied'; } catch { b.textContent = 'Select and copy'; }
   setTimeout(() => (b.textContent = 'Copy'), 1800);
 }));
+// the writing page: show only the pieces on one idea
+$$('[data-filter]').forEach(b => b.addEventListener('click', () => {
+  const k = b.dataset.filter; $$('[data-filter]').forEach(x => x.classList.toggle('on', x === b));
+  $$('.wr-list li').forEach(li => (li.hidden = k !== 'all' && li.dataset.idea !== k)); measure();
+}));
+$$('[data-copy-link]').forEach(b => b.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(b.dataset.copyLink); b.textContent = 'Copied'; } catch { b.textContent = b.dataset.copyLink; }
+  setTimeout(() => (b.textContent = 'Copy link'), 1800);
+}));

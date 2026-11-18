@@ -1,19 +1,23 @@
 // Writes the reading pages (about, thinking and each idea, work, plays and each play, speaking, press) as plain HTML, from the words in src/content.js.
 // They are real pages, not drawn by script, so search engines and AI crawlers read everything on them.
-// Run with `node tools/pages.mjs` (the build does it first). Edit the words in src/content.js, not in the pages.
-import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+// Run with `node tools/pages.mjs` (the build does it first). Edit the words in src/content.js, src/writing.js and posts/, not in the pages.
+import { writeFileSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as C from '../src/content.js';
 import * as W from '../src/writing.js';
 
 const SITE = 'https://www.bymattking.com', root = fileURLToPath(new URL('..', import.meta.url));
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const pad = n => String(n).padStart(2, '0'), plain = s => s.replace(/<[^>]+>/g, '');
-const PAGES = [['about', 'About'], ['thinking', 'The thinking'], ['work', 'The work'], ['plays', 'Plays'], ['speaking', 'Speaking'], ['press', 'Press']];
-const ALL = [...W.IDEAS, ...W.COLUMNS], playId = f => W.PLAY_PAGES[f.title].id, ideaName = id => ALL.find(a => a.id === id).name;
+const PAGES = [['about', 'About'], ['thinking', 'The thinking'], ['writing', 'Writing'], ['work', 'The work'], ['plays', 'Plays'], ['speaking', 'Speaking'], ['press', 'Press']];
+// The weekly writing: one file per article in posts/ (see posts/README.md), newest first
+const POSTS = (await Promise.all(readdirSync(`${root}posts`).filter(f => /^\d{4}-\d\d-\d\d-.+\.js$/.test(f)).sort().reverse()
+  .map(async f => ({ file: f, ...(await import(pathToFileURL(`${root}posts/${f}`).href)).default })))).sort((a, b) => b.date.localeCompare(a.date) || b.file.localeCompare(a.file));
+const ALL = W.IDEAS, playId = f => W.PLAY_PAGES[f.title].id, ideaName = id => ALL.find(a => a.id === id).name;
 
 // Structured data: tells search engines and AI tools, in their own language, who Matt is and what each page is.
 const ME = `${SITE}/#matt`;
+const day = (d, o = { day: 'numeric', month: 'long', year: 'numeric' }) => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', o);
 const person = () => ({ '@type': 'Person', '@id': ME, name: C.PERSON.name, url: `${SITE}/`, image: `${SITE}/photos/portrait.jpg`, description: C.DESCRIPTOR,
   jobTitle: C.PERSON.jobTitle, worksFor: { '@type': 'Organization', name: C.PERSON.employer[0], url: C.PERSON.employer[1] },
   alumniOf: { '@type': 'CollegeOrUniversity', name: C.PERSON.alumni }, workLocation: C.PERSON.based.map(name => ({ '@type': 'Place', name: `${name}, UK` })), knowsAbout: C.PERSON.knowsAbout, sameAs: [C.LINKEDIN, C.INSTAGRAM] });
@@ -48,6 +52,7 @@ function shell({ id, path = id, crumb, title, desc, h1, lead, body, next, ldExtr
 <meta property="og:image" content="${image ? `${SITE}/photos/${image}` : `${SITE}/og.jpg`}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="Matt King: writing" href="${SITE}/feed.xml">
 ${pageLd(path, title, desc, ldExtra, ldType === 'Article' ? 'WebPage' : ldType)}
 <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -94,26 +99,34 @@ ${pageLd(path, title, desc, ldExtra, ldType === 'Article' ? 'WebPage' : ldType)}
 /* ---------- writing: blocks, idea cards, the sign-up */
 const slug = t => t.toLowerCase().replace(/<[^>]+>/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const toc = list => `<nav class="ar-toc" aria-label="In this piece"><p class="mono">In this piece</p><ol>${list.filter(([k]) => k === 'h').map(([, v]) => `<li><a href="#${slug(v)}">${v}</a></li>`).join('')}</ol></nav>`;
-const blocks = list => list.map(([k, v]) => k === 'h' ? `<h2 class="ar-h" id="${slug(v)}" data-r="fade">${v}</h2>`
+const blocks = (list, R = '../../') => list.map(([k, v]) => k === 'h' ? `<h2 class="ar-h" id="${slug(v)}" data-r="fade">${v}</h2>`
+  : k === 'stat' ? `<figure class="ar-stat" data-r="fade"><b>${esc(v[0])}</b><figcaption>${v[1]}${v[2] ? `<span class="mono">${esc(v[2])}</span>` : ''}</figcaption></figure>`
+  : k === 'callout' ? `<aside class="ar-call" data-r="fade"><p class="mono">${esc(v[0])}</p><p>${v[1]}</p></aside>`
+  : k === 'img' ? `<figure class="ar-ph" data-r="fade"><img src="${R}photos/${v[0]}" alt="${esc(v[2] || '')}" loading="lazy" decoding="async"><figcaption>${v[1]}</figcaption></figure>`
   : k === 'p' ? `<p data-r="fade">${v}</p>`
   : k === 'q' ? `<blockquote class="ar-q" data-r="fade"><p>${v}</p></blockquote>`
   : k === 'list' ? `<ul class="ar-list" data-r="fade">${v.map(x => `<li>${x}</li>`).join('')}</ul>`
   : `<ol class="ar-steps">${v.map(([t, d], i) => `<li data-r="fade"><span class="mono">${pad(i + 1)}</span><div><h3>${t}</h3><p>${d}</p></div></li>`).join('')}</ol>`).join('\n');
+const minutes = a => Math.max(2, Math.round(words(a) / 220));
 const words = a => blocks(a.body).replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
 // a card for one idea or column. R is how far up the site root is from the page the card sits on.
 const card = (a, R, i = 0) => `<a class="pg-feat${a.photo ? '' : ' no-ph'}" href="${R}thinking/${a.id}/" data-r="fade" style="--d:${i * 0.08}s">
   ${a.photo ? `<figure><img src="${R}photos/${a.photo[0]}" alt="${esc(a.photo[3])}" loading="lazy" decoding="async"${a.photo[4] ? ` style="object-position:${a.photo[4]}"` : ''}></figure>` : ''}
   <div><p class="mono">${a.n ? `${a.n} · ` : ''}${esc(a.kind)}</p><h3>${a.title.join(' ')}</h3><p>${esc(a.define)}</p><span class="mono pg-feat-go">Read · ${a.read} min <i aria-hidden="true">→</i></span></div></a>`;
+// a card for one piece of writing
+const pcard = (w, R, i = 0) => `<a class="pg-feat" href="${R}writing/${w.slug}/" data-r="fade" style="--d:${i * 0.08}s">
+  ${w.photo ? `<figure><img src="${R}photos/${w.photo[0]}" alt="${esc(w.photo[3])}" loading="lazy" decoding="async"${w.photo[4] ? ` style="object-position:${w.photo[4]}"` : ''}></figure>` : ''}
+  <div><p class="mono">${day(w.date, { day: 'numeric', month: 'short', year: 'numeric' })}${w.idea ? ` · ${esc(ideaName(w.idea))}` : ''}</p><h3>${w.h1}</h3><p>${esc(w.dek)}</p><span class="mono pg-feat-go">Read · ${minutes(w)} min <i aria-hidden="true">→</i></span></div></a>`;
 const signup = R => W.SUBSTACK ? `<section class="v-sec pg-sign" data-theme="sky" data-blob=".8,.3,.2,.8" data-energy=".6">
   ${top('The newsletter', '', 'One idea a month')}
   <div class="pg-split"><div><h2 class="pg-h3" data-r="fade">New ideas, <em>first.</em></h2><p class="pg-p" data-r="fade">One essay a month on how sport finds its next fans. Free, and easy to leave.</p></div>
   <iframe class="pg-sub" src="${W.SUBSTACK}/embed" title="Sign up to the newsletter" loading="lazy" frameborder="0" scrolling="no"></iframe></div>
 </section>` : '';
 
-/* ---------- each idea and column: its own page */
+/* ---------- each idea: its own page */
 const articles = ALL.map((a, i) => {
   const path = `thinking/${a.id}`, nx = ALL[i + 1], title = `${a.name}${a.kind === 'Column' ? '' : ': ' + a.kind.toLowerCase()}`;
-  const others = ALL.filter(x => x !== a).slice(0, 3);
+  const others = ALL.filter(x => x !== a), feeds = POSTS.filter(w => w.idea === a.id).slice(0, 3);
   return [path, shell({
     id: 'thinking', path, title: a.name, desc: a.desc, image: a.photo?.[0], ldType: 'Article', cls: 'ar-page',
     crumb: `<span><a href="../">Matt King</a> / <a href="../thinking/">The thinking</a> / ${esc(a.kind)}</span><span>${a.read} min read</span>`,
@@ -137,9 +150,13 @@ const articles = ALL.map((a, i) => {
     </article>
   </div>
 </section>
+${feeds.length ? `<section class="v-sec" data-theme="raven" data-blob=".85,.8,.1,.3" data-energy=".6">
+  ${top('Writing on this idea', pad(feeds.length), '<a href="../../writing/">All writing</a>')}
+  <div class="pg-feats">${feeds.map((w, k) => pcard(w, '../../', k)).join('')}</div>
+</section>` : ''}
 ${signup('../../')}
 <section class="v-sec" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".6">
-  ${top('Keep reading', '', '<a href="../">All the thinking</a>')}
+  ${top('The other ideas', '', '<a href="../">All the thinking</a>')}
   <div class="pg-feats">${others.map((o, k) => card(o, '../../', k)).join('')}</div>
 </section>`,
   })];
@@ -165,6 +182,70 @@ const playPages = C.FILM.map((f, i) => {
       <footer class="ar-by" data-r="fade"><img src="../../photos/portrait.jpg" alt="" loading="lazy"><div><b>Matt King</b><p>${esc(C.DESCRIPTOR)} <a href="../../about/">More about Matt</a></p></div></footer>
     </article>
   </div>
+</section>`,
+  })];
+});
+
+/* ---------- writing: the hub, and each piece */
+const IDEA_TAGS = [...W.IDEAS.map(a => [a.id, a.name]), ['other', 'Everything else']].filter(([id]) => POSTS.some(w => (w.idea || 'other') === id));
+const [lead, ...rest] = POSTS;
+const writingHub = shell({
+  id: 'writing', title: 'Writing: weekly pieces on sport, culture and fans',
+  desc: 'Weekly writing by Matt King on sports marketing: how sport finds its next fans, through culture, creators, clips and the people fans already love.',
+  h1: 'The <em class="hi">writing.</em>', lead: 'A new piece every week on sport, culture and the fans in between. Each one feeds one of my three ideas.', next: ['work', 'The work'],
+  ldExtra: [{ '@type': 'Blog', '@id': `${SITE}/writing/#blog`, name: 'Matt King: writing', url: `${SITE}/writing/`, author: { '@id': ME }, publisher: { '@id': ME },
+    blogPost: POSTS.map(w => ({ '@type': 'BlogPosting', headline: w.title, url: `${SITE}/writing/${w.slug}/`, datePublished: w.date, author: { '@id': ME } })) }],
+  body: `
+${lead ? `<section class="v-sec" id="latest" data-theme="raven" data-blob=".9,.6,.1,.1" data-energy=".6">
+  ${top('Latest', day(lead.date, { day: 'numeric', month: 'short', year: 'numeric' }), lead.idea ? esc(ideaName(lead.idea)) : '')}
+  <a class="wr-lead" href="../writing/${lead.slug}/" data-r="fade">
+    ${lead.photo ? `<figure><img src="../photos/${lead.photo[0]}" alt="${esc(lead.photo[3])}" decoding="async"${lead.photo[4] ? ` style="object-position:${lead.photo[4]}"` : ''}></figure>` : ''}
+    <div><p class="mono">${day(lead.date)} · ${minutes(lead)} min read</p><h2>${lead.h1}</h2><p>${esc(lead.dek)}</p><span class="btn"><span>Read it</span><i aria-hidden="true">→</i></span></div>
+  </a>
+</section>` : ''}
+${POSTS.length > 1 ? `<section class="v-sec" id="all" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".6">
+  ${top('All writing', pad(POSTS.length), 'Newest first')}
+  ${IDEA_TAGS.length > 1 ? `<div class="wr-filter" role="group" aria-label="Show writing on" data-r="fade"><button type="button" class="mono on" data-filter="all">All</button>${IDEA_TAGS.map(([id, n]) => `<button type="button" class="mono" data-filter="${id}">${esc(n)}</button>`).join('')}</div>` : ''}
+  <ol class="wr-list">${POSTS.map(w => `<li data-idea="${w.idea || 'other'}"><a class="wr-row" href="../writing/${w.slug}/" data-r="fade">
+    <span class="mono">${day(w.date, { day: 'numeric', month: 'short', year: 'numeric' })}</span><div><h3>${w.h1}</h3><p>${esc(w.dek)}</p></div><span class="mono wr-tag">${w.idea ? esc(ideaName(w.idea)) : 'Writing'} · ${minutes(w)} min</span><i aria-hidden="true">→</i></a></li>`).join('')}</ol>
+</section>` : ''}
+${signup('../')}`,
+});
+
+const postPages = POSTS.map((w, i) => {
+  const path = `writing/${w.slug}`, older = POSTS[i + 1], idea = w.idea && ALL.find(a => a.id === w.idea), url = `${SITE}/${path}/`;
+  const more = POSTS.filter(x => x !== w).slice(0, 3), fill = more.length < 3 ? ALL.filter(a => a !== idea).slice(0, 3 - more.length) : [];
+  const share = [['LinkedIn', `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`], ['X', `https://x.com/intent/post?url=${encodeURIComponent(url)}&text=${encodeURIComponent(w.title)}`]];
+  return [path, shell({
+    id: 'writing', path, title: w.title, desc: w.dek, image: w.photo?.[0], ldType: 'Article', cls: 'ar-page',
+    crumb: `<span><a href="../">Matt King</a> / <a href="../writing/">Writing</a>${idea ? ` / ${esc(idea.name)}` : ''}</span><span>${day(w.date)}</span>`,
+    h1: w.h1, lead: esc(w.dek), next: older ? [`writing/${older.slug}`, older.title] : ['writing', 'All the writing'],
+    ldExtra: [{ '@type': 'BlogPosting', '@id': `${url}#article`, headline: w.title, description: w.dek, author: { '@id': ME }, publisher: { '@id': ME }, datePublished: w.date, dateModified: w.updated || w.date,
+      image: w.photo ? `${SITE}/photos/${w.photo[0]}` : undefined, mainEntityOfPage: url, wordCount: words(w), isPartOf: { '@id': `${SITE}/writing/#blog` },
+      about: idea ? { '@type': 'DefinedTerm', name: idea.name, description: idea.define, url: `${SITE}/thinking/${idea.id}/` } : undefined },
+      crumbs([['Matt King', ''], ['Writing', 'writing'], [w.title, path]])],
+    body: `
+<section class="v-sec ar" data-theme="raven" data-blob=".9,.6,.1,.1" data-energy=".5">
+  <div class="ar-wrap">
+    <aside class="ar-side" data-r="fade">
+      <p class="mono ar-meta"><span>By <a href="../../about/">Matt King</a></span><span>${day(w.date)}</span><span>${minutes(w)} min read</span></p>
+      ${idea ? `<a class="ar-part" href="../../thinking/${idea.id}/"><span class="mono">Part of the idea</span><b>${esc(idea.name)}</b><i aria-hidden="true">→</i></a>` : ''}
+      ${toc(w.body)}
+      <p class="mono ar-share"><span>Share</span>${share.map(([n, u]) => `<a href="${u}" target="_blank" rel="noopener">${n} ↗</a>`).join('')}<button type="button" class="mono" data-copy-link="${url}">Copy link</button></p>
+    </aside>
+    <article class="ar-body">
+      ${w.photo ? `<figure class="ar-ph" data-r="fade"><img src="../../photos/${w.photo[0]}" alt="${esc(w.photo[3])}" decoding="async"${w.photo[4] ? ` style="object-position:${w.photo[4]}"` : ''}><figcaption><b>${esc(w.photo[1])}</b> ${esc(w.photo[2])}</figcaption></figure>` : ''}
+      ${w.points?.length ? `<aside class="ar-points" data-r="fade"><p class="mono">The short version</p><ul>${w.points.map(x => `<li>${x}</li>`).join('')}</ul></aside>` : ''}
+      ${blocks(w.body)}
+      ${idea ? `<a class="ar-idea" href="../../thinking/${idea.id}/" data-r="fade"><span class="mono">${idea.n} · The idea behind it</span><b>${idea.title.join(' ')}</b><span>${esc(idea.define)}</span><span class="mono pg-feat-go">Read the idea <i aria-hidden="true">→</i></span></a>` : ''}
+      <footer class="ar-by" data-r="fade"><img src="../../photos/portrait.jpg" alt="" loading="lazy"><div><b>Matt King</b><p>${esc(C.DESCRIPTOR)} <a href="../../about/">More about Matt</a> · <a href="../../speaking/">Talks</a></p></div></footer>
+    </article>
+  </div>
+</section>
+${signup('../../')}
+<section class="v-sec" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".6">
+  ${top('Keep reading', '', '<a href="../">All writing</a>')}
+  <div class="pg-feats">${more.map((x, k) => pcard(x, '../../', k)).join('')}${fill.map((a, k) => card(a, '../../', more.length + k)).join('')}</div>
 </section>`,
   })];
 });
@@ -231,7 +312,7 @@ const about = shell({
 /* ---------- the thinking */
 const thinking = shell({
   id: 'thinking', title: "The thinking: sport's next fans already exist",
-  desc: "Matt King's thinking on sports marketing: sport's next fans already exist, they're just not watching yet. Three ideas (dormant demand, the side door, idols sell, influencers inform) and the toolkit behind them.",
+  desc: "Matt King's thinking on sports marketing: sport's next fans already exist, they're just not watching yet. Three ideas (dormant demand, the side door, idols sell, influencers inform), the weekly writing, and the toolkit behind them.",
   h1: W.CLAIM.h, lead: `${esc(W.CLAIM.sub)} ${esc(W.CLAIM.p)}`, next: [`thinking/${W.IDEAS[0].id}`, W.IDEAS[0].name],
   ldExtra: [{ '@type': 'DefinedTermSet', '@id': `${SITE}/thinking/`, name: "Matt King's ideas", hasDefinedTerm: ALL.map(a => ({ '@type': 'DefinedTerm', name: a.name, description: a.define, url: `${SITE}/thinking/${a.id}/` })) }],
   body: `
@@ -240,9 +321,9 @@ const thinking = shell({
   <div class="pg-feats pg-feats-big">${W.IDEAS.map((a, i) => card(a, '../', i)).join('')}</div>
 </section>
 
-<section class="v-sec" id="columns" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".6">
-  ${top('Columns', '02', "What's happening now")}
-  <div class="pg-feats">${W.COLUMNS.map((a, i) => card(a, '../', i)).join('')}</div>
+<section class="v-sec" id="writing" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".6">
+  ${top('Latest writing', '02', '<a href="../writing/">All writing</a>')}
+  <div class="pg-feats">${POSTS.slice(0, 3).map((w, i) => pcard(w, '../', i)).join('')}</div>
 </section>
 ${signup('../')}
 <section class="v-sec pg-journey" id="journey" data-theme="sky" data-blob=".8,.3,.2,.8" data-energy=".6">
@@ -339,10 +420,31 @@ const press = shell({
 </section>`,
 });
 
-const OUT = [['about', about], ['thinking', thinking], ['work', work], ['plays', plays], ['speaking', speaking], ['press', press], ...articles, ...playPages];
+const OUT = [['about', about], ['thinking', thinking], ['writing', writingHub], ['work', work], ['plays', plays], ['speaking', speaking], ['press', press], ...articles, ...postPages, ...playPages];
 for (const [path, html] of OUT) { mkdirSync(`${root}${path}`, { recursive: true }); writeFileSync(`${root}${path}/index.html`, html); }
 writeFileSync(`${root}tools/pages.json`, JSON.stringify(OUT.map(([path]) => `${path}/index.html`), null, 1) + '\n');
-writeFileSync(`${root}public/sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${['', ...OUT.map(([path]) => path + '/'), 'book/'].map(u => `  <url><loc>${SITE}/${u}</loc><lastmod>${W.PUBLISHED}</lastmod></url>`).join('\n')}\n  <url><loc>https://world.bymattking.com/</loc></url>\n</urlset>\n`);
+writeFileSync(`${root}public/sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${['', ...OUT.map(([path]) => path + '/'), 'book/'].map(u => `  <url><loc>${SITE}/${u}</loc><lastmod>${POSTS.find(w => u === `writing/${w.slug}/`)?.date || (['', 'writing/', 'thinking/'].includes(u) && POSTS[0]?.date > W.PUBLISHED ? POSTS[0].date : W.PUBLISHED)}</lastmod></url>`).join('\n')}\n  <url><loc>https://world.bymattking.com/</loc></url>\n</urlset>\n`);
+const xml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+writeFileSync(`${root}public/feed.xml`, `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel>
+<title>Matt King: writing</title><link>${SITE}/writing/</link><atom:link href="${SITE}/feed.xml" rel="self" type="application/rss+xml"/>
+<description>Weekly writing on sport, culture and how sport finds its next fans.</description><language>en-gb</language>
+${POSTS.map(w => `<item><title>${xml(w.title)}</title><link>${SITE}/writing/${w.slug}/</link><guid>${SITE}/writing/${w.slug}/</guid><pubDate>${new Date(w.date + 'T09:00:00Z').toUTCString()}</pubDate><description>${xml(w.dek)}</description></item>`).join('\n')}
+</channel></rss>
+`);
+// the home page shows the three newest pieces, written into its HTML so they can be crawled
+{
+  let s = readFileSync(`${root}index.html`, 'utf8');
+  const block = `<!-- writing: written by tools/pages.mjs -->
+<section class="v-sec v-writing" id="writing" data-theme="raven" data-blob=".85,.8,.1,.3" data-energy=".6">
+  <header class="v-top mono" data-r="fade"><h2>Latest writing</h2><span>Every week</span><a class="v-more" href="./writing/"><span>All writing</span><i aria-hidden="true">→</i></a></header>
+  <div class="pg-feats">${POSTS.slice(0, 3).map((w, i) => pcard(w, './', i)).join('')}</div>
+</section>
+<!-- /writing -->`;
+  s = s.includes('<!-- writing: written') ? s.replace(/<!-- writing: written[\s\S]*?<!-- \/writing -->/, () => block) : s.replace('<!-- 7. press -->', () => `${block}\n\n<!-- 7. press -->`);
+  s = s.includes('application/rss+xml') ? s : s.replace('<link rel="icon"', `<link rel="alternate" type="application/rss+xml" title="Matt King: writing" href="${SITE}/feed.xml">\n<link rel="icon"`);
+  writeFileSync(`${root}index.html`, s);
+}
 writeFileSync(`${root}public/robots.txt`, `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
 for (const [f, title, desc, path] of [['index.html', 'Matt King | Global sports marketing leader', '', ''], ['book/index.html', 'Book Matt King', '', 'book/'], ['world/index.html', 'Matt King — The virtual world', '', 'world/']]) {
   let s = readFileSync(`${root}${f}`, 'utf8'); const d = (s.match(/<meta name="description" content="([^"]*)"/) || [])[1] || '';

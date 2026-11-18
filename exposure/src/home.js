@@ -3,6 +3,7 @@
 // long form belongs on its own pages. It wears the walnut look: the rooms' neutrals, bronze for light, red for emphasis.
 import { root, $, $$, clamp, lerp, pad2, params, reduced, split, smear, C, createTheme, grainURL } from './kit.js';
 import './styles/home.css';
+import './styles/pages.css';
 import { createField } from './gl/field.js';
 import { createMenu } from './menu.js';
 import { IDEAS } from './writing.js';

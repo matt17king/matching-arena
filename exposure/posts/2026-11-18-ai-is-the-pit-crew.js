@@ -1,0 +1,31 @@
+export default {
+  slug: 'ai-is-the-pit-crew',
+  date: '2026-11-18',
+  title: 'AI is the pit crew, not the driver',
+  h1: 'AI is the pit crew, not <em>the driver.</em>',
+  dek: "AI changes the tyres fast. It doesn't drive the car. How I use it in sports marketing, what it can't do yet, and why effort isn't the same as authenticity.",
+  idea: null,
+  photo: ['working.jpg', 'The desk', 'Where the ideas get built.', 'Matt working at a desk'],
+  points: [
+    'Use AI for speed: research, versions, reporting and automations.',
+    'Keep the creative calls human: the brief, the casting and the taste.',
+    'When content is cheap to make, audiences reward taste, access and truth, not effort.',
+  ],
+  body: [
+    ['h', "What it's great at"],
+    ['p', 'Research, versions, reporting and automations. Jobs that used to take an afternoon now take minutes. I use Claude, ChatGPT, Gemini and Make.com every week. That is the pit crew: fast, precise and essential.'],
+    ['h', "What it can't do yet"],
+    ['p', "It can't make the creative call. It doesn't know why a footballer in a twinset sells more menswear than an influencer does, or how to take something that worked in one market and land it in another. That is taste, and taste is the driver."],
+    ['p', 'More on that in <a href="../../thinking/idols-sell-influencers-inform/">idols sell, influencers inform</a>.'],
+    ['q', "Effort isn't authenticity."],
+    ['h', "Effort isn't authenticity"],
+    ['p', 'When making content is cheap, audiences stop rewarding effort. They reward taste, access and truth: the real tunnel, the real reaction, the moment nobody could have planned. Content that only exists because it was easy to make tends to read that way.'],
+    ['h', 'How I run it'],
+    ['steps', [
+      ['Pit crew', 'AI for research, versions, reporting and automations.'],
+      ['Driver', 'People for the brief, the casting and the creative call.'],
+      ['Telemetry', 'Test, learn, scale. Google Analytics, Meta Ads Manager and Klaviyo tell us which idea earned the next lap.'],
+    ]],
+    ['callout', ['The rule', 'Let AI do the work that only needs to be fast. Keep people on the work that needs to be right.']],
+  ],
+};
