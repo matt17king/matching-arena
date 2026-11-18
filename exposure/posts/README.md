@@ -12,7 +12,8 @@ One file per article. The build (`node tools/pages.mjs`, run by `npm run build`)
 
 1. Copy `_template.js` to `YYYY-MM-DD-the-slug.js` (the date is the publish date; files starting with `_` are ignored).
 2. Fill it in. `topic` is `Sport`, `Marketing` or `Culture`. `idea` is optional: `dormant-demand`, `the-side-door`, `idols-sell-influencers-inform`, or `null` when it doesn't fit one.
-3. Photos go in `public/photos/`. Use plain words and short sentences.
+3. Photos go in `public/photos/`. If an image isn't Matt's, credit it: `credit: ['Who', 'https://link']` for the cover, and the fourth item of an `img` block. A tall cover can keep its shape with `coverRatio: '4 / 5'`.
+   Use plain words and short sentences.
    Aim for a proper article, like the idea pages: a strong `intro`, four to six headed sections, one pull quote, and a numbered "Steal this" to finish. Around 700 to 1,000 words.
 4. Run `npm run build` from `exposure/` and check it on the preview before it goes live.
 
@@ -29,6 +30,6 @@ The body is a list of blocks, so articles are laid out, not one block of text:
 | numbered steps | `['steps', [['Title', 'Detail'], ...]]` |
 | big number | `['stat', ['+600%', 'Reach, with Molly-Mae Hague and Phil Foden', 'The Couture Club']]` |
 | callout box | `['callout', ['The takeaway', 'One or two sentences.']]` |
-| photo | `['img', ['file.jpg', 'Caption', 'Alt text']]` |
+| photo | `['img', ['file.jpg', 'Caption', 'Alt text', ['Credit', 'https://link']]]` (credit optional) |
 
 Links inside an article are written from `/writing/<slug>/`, so another article is `../the-slug/`, an idea is `../../thinking/dormant-demand/`, and the home page is `../../`.
