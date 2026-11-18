@@ -17,7 +17,7 @@ html.v2 .hd-cta { border-color: rgb(var(--bronze-c) / .55); } html.v2 .v-cta-red
 .v-h1 { font: 600 clamp(42px, 7.4vw, 148px)/.92 var(--disp); letter-spacing: -.045em; color: var(--ink); margin: 0; max-width: 15ch; text-wrap: balance; isolation: isolate; }
 .v-h1 em { font-style: italic; }
 .v-pitch { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 16px var(--gut); }
-.v-why { margin: 0; max-width: 44ch; font-size: clamp(17px, 1.5vw, 23px); line-height: 1.4; color: var(--body); text-wrap: pretty; }
+.v-why { margin: 0; max-width: 30ch; font-size: clamp(19px, 1.9vw, 30px); line-height: 1.25; letter-spacing: -.01em; color: var(--body); text-wrap: pretty; }
 .v-go { display: flex; flex-wrap: wrap; gap: 10px; }
 /* the proof, on one wide picture */
 .v-banner { position: relative; margin: 0; min-height: clamp(210px, 30vh, 460px); border-radius: clamp(14px, 1.4vw, 24px); overflow: hidden; box-shadow: 0 40px 100px rgb(0 0 0 / .5), 0 0 0 1px rgb(var(--bronze-c) / .35); }
