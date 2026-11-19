@@ -11,7 +11,7 @@ import { EMAIL } from './content.js';
 // Sending. With a Web3Forms access key here, "Send to Matt" delivers the message to Matt's inbox from the page itself
 // (get one free at web3forms.com: enter the email address, and the key arrives by email; it is safe to publish).
 // Left empty, the button opens the visitor's own email app with the message written instead.
-const FORM_KEY = '';
+const FORM_KEY = 'f58dc9bb-2c36-479c-b51a-cfdfc011851d';
 
 // What people can book. key: used in links (?for=podcast). code: the three letters on the pass.
 // say: how it reads in the message ("I'd like to book you for ...").
