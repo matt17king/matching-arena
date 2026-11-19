@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-look="walnut" class="v2 pg bkp" data-root="../">
+<html lang="en" data-look="walnut" class="v2 pg bkp bk-walnut" data-root="../">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -51,12 +51,17 @@
         <div class="bkp-fields">
           <label class="bkp-f"><span class="mono">Your name</span><input type="text" name="name" autocomplete="name" placeholder="Name" required></label>
           <label class="bkp-f"><span class="mono">Company or show <i>optional</i></span><input type="text" name="org" autocomplete="organization" placeholder="Where you're from"></label>
+          <label class="bkp-f" data-contact><span class="mono">Email</span><input type="email" name="email" autocomplete="email" inputmode="email" placeholder="you@example.com"></label>
+          <label class="bkp-f" data-contact><span class="mono">Or phone</span><input type="tel" name="phone" autocomplete="tel" inputmode="tel" placeholder="07…"></label>
+          <p class="bkp-hint mono bkp-wide" data-contact-hint>An email or a phone number, so I can reply. One is enough.</p>
           <div class="bkp-f bkp-wide"><span class="mono">When <i>optional</i></span>
             <div class="bkp-when" role="radiogroup" aria-label="When">
               <label><input type="radio" name="when" value="As soon as possible"><span>As soon as possible</span></label>
               <label><input type="radio" name="when" value="In the next month"><span>Next month</span></label>
               <label><input type="radio" name="when" value="In the next few months"><span>Next few months</span></label>
               <label><input type="radio" name="when" value="No rush"><span>No rush</span></label>
+              <label><input type="radio" name="when" value="date"><span>Pick a date</span></label>
+              <input class="bkp-date" type="date" name="date" aria-label="The date" hidden>
             </div>
           </div>
           <button class="bkp-add mono bkp-wide" type="button" data-add aria-expanded="false">+ Add a note <i>optional</i></button>
@@ -64,28 +69,47 @@
         </div>
       </fieldset>
 
+      <input type="checkbox" name="botcheck" class="bkp-trap" tabindex="-1" autocomplete="off" aria-hidden="true">
       <div class="bkp-send" data-r="fade" style="--d:.6s">
-        <a class="btn bkp-go" data-send href="mailto:Matt17King@gmail.com"><span>Send to Matt</span><i aria-hidden="true">→</i></a>
+        <button class="btn bkp-go" type="submit" data-send><span data-send-label>Send to Matt</span><i aria-hidden="true">→</i></button>
         <button class="btn btn-line" type="button" data-copy><span data-copy-label>Copy the message</span><i aria-hidden="true">⧉</i></button>
-        <p class="bkp-note" data-note>Send opens your email with the message written for you. Or email <a href="mailto:Matt17King@gmail.com">Matt17King@gmail.com</a> directly.</p>
+        <p class="bkp-note" data-note aria-live="polite">Goes straight to Matt. Or email <a href="mailto:Matt17King@gmail.com">Matt17King@gmail.com</a> directly.</p>
+      </div>
+      <div class="bkp-done" data-done hidden tabindex="-1">
+        <p class="mono">Sent</p>
+        <p class="bkp-done-h">Thanks, <span data-done-name></span>. <em>It's with Matt.</em></p>
+        <p class="bkp-done-p">He'll reply to <span data-done-contact></span>.</p>
+        <p class="bkp-done-go"><a class="btn btn-line" href="../"><span>Back to the site</span><i aria-hidden="true">→</i></a><a class="btn btn-line" href="../writing/"><span>Read the writing</span><i aria-hidden="true">→</i></a></p>
       </div>
     </form>
 
     <!-- the pass: a picture of the form, so it is hidden from screen readers -->
-    <aside class="bkp-side" aria-hidden="true">
-      <div class="bkp-strap"></div>
-      <article class="bkp-pass" data-pass>
-        <header><b>Matt King</b><span class="mono">Booking pass</span></header>
-        <p class="bkp-code" data-pv="code">•••</p>
-        <p class="bkp-what" data-pv="what">Pick one to start</p>
-        <dl>
-          <div><dt class="mono">From</dt><dd data-pv="who">Your name</dd></div>
-          <div><dt class="mono">When</dt><dd data-pv="when">Whenever suits</dd></div>
-          <div><dt class="mono">Note</dt><dd data-pv="note">Optional</dd></div>
-        </dl>
-        <p class="bkp-stamp" data-stamp>Ready to send</p>
-        <footer><i class="bkp-bars"></i><span class="mono">N° 17 · <span data-issued></span></span></footer>
-      </article>
+    <aside class="bkp-side pass-col" aria-hidden="true">
+      <div class="pass-rig" data-rig>
+        <div class="pass-swing" data-swing>
+          <div class="strap"><span>Matt King · Booking · Matt King · Booking · Matt King · Booking · Matt King · </span></div>
+          <div class="clip"><i></i></div>
+          <article class="tix tix-v pass" data-pass>
+            <div class="tix-body">
+              <div class="tix-grain"></div>
+              <div class="pass-hole"></div>
+              <header class="pass-top"><b>Matt King</b><span class="mono">Booking pass</span></header>
+              <div class="pass-main">
+                <div class="pass-what"><p class="pass-code pv empty" data-pv="code" data-empty="•••"></p><p class="pass-name pv empty" data-pv="what" data-empty="Pick one"></p></div>
+                <div class="pass-date"><span class="mono">When</span><b class="pv empty" data-pv="when" data-empty="Date"></b></div>
+              </div>
+              <p class="bkp-passnote pv empty" data-pv="note" data-empty="Your note"></p>
+              <dl class="pass-rows">
+                <div><dt class="mono">From</dt><dd class="pv empty" data-pv="who" data-empty="You"></dd><span class="pass-mono pv empty" data-pv="mono" data-empty="?"></span></div>
+                <div><dt class="mono">Reply</dt><dd class="pv empty" data-pv="contact" data-empty="Email or phone"></dd></div>
+              </dl>
+              <div class="pass-stamp" data-stamp>Ready to send</div>
+              <div class="tix-glare"></div>
+            </div>
+            <footer class="tix-stub"><svg class="pass-bars" data-bars viewBox="0 0 120 22" preserveAspectRatio="none"></svg><div class="pass-no"><span class="mono">N° 17</span><span class="mono" data-issued></span></div></footer>
+          </article>
+        </div>
+      </div>
     </aside>
   </div>
 </section>
