@@ -2,6 +2,15 @@
 
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
+## 2026-11-20 (morning run)
+- Suggested 1: Everton put a Football Manager fan in their real press room (The Fat Centre Back meets Tarkowski, 18 Nov)
+- Suggested 2: Tennis rebuilt for a night out (World Team Tennis relaunch, Kallmeyer as outfitter, players own equity, 1-2 Dec)
+- Suggested 3: Caitlin Clark becomes the first athlete partner for Dick's and Foot Locker (4 Nov)
+- Runner-up: 49ers fans take over the Cowboys' stadium
+- Runner-up: Tom Brady's on-air screams go viral
+- Runner-up: Manchester United's 2027-28 home shirt leaks
+- Runner-up: Dortmund rewarding fans who keep their phones away
+
 ## 2026-11-19 (morning run)
 - Suggested 1: Liverpool says "Nice One" (posters in Anfield-grass ink, 24 cities, 16 countries; football's Christmas ad season)
 - Suggested 2: F1 turns Las Vegas into a week, not a race (fan hubs, driver pop-ups, Sphere gigs, 19-21 Nov)
