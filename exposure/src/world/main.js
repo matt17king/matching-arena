@@ -228,6 +228,12 @@ $('[data-music-close]').addEventListener('click', closeMusic);
 /* ---------- the card a marker opens */
 let opener = null, asked = 0, unmount = null;
 const ballJs = () => import('./ball.js');
+// the stage a 3D model rises onto: the room dims behind it, the ball sits in the space beside the card
+const stand = document.createElement('div'); stand.className = 'wd-show'; stand.hidden = true;
+stand.innerHTML = '<div class="wd-show-bg" data-show-bg></div><div class="wd-show-ball" data-model role="img"></div><p class="mono wd-show-hint">Drag to spin · <span class="wd-fine">Scroll</span><span class="wd-coarse">Pinch</span> to zoom</p>';
+card.before(stand);   // beside the card, so the card stays on top
+$('[data-show-bg]', stand).addEventListener('click', () => closeCard(true));
+function endShow(now) { root.classList.remove('wd-showing'); const u = unmount; unmount = null; if (!u) return; setTimeout(() => { u(); if (!root.classList.contains('wd-showing')) stand.hidden = true; }, now || reduced ? 0 : 500); }
 // photos are shown whole, at their own shape; their size is read once, ahead of the click where possible
 const sizes = new Map();
 const sizeOf = f => { if (!sizes.has(f)) sizes.set(f, new Promise(res => { const im = new Image(); im.onload = () => res([im.naturalWidth, im.naturalHeight]); im.onerror = () => res(null); im.src = `../photos/${f}`; })); return sizes.get(f); };
@@ -237,19 +243,23 @@ stage.addEventListener('pointerover', e => { const b = e.target.closest('.wd-dot
 async function openCard(t, btn) {
   const [label_, href] = t.link || [], id = ++asked, dim = t.photo ? await sizeOf(t.photo[0]) : null; if (id !== asked) return;
   const tall = dim && dim[1] > dim[0] * 1.05;
-  if (unmount) { unmount(); unmount = null; }
-  $('[data-card-body]', card).innerHTML = (t.model ? `<figure class="wd-card-3d" data-model role="img" aria-label="${esc(t.model[1])}"><span class="mono wd-card-3d-hint">Drag to spin</span></figure>` : '') + (dim ? `<figure class="wd-card-ph" style="aspect-ratio:${dim[0]} / ${dim[1]}"><img src="../photos/${t.photo[0]}" alt="${esc(t.photo[1])}" width="${dim[0]}" height="${dim[1]}"></figure>` : '')
+  if (unmount) endShow(true);
+  $('[data-card-body]', card).innerHTML = (dim ? `<figure class="wd-card-ph" style="aspect-ratio:${dim[0]} / ${dim[1]}"><img src="../photos/${t.photo[0]}" alt="${esc(t.photo[1])}" width="${dim[0]}" height="${dim[1]}"></figure>` : '')
     + `<div class="wd-card-head"><p class="mono wd-card-k">${esc(t.k)}</p><h2 class="wd-card-t" id="wd-card-t">${esc(t.t)}</h2>${t.stat ? `<p class="wd-card-stat"><b>${esc(t.stat[0])}</b><span class="mono">${esc(t.stat[1])}</span></p>` : ''}</div>`
     + `<div class="wd-card-foot"><p class="wd-card-p">${esc(t.p)}</p>${href ? `<a class="btn" href="${out(href)}"><span>${esc(label_)}</span><i aria-hidden="true">→</i></a>` : ''}</div>`;
   card.classList.toggle('tall', !!tall); card.classList.toggle('wide', !!dim && !tall); card.scrollTop = 0;
   $$('.wd-dot.open').forEach(d => d.classList.remove('open')); btn.classList.add('open'); opener = btn;
   card.hidden = false; card.getBoundingClientRect(); root.classList.add('wd-carded'); card.focus({ preventScroll: true });
-  if (t.model) { const box = $('[data-model]', card); ballJs().then(m => m.mountModel(box, `../models/${t.model[0]}`, reduced)).then(u => { if (id === asked && box.isConnected) unmount = u; else u(); }).catch(() => box.classList.add('failed')); }
+  card.classList.toggle('modelled', !!t.model);
+  if (t.model) {
+    const box = $('[data-model]', stand); box.setAttribute('aria-label', t.model[1]); stand.hidden = false; stand.getBoundingClientRect(); root.classList.add('wd-showing');
+    ballJs().then(m => m.mountModel(box, `../models/${t.model[0]}`, reduced)).then(u => { if (id === asked) unmount = u; else u(); }).catch(() => box.classList.add('failed'));
+  }
 }
 function closeCard(refocus) {
   asked++;
   if (!root.classList.contains('wd-carded')) return; root.classList.remove('wd-carded'); $$('.wd-dot.open').forEach(d => d.classList.remove('open'));
-  setTimeout(() => { if (!root.classList.contains('wd-carded')) { card.hidden = true; if (unmount) { unmount(); unmount = null; } } }, reduced ? 0 : 500);
+  endShow(); setTimeout(() => { if (!root.classList.contains('wd-carded')) card.hidden = true; }, reduced ? 0 : 500);
   if (refocus && opener) opener.focus({ preventScroll: true }); opener = null;
 }
 stage.addEventListener('click', e => {
