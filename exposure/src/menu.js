@@ -13,9 +13,9 @@ export function createMenu() {
     ['work/', 'The work', 'Results, rights, brands', 'photos/man-city-couture.jpg'],
     ['speaking/', 'Speaking', 'Talks, podcasts, panels', 'photos/radio.jpg'],
     ['press/', 'Press', 'In the news', 'photos/press-circle.jpg'],
-    ['world/', 'The virtual world', 'Step inside', 'rooms/living.webp'],
+    ['https://world.bymattking.com/', 'The virtual world', 'Step inside', 'rooms/living.webp'],
   ];
-  const here = location.pathname.replace(/index\.html$/, ''), at = ITEMS.findIndex(([k]) => here.includes('/' + k)), first = Math.max(0, at);
+  const here = location.pathname.replace(/index\.html$/, ''), at = ITEMS.findIndex(([k]) => !k.startsWith('http') && here.includes('/' + k)), first = Math.max(0, at);
 
   const btn = document.createElement('button');
   btn.className = 'mn-btn'; btn.type = 'button'; btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', 'menu');
@@ -26,7 +26,7 @@ export function createMenu() {
   el.className = 'mn'; el.id = 'menu'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Menu'); el.inert = true;
   el.innerHTML = `<div class="mn-glow" aria-hidden="true"></div>
   <div class="mn-in">
-    <nav class="mn-list" aria-label="All pages">${ITEMS.map(([k, n, s], i) => `<a href="${B}${k}" style="--n:${i}" data-i="${i}"${i === at ? ' aria-current="page"' : ''}><span class="mono">0${i + 1}</span><b>${n}</b><em class="mono">${s}</em><i aria-hidden="true">→</i></a>`).join('')}</nav>
+    <nav class="mn-list" aria-label="All pages">${ITEMS.map(([k, n, s], i) => `<a href="${k.startsWith('http') ? k : B + k}" style="--n:${i}" data-i="${i}"${i === at ? ' aria-current="page"' : ''}><span class="mono">0${i + 1}</span><b>${n}</b><em class="mono">${s}</em><i aria-hidden="true">→</i></a>`).join('')}</nav>
     <div class="mn-pic" aria-hidden="true">${ITEMS.map(([, , , p], i) => `<img src="${B}${p}" alt="" loading="lazy" decoding="async" data-i="${i}"${i === first ? ' class="on"' : ''}>`).join('')}</div>
     <div class="mn-foot" style="--n:${ITEMS.length}">
       <a class="btn" href="${B}book/"><span>Book Matt</span><i aria-hidden="true">→</i></a>

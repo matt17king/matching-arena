@@ -2,6 +2,24 @@
 
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
+## 2026-11-21 (morning run)
+- Suggested 1: Nike's creator playbook ("Rip the Script" 5.7bn content views, 100+ athletes, creators and stylists; investor day 17 Nov)
+- Suggested 2: A six-year-old's TikTok gets him to the Las Vegas Grand Prix (4M likes, race 21 Nov)
+- Suggested 3: Nike reportedly set to replace Puma as F1's apparel partner from 2027 (unconfirmed)
+- Runner-up: Clemson's travelling fans singing in an empty Duke stadium
+- Runner-up: Celtic's Christmas advert with a Rangers dig (title unconfirmed)
+- Avoided: Travis Scott x GTA VI Air Force 1 drop (already a runner-up on 18 Nov)
+
+## 2026-11-20 (morning run)
+- Suggested 1: Everton put a Football Manager fan in their real press room (The Fat Centre Back meets Tarkowski, 18 Nov)
+- Suggested 2: Tennis rebuilt for a night out (World Team Tennis relaunch, Kallmeyer as outfitter, players own equity, 1-2 Dec)
+- Suggested 3: Caitlin Clark becomes the first athlete partner for Dick's and Foot Locker (4 Nov)
+- Runner-up: 49ers fans take over the Cowboys' stadium
+- Runner-up: Tom Brady's on-air screams go viral
+- Runner-up: Manchester United's 2027-28 home shirt leaks
+- Runner-up: Dortmund rewarding fans who keep their phones away
+- More ideas (asked for): McDonald's ends its 32-year World Cup sponsorship; Dortmund women's 17,555 record crowd; Netflix's first NFL Thanksgiving Eve game with U2; Gary Neville's Overlap x Disney+ and creator-led football media; WSL clubs agree no league-level betting sponsor; Bellingham x Calvin Klein (already suggested 18 Nov)
+
 ## 2026-11-19 (morning run)
 - Suggested 1: Liverpool says "Nice One" (posters in Anfield-grass ink, 24 cities, 16 countries; football's Christmas ad season)
 - Suggested 2: F1 turns Las Vegas into a week, not a race (fan hubs, driver pop-ups, Sphere gigs, 19-21 Nov)

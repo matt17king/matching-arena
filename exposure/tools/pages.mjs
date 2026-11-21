@@ -76,7 +76,7 @@ ${pageLd(path, title, desc, ldExtra, ldType === 'Article' ? 'WebPage' : ldType)}
   <a class="hd-name" href="../" aria-label="Matt King — home">Matt King</a>
   <nav class="hd-label hd-nav mono" aria-label="Pages">${PAGES.map(([k, n]) => `<a href="../${k}/"${k === id ? ' aria-current="page"' : ''}>${n}</a>`).join('')}</nav>
   <div class="hd-right">
-    <a class="hd-cta hd-world" href="../world/">The world</a>
+    <a class="hd-cta hd-world" href="https://world.bymattking.com/">The world</a>
     <a class="hd-cta v-cta-red" href="../book/">Book Matt</a>
   </div>
   <div class="hd-bar" aria-hidden="true"><i data-bar></i></div>
@@ -94,7 +94,7 @@ ${pageLd(path, title, desc, ldExtra, ldType === 'Article' ? 'WebPage' : ldType)}
   <a class="pg-next-a" href="../${next[0]}/" data-r="fade"><span>${next[1]}</span><i aria-hidden="true">→</i></a>
   <div class="pg-next-foot" data-r="fade">
     <a class="btn" href="../book/"><span>Book Matt</span><i aria-hidden="true">→</i></a>
-    <nav class="pg-all" aria-label="All pages"><a href="../">Home</a>${PAGES.map(([k, n]) => `<a href="../${k}/">${n}</a>`).join('')}<a href="../world/">The virtual world</a></nav>
+    <nav class="pg-all" aria-label="All pages"><a href="../">Home</a>${PAGES.map(([k, n]) => `<a href="../${k}/">${n}</a>`).join('')}<a href="https://world.bymattking.com/">The virtual world</a></nav>
     <p class="pg-contact"><a href="mailto:${C.EMAIL}">${C.EMAIL}</a><a href="${C.LINKEDIN}" rel="noopener">LinkedIn ↗</a><a href="${C.INSTAGRAM}" rel="noopener">Instagram ↗</a></p>
   </div>
 </section>
