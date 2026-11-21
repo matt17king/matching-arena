@@ -29,19 +29,22 @@ export async function mountModel(box, url, reduced) {
   const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 10), Z = 1.05; camera.position.set(0, 0.02, Z);
 
   const gltf = await load(url), model = gltf.scene.clone(true), aniso = renderer.capabilities.getMaxAnisotropy();
-  // a match ball has a glossy coat over its print: the same maps, with a clear coat on top
+  // a printed model (the ball) gets a glossy coat over its print; a bare metal one (a trophy) keeps its own finish
   model.traverse(o => {
     if (!o.isMesh) return; const m = o.material;
+    if (!m.map) { m.side = THREE.DoubleSide; m.envMapIntensity = 1.35; return; }
     [m.map, m.normalMap, m.roughnessMap].forEach(t => t && (t.anisotropy = aniso));
     o.material = new THREE.MeshPhysicalMaterial({ map: m.map, normalMap: m.normalMap, normalScale: new THREE.Vector2(1.15, 1.15), roughnessMap: m.roughnessMap, metalnessMap: m.metalnessMap,
       roughness: 1, metalness: m.metalness ?? 0, clearcoat: 0.65, clearcoatRoughness: 0.2 });
   });
-  const box3 = new THREE.Box3().setFromObject(model), mid = box3.getCenter(new THREE.Vector3()), k = 0.3 / box3.getSize(new THREE.Vector3()).x;
+  // a tall model (a trophy) stands upright and turns like it's on a turntable; a round one (the ball) tumbles freely
+  const box3 = new THREE.Box3().setFromObject(model), mid = box3.getCenter(new THREE.Vector3()), dim = box3.getSize(new THREE.Vector3());
+  const tall = dim.y > Math.max(dim.x, dim.z) * 1.25, k = tall ? 0.4 / dim.y : 0.3 / dim.x;
   model.scale.setScalar(k); model.position.copy(mid).multiplyScalar(-k);
   const spin = new THREE.Group(), lift = new THREE.Group(); spin.add(model); lift.add(spin); scene.add(lift);
-  spin.rotation.set(0.25, -0.9, 0.12);
+  if (tall) spin.rotation.set(0, -0.6, 0); else spin.rotation.set(0.25, -0.9, 0.12);
   const shadow = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.42), new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false }));
-  shadow.rotation.x = -Math.PI / 2; shadow.position.y = -0.2; scene.add(shadow);
+  shadow.rotation.x = -Math.PI / 2; shadow.position.y = -dim.y * k / 2 - (tall ? 0.012 : 0.05); scene.add(shadow);
 
   let alive = true, vx = 0, vy = reduced ? 0 : 0.22, z = Z, zTo = Z;
   const idle = reduced ? 0 : 0.0035, born = performance.now(), el = renderer.domElement;
@@ -54,7 +57,7 @@ export async function mountModel(box, url, reduced) {
   el.addEventListener('pointermove', e => {
     const was = pts.get(e.pointerId); if (!was) return; pts.set(e.pointerId, [e.clientX, e.clientY]);
     if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (d) zTo = THREE.MathUtils.clamp(zTo * pinch / d, 0.6, 1.4); pinch = d; return; }
-    vy = (e.clientX - was[0]) * 0.008; vx = (e.clientY - was[1]) * 0.008;
+    vy = (e.clientX - was[0]) * 0.008; vx = tall ? 0 : (e.clientY - was[1]) * 0.008;
   });
   const up = e => { pts.delete(e.pointerId); if (!pts.size) box.classList.remove('held'); };
   el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
@@ -64,7 +67,7 @@ export async function mountModel(box, url, reduced) {
   const tick = now => {
     if (!alive) return; requestAnimationFrame(tick);
     const t = Math.max(0, now - born) / 1000, intro = reduced ? 1 : Math.min(1, t / 1.1), s = reduced ? 1 : outBack(intro);
-    lift.scale.setScalar(0.55 + 0.45 * s); lift.position.y = (1 - s) * -0.12 + (reduced ? 0 : Math.sin(t * 1.3) * 0.008);
+    lift.scale.setScalar(0.55 + 0.45 * s); lift.position.y = (1 - s) * -0.12 + (reduced || tall ? 0 : Math.sin(t * 1.3) * 0.008);
     shadow.scale.setScalar(0.85 - lift.position.y * 2.2); shadow.material.opacity = Math.min(1, intro * 1.4) * (0.9 + lift.position.y * 4);
     q.setFromAxisAngle(X, vx); spin.quaternion.premultiply(q); q.setFromAxisAngle(Y, vy); spin.quaternion.premultiply(q);
     if (!pts.size) { vx *= 0.94; vy = vy * 0.965 + idle * 0.035; }
