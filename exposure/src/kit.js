@@ -7,6 +7,14 @@ import '@fontsource-variable/geist-mono';
 import './styles/site.css';
 
 export const root = document.documentElement;
+
+// The virtual world's one address is world.bymattking.com, so every link points there. On a preview or a local build
+// that address would leave the copy being tested, so clicks go to the /world/ page beside it instead.
+export const WORLD = 'https://world.bymattking.com/';
+if (!/(^|\.)bymattking\.com$/.test(location.hostname)) document.addEventListener('click', e => {
+  const a = e.target.closest?.(`a[href^="${WORLD}"]`);
+  if (a && !e.defaultPrevented && !e.metaKey && !e.ctrlKey) { e.preventDefault(); location.href = '/world/' + a.getAttribute('href').slice(WORLD.length); }
+}, true);
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 export const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));

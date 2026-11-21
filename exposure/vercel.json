@@ -2,6 +2,32 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "routes": [
     {
+      "src": "/world(?:/(?:index\\.html)?)?",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.bymattking.com"
+        }
+      ],
+      "status": 301,
+      "headers": {
+        "Location": "https://world.bymattking.com/"
+      }
+    },
+    {
+      "src": "/world(?:/(?:index\\.html)?)?",
+      "has": [
+        {
+          "type": "host",
+          "value": "bymattking.com"
+        }
+      ],
+      "status": 301,
+      "headers": {
+        "Location": "https://world.bymattking.com/"
+      }
+    },
+    {
       "src": "/",
       "has": [
         {
