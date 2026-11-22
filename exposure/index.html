@@ -73,16 +73,19 @@
   </div>
 </section>
 
-<!-- 3. proof: four numbers, then who it was with -->
-<section class="v-sec v-proof" id="record" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".7">
+<!-- 3. proof: four numbers (they count up as they arrive), then who it was with, in three drifting rows -->
+<!-- On a wide screen it snaps into place and holds for a moment while the logo rows drift; on a phone it simply scrolls. -->
+<section class="pin v-proof" id="record" style="--len:.75" data-pin="proof" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".7">
+  <div class="pin-in">
   <p class="mono v-k" data-r="fade">The record</p>
-  <div class="v-stats" data-list="stats"></div>
+  <div class="v-stats" data-list="stats" data-count></div>
   <div class="v-with" id="company">
     <p class="mono v-k" data-r="fade">Worked with</p>
-    <ul class="v-logos" data-list="logos" data-r="fade"></ul>
-    <p class="v-names" data-list="names" data-r="fade"></p>
+    <div class="v-co-rows" data-list="logo-rows" data-r="fade"></div>
+    <p class="v-co-names" data-list="names" data-r="fade"></p>
   </div>
   <a class="v-more mono" href="./work/" data-r="fade"><span>The full record</span><i aria-hidden="true">→</i></a>
+  </div>
 </section>
 
 <!-- 4. three ideas, one at a time: sport's next fans already exist -->
@@ -133,8 +136,8 @@
 <!-- /writing -->
 
 <!-- 7. press -->
-<section class="v-sec v-press" id="press" data-theme="raven" data-blob=".9,.6,.1,.1" data-energy=".6">
-  <p class="mono v-k" data-r="fade">In the press</p>
+<section class="v-sec v-press" id="press" data-theme="sky" data-blob=".2,.3,.85,.7" data-energy=".5">
+  <header class="v-press-h"><p class="mono v-k" data-r="fade">In the press</p><h2 class="v-h2" data-r="smear" data-split>What they've <em>said.</em></h2></header>
   <div class="v-cards" data-list="press"></div>
   <a class="v-more mono" href="./press/" data-r="fade"><span>All press</span><i aria-hidden="true">→</i></a>
 </section>
