@@ -144,3 +144,5 @@ html.v2 .hd-cta { border-color: rgb(var(--bronze-c) / .55); } html.v2 .v-cta-red
   .mn-list b { font-size: clamp(32px, 9.6vw, 48px); } .mn-foot .btn { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .mn, .mn-list a, .mn-foot, .mn-pic, .mn-pic img { transition-duration: .01s !important; transition-delay: 0s !important; } }
+/* the press section changes to the light look, so it reads as a new chapter after the writing */
+.v-press-h { display: grid; gap: 14px; } .v-press .v-h2 { font-size: clamp(48px, 7vw, 130px); }
