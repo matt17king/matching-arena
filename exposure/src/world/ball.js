@@ -29,17 +29,17 @@ export async function mountModel(box, url, reduced) {
   const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 10), Z = 1.05; camera.position.set(0, 0.02, Z);
 
   const gltf = await load(url), model = gltf.scene.clone(true), aniso = renderer.capabilities.getMaxAnisotropy();
-  // a printed model (the ball) gets a glossy coat over its print; a bare metal one (a trophy) keeps its own finish
+  // a tall model (a trophy) stands upright and turns like it's on a turntable; a round one (the ball) tumbles freely
+  const box3 = new THREE.Box3().setFromObject(model), mid = box3.getCenter(new THREE.Vector3()), dim = box3.getSize(new THREE.Vector3());
+  const tall = dim.y > Math.max(dim.x, dim.z) * 1.25, k = tall ? 0.4 / dim.y : 0.3 / dim.x;
+  // a printed model (the ball) gets a glossy coat over its print; a trophy keeps its own metal finish
   model.traverse(o => {
     if (!o.isMesh) return; const m = o.material;
-    if (!m.map) { m.side = THREE.DoubleSide; m.envMapIntensity = 1.35; return; }
+    if (!m.map || tall) { m.side = THREE.DoubleSide; m.envMapIntensity = 1.35; [m.map, m.normalMap, m.roughnessMap].forEach(t => t && (t.anisotropy = aniso)); return; }
     [m.map, m.normalMap, m.roughnessMap].forEach(t => t && (t.anisotropy = aniso));
     o.material = new THREE.MeshPhysicalMaterial({ map: m.map, normalMap: m.normalMap, normalScale: new THREE.Vector2(1.15, 1.15), roughnessMap: m.roughnessMap, metalnessMap: m.metalnessMap,
       roughness: 1, metalness: m.metalness ?? 0, clearcoat: 0.65, clearcoatRoughness: 0.2 });
   });
-  // a tall model (a trophy) stands upright and turns like it's on a turntable; a round one (the ball) tumbles freely
-  const box3 = new THREE.Box3().setFromObject(model), mid = box3.getCenter(new THREE.Vector3()), dim = box3.getSize(new THREE.Vector3());
-  const tall = dim.y > Math.max(dim.x, dim.z) * 1.25, k = tall ? 0.4 / dim.y : 0.3 / dim.x;
   model.scale.setScalar(k); model.position.copy(mid).multiplyScalar(-k);
   const spin = new THREE.Group(), lift = new THREE.Group(); spin.add(model); lift.add(spin); scene.add(lift);
   if (tall) spin.rotation.set(0, -0.6, 0); else spin.rotation.set(0.25, -0.9, 0.12);
