@@ -54,6 +54,7 @@ const PENTHOUSE = [
     // the markers sit on the brass plates of the plinths, left to right
     things: [
       { at: [12.6, 62.4], label: 'FIFA World Cup', k: 'DAZN · FIFA', t: 'FIFA World Cup',
+        model: ['world-cup.glb', 'The FIFA World Cup trophy in gold, turning slowly'],
         p: "One of the football rights portfolios I've led at DAZN. Bringing FIFA+ across put more than three million fans onto the platform.",
         stat: ['3M+', 'FIFA+ fans brought onto DAZN'], link: ['See the record', '../#record'] },
       { at: [24.6, 57.2], label: 'Champions League', k: 'DAZN · UEFA', t: 'UEFA Champions League',
