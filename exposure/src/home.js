@@ -94,3 +94,16 @@ addEventListener('load', measure); if ('ResizeObserver' in window) new ResizeObs
 document.addEventListener('click', e => { const a = e.target.closest('a[href^="#"]'); if (!a) return; const el = document.getElementById(a.getAttribute('href').slice(1)); if (!el) return; e.preventDefault(); scrollTo({ top: el.id === 'top' ? 0 : top(el), behavior: reduced ? 'auto' : 'smooth' }); });
 measure(); theme.snap('raven'); requestAnimationFrame(tick);
 createMenu();
+
+/* ---------- the trophy cabinet: the 3D loads only when the section comes near (src/cabinet.js) */
+{
+  const sec = $('#cabinet'), box = sec && $('[data-cab-3d]', sec);
+  const gl = (() => { try { return !!document.createElement('canvas').getContext('webgl2'); } catch { return false; } })();
+  if (box && gl) {
+    const items = $$('[data-cab]', sec), pick = i => items.forEach(li => li.classList.toggle('on', +li.dataset.cab === i));
+    const io = new IntersectionObserver(es => { if (!es.some(e => e.isIntersecting)) return; io.disconnect();
+      import('./cabinet.js').then(m => m.mountCabinet(sec, box, ['./models/world-cup.glb', './models/ucl.glb'], reduced, pick)).catch(() => {}); }, { rootMargin: '600px 0px' });
+    io.observe(sec);
+  }
+}
+
