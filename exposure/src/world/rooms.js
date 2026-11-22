@@ -57,6 +57,7 @@ const PENTHOUSE = [
         p: "One of the football rights portfolios I've led at DAZN. Bringing FIFA+ across put more than three million fans onto the platform.",
         stat: ['3M+', 'FIFA+ fans brought onto DAZN'], link: ['See the record', '../#record'] },
       { at: [24.6, 57.2], label: 'Champions League', k: 'DAZN · UEFA', t: 'UEFA Champions League',
+        model: ['ucl.glb', 'The UEFA Champions League trophy in silver, turning slowly'],
         p: "One of the football rights portfolios I've led at DAZN.", link: ['See the record', '../#record'] },
       { at: [35.1, 51.2], label: 'Serie A', k: 'DAZN', t: 'Serie A',
         p: "One of the football rights portfolios I've led at DAZN.", link: ['See the record', '../#record'] },

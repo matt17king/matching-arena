@@ -2,6 +2,15 @@
 
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
+## 2026-11-22 (morning run)
+- Suggested 1: Liverpool speaks India's meme language (Ravi Kishan "Jaldi the late" reel; clubs going Bollywood on Instagram)
+- Suggested 2: GTA VI launched like a city festival (Rockstar's Miami festival 21 Nov with Travis Scott and Cardi B; Cactus Jack bank-vault pop-up 19-22 Nov)
+- Suggested 3: Las Vegas makes the trophy the content (neon trophy with 122 lights; Louis Vuitton trophy trunk; race 21 Nov)
+- Runner-up: Haaland's first Christmas ad for Sports Direct and Nike
+- Runner-up: Greenock Morton fans' Tony Watt chicken chant
+- Runner-up: Hereford FC third kit launch
+- Avoided: Ye's record State Farm Stadium show (controversy); England fans' chant ban (discriminatory chanting)
+
 ## 2026-11-21 (morning run)
 - Suggested 1: Nike's creator playbook ("Rip the Script" 5.7bn content views, 100+ athletes, creators and stylists; investor day 17 Nov)
 - Suggested 2: A six-year-old's TikTok gets him to the Las Vegas Grand Prix (4M likes, race 21 Nov)
@@ -11,7 +20,7 @@ Stories already suggested, so the morning scout never repeats one. Newest first.
 - Avoided: Travis Scott x GTA VI Air Force 1 drop (already a runner-up on 18 Nov)
 
 ## 2026-11-20 (morning run)
-- Suggested 1: Everton put a Football Manager fan in their real press room (The Fat Centre Back meets Tarkowski, 18 Nov)
+- Suggested 1: Everton put a Football Manager fan in their real press room (The Fat Centre Back meets Tarkowski, 18 Nov). Picked, written 22 Nov
 - Suggested 2: Tennis rebuilt for a night out (World Team Tennis relaunch, Kallmeyer as outfitter, players own equity, 1-2 Dec)
 - Suggested 3: Caitlin Clark becomes the first athlete partner for Dick's and Foot Locker (4 Nov)
 - Runner-up: 49ers fans take over the Cowboys' stadium
