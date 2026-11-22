@@ -163,8 +163,8 @@ export const STANDS = [
 
 // The company I keep: [name, logo file in public/logos]
 export const WORKED_WITH = [
-  ['DAZN', 'dazn.png'], ['FIFA+', 'fifa-plus.png'], ['UEFA Champions League', 'uefa-champions-league.png'], ['Serie A', 'serie-a.png'], ['LaLiga', 'laliga.png'], ['Bundesliga', 'bundesliga.png'],
-  ['Manchester City', 'man-city.png'], ['FC Barcelona', 'fc-barcelona.png'], ['Arsenal', 'arsenal.png'], ['LA Galaxy', 'la-galaxy.png'], ['Crewe Alexandra', 'crewe-alexandra.png'], ['DP World Tour', 'dp-world-tour.png'],
+  ['DAZN', 'dazn.png'], ['FIFA', 'fifa.png'], ['FIFA World Cup 26', 'fifa-world-cup-26.png'], ['UEFA Champions League', 'uefa-champions-league.png'], ['Serie A', 'serie-a.png'], ['LaLiga', 'laliga.png'], ['Bundesliga', 'bundesliga.png'], ['Roshn Saudi League', 'roshn-saudi-league.png'], ['National League', 'national-league.png'],
+  ['Manchester City', 'man-city.png'], ['FC Barcelona', 'fc-barcelona.png'], ['Arsenal', 'arsenal.png'], ['LA Galaxy', 'la-galaxy.png'], ['Crewe Alexandra', 'crewe-alexandra.png'], ['Dorking Wanderers', 'dorking-wanderers.png'], ['DP World Tour', 'dp-world-tour.png'],
   ['adidas', 'adidas.png'], ['Puma', 'puma.png'], ['Under Armour', 'under-armour.png'], ['The Couture Club', 'couture-club.png'], ['Gym King', 'gym-king.png'], ['American Golf', 'american-golf.png'],
 ];
 // [name, where]
