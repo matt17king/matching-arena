@@ -20,7 +20,7 @@ const FOCUS = { 'super-bowl.jpg': 'center 86%' };
 // ("+600%" is "+", 600, "%"), so it can count up as the page is held.
 const parts = v => { const m = String(v).match(/^([^\d]*)([\d.]+)(.*)$/); return m ? [m[1], +m[2], m[3]] : ['', 0, v]; };
 fill('stats', [RECORD[0], RECORD[1], RECORD[5], RECORD[4]].map(([v, what, where], i) => { const [pre, n, post] = parts(v);
-  return `<div class="v-rec-stat" data-rec="${i}" style="--f:0"><i class="v-rec-line" aria-hidden="true"></i><b aria-label="${esc(v)}"><span aria-hidden="true">${esc(pre)}<span data-n="${n}">${n}</span>${esc(post)}</span></b><p>${esc(what)}</p><span class="mono">${esc(where)}</span></div>`; }).join(''));
+  return `<div class="v-stat" data-r="fade" style="--d:${i * 0.08}s"><b aria-label="${esc(v)}"><span aria-hidden="true">${esc(pre)}<span data-n="${n}">${n}</span>${esc(post)}</span></b><p>${esc(what)}</p><span class="mono">${esc(where)}</span></div>`; }).join(''));
 // worked with, in three rows: the game (rights holders and competitions), the clubs and golf, then the brands.
 // Each row is drawn twice so it can loop; the second copy is hidden from screen readers.
 const ROW_OF = n => /DAZN|FIFA|UEFA|Serie|LaLiga|Bundesliga|Saudi|National League/.test(n) ? 0 : /adidas|Puma|Under Armour|Couture|Gym King|American Golf/.test(n) ? 2 : 1;
@@ -29,7 +29,6 @@ const logo = ([n, f], hide) => `<li${hide ? ' aria-hidden="true"' : ''}><span cl
 // a short row repeats so each half of the loop is wider than any screen
 const fillRow = r => { const out = [...r]; while (out.length < 16) out.push(...r); return out; };
 fill('logo-rows', rows.map((r, i) => { const all = fillRow(r); return `<div class="v-co-row" data-row="${i}" style="--n:${all.length}"><ul class="v-co-track">${all.map((w, k) => logo(w, k >= r.length)).join('')}${all.map(w => logo(w, true)).join('')}</ul></div>`; }).join(''));
-{ const c = $('[data-co-count]'); if (c) c.textContent = `${WORKED_WITH.length} names`; }
 fill('names', ['Lamine Yamal', ...TALENT.map(t => t[0])].slice(0, 9).map((n, i) => `<span style="--i:${i}">${esc(n)}</span>`).join('<i aria-hidden="true"> · </i>'));
 fill('ideas', IDEAS.map((f, i) => `<article class="v-idea${i ? '' : ' on'}" data-idea="${i}">
   <div class="v-idea-t"><p class="mono v-idea-n">${f.n} / ${pad2(IDEAS.length)} · ${esc(f.kind)}</p><h3 class="v-idea-h">${f.title.join(' ')}</h3><p class="v-idea-p">${esc(f.teaser || f.intro)}</p><a class="v-more mono" href="${B}thinking/${f.id}/"><span>Read the idea</span><i aria-hidden="true">→</i></a></div>
@@ -63,6 +62,14 @@ function measure() {
 const prog = p => (p ? clamp((scrollY - p.top) / p.len) : 0);
 const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; const el = e.target; io.unobserve(el); el.classList.add('in'); if (el.dataset.r === 'smear') smear(el); }), { rootMargin: '0px 0px -7% 0px', threshold: 0.08 });
 $$('[data-r]').forEach(el => io.observe(el));
+{ // the record's numbers count up once, the first time they come into view
+  const box = $('[data-count]'), nums = box ? $$('[data-n]', box) : [];
+  const run = () => { const t0 = performance.now(); nums.forEach(el => { el.textContent = '0'; });
+    const step = now => { let done = true; nums.forEach((el, i) => { const n = +el.dataset.n, t = clamp((now - t0 - i * 160) / 1300), e = 1 - (1 - t) ** 3; if (t < 1) done = false;
+      el.textContent = t >= 1 ? n : n < 20 ? Math.round(n * e) : Math.round(n * e / 5) * 5; }); if (!done) requestAnimationFrame(step); };
+    requestAnimationFrame(step); };
+  if (box && !reduced) { const o = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { o.disconnect(); run(); } }, { threshold: 0.4 }); o.observe(box); }
+}
 
 /* ---------- the hero: the banner picture drifts a little as the page leaves it. Nothing else moves. */
 const bannerImg = $('[data-banner-img]');
@@ -71,19 +78,15 @@ const heroTick = () => { if (reduced || scrollY > vh * 1.2) return; bannerImg.st
 /* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes */
 const ideas = $$('[data-idea]'), ideaSteps = $$('[data-list="idea-steps"] span'), ideaCount = $('[data-ideas-count]'); let ideaAt = -1;
 $('.v-ideas').style.setProperty('--len', (ideas.length * 0.85).toFixed(2));
-const recStats = $$('[data-rec]'), recNums = recStats.map(s => $('[data-n]', s)), coRows = $$('[data-row]'), coSec = $('.v-co');
+const coSec = $('.v-proof');
 const track = $('[data-track]'), worldBg = $('[data-world-bg] img'), bar = $('[data-bar]');
 function scenes() {
   // the idea: each word comes up from a whisper as the page is held
   const p = prog(pins.say), n = sayWords.length;
   sayWords.forEach((w, i) => { const t = reduced ? 1 : clamp(p * 1.5 * n - i); w.style.opacity = lerp(0.14, 1, t).toFixed(3); w.style.filter = t > 0.99 ? 'none' : `blur(${((1 - t) * 0.06).toFixed(3)}em)`; });
   const s = reduced ? 1 : clamp((p - 0.72) / 0.2); saySub.style.opacity = s.toFixed(3); saySub.style.transform = `translateY(${((1 - s) * 18).toFixed(1)}px)`;
-  // the record: each number counts up in turn while the page is held, and its line draws across
-  const r = reduced ? 1 : prog(pins.rec);
-  recStats.forEach((s, i) => { const t = clamp(r * 1.6 * recStats.length / 2 - i * 0.55); const e = 1 - (1 - t) ** 3; s.style.setProperty('--f', e.toFixed(3));
-    const n = +recNums[i].dataset.n; recNums[i].textContent = t >= 1 ? n : (n < 20 ? Math.round(n * e) : Math.round(n * e / 5) * 5); });
-  // worked with: the rows drift in turns, the middle one the other way, faster while the page is held
-  const c = prog(pins.co); coSec.style.setProperty('--p', c.toFixed(4));
+  // worked with: the rows drift a little further as the section passes, the middle one the other way
+  if (coSec) { const r = coSec.getBoundingClientRect(); if (r.bottom > 0 && r.top < vh) coSec.style.setProperty('--p', clamp((vh - r.top) / (r.height + vh)).toFixed(4)); }
   // five ideas: one on screen at a time
   const x = prog(pins.ideas) * ideas.length, at = Math.min(ideas.length - 1, Math.floor(x));
   if (at !== ideaAt) { ideaAt = at; ideas.forEach((el, i) => { el.classList.toggle('on', i === at); el.classList.toggle('was', i < at); }); ideaCount.textContent = `${pad2(at + 1)} / ${pad2(ideas.length)}`; }
