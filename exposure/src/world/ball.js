@@ -50,6 +50,7 @@ export async function mountModel(box, url, reduced) {
   const idle = reduced ? 0 : 0.0035, born = performance.now(), el = renderer.domElement;
   const fit = () => { const w = box.clientWidth, h = box.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.fov = w / h < 0.8 ? 36 : 30; camera.updateProjectionMatrix(); };
   const ro = new ResizeObserver(fit); ro.observe(box); fit();
+  if (tall && box.clientWidth < 700) z = zTo = 0.86;   // a trophy on a phone starts a little closer, so it fills the space
 
   // drag to spin, scroll or pinch to look closer
   const pts = new Map(); let pinch = 0;
