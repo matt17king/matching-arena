@@ -5,7 +5,6 @@
 // A thing sits `at` [across, down] as a percentage of the picture, and opens a card: `k` the small line above, `t` the title,
 // `p` the words, and optionally `stat` [number, what], `photo` [file in public/photos, alt text] and `link` [label, where to].
 // `model` [file in public/models, what it shows] puts a 3D model at the top of the card that turns and can be spun (see ball.js).
-// `editions` [[name, file, what it shows], ...] offers versions of the model, with a switch under it to swap between them.
 // A thing with `spotify` (a link to a track, album or playlist on Spotify) is a music marker: it opens the player, not a card.
 // A thing with `game` ('blackjack', 'roulette' or 'slots') is a table to play at: it opens the game, not a card (see games.js).
 // A room can have `screens`: a video (in public/video, with a still `poster` beside it) laid onto a screen in the picture.
@@ -23,8 +22,6 @@ const PENTHOUSE = [
     things: [
       { at: [45.3, 60.5], label: 'The match ball', k: 'DAZN · FIFA', t: 'The World Cup ball',
         model: ['trionda.glb', 'Trionda, the adidas match ball of the 2026 FIFA World Cup, in red, blue and green'],
-        editions: [['The official ball', 'trionda.glb', 'Trionda, the adidas match ball of the 2026 FIFA World Cup, in red, blue and green'],
-          ['Matt King edition', 'trionda-mk.glb', "The same ball redesigned in Matt King's colours: cream, walnut, red and bronze, with MATT KING, N°17 and M. on its panels"]],
         p: "The FIFA World Cup is one of eight football rights portfolios I've led at DAZN. Bringing FIFA+ across put more than three million fans onto the platform.",
         stat: ['3M+', 'FIFA+ fans brought onto DAZN'], link: ['See the record', '../#record'] },
       { at: [51.6, 21.5], label: 'Play music', t: 'On the speakers', spotify: 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M' },

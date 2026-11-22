@@ -230,7 +230,7 @@ let opener = null, asked = 0, unmount = null;
 const ballJs = () => import('./ball.js');
 // the stage a 3D model rises onto: the room dims behind it, the ball sits in the space beside the card
 const stand = document.createElement('div'); stand.className = 'wd-show'; stand.hidden = true;
-stand.innerHTML = '<div class="wd-show-bg" data-show-bg></div><div class="wd-show-ball" data-model role="img"></div><div class="wd-show-eds mono" data-eds role="group" aria-label="Edition" hidden></div><p class="mono wd-show-hint">Drag to spin · <span class="wd-fine">Scroll</span><span class="wd-coarse">Pinch</span> to zoom</p>';
+stand.innerHTML = '<div class="wd-show-bg" data-show-bg></div><div class="wd-show-ball" data-model role="img"></div><p class="mono wd-show-hint">Drag to spin · <span class="wd-fine">Scroll</span><span class="wd-coarse">Pinch</span> to zoom</p>';
 card.before(stand);   // beside the card, so the card stays on top
 $('[data-show-bg]', stand).addEventListener('click', () => closeCard(true));
 function endShow(now) { root.classList.remove('wd-showing'); const u = unmount; unmount = null; if (!u) return; setTimeout(() => { u(); if (!root.classList.contains('wd-showing')) stand.hidden = true; }, now || reduced ? 0 : 500); }
@@ -239,7 +239,7 @@ const sizes = new Map();
 const sizeOf = f => { if (!sizes.has(f)) sizes.set(f, new Promise(res => { const im = new Image(); im.onload = () => res([im.naturalWidth, im.naturalHeight]); im.onerror = () => res(null); im.src = `../photos/${f}`; })); return sizes.get(f); };
 const warm = r => r.things.forEach(t => { if (t.photo) sizeOf(t.photo[0]); });
 // a 3D model is fetched when the pointer first comes near its marker, so it is usually ready by the click
-stage.addEventListener('pointerover', e => { const b = e.target.closest('.wd-dot'); const t = b && rooms[cur].things[+b.dataset.thing]; if (t?.model) ballJs().then(m => (t.editions || [[0, t.model[0]]]).forEach(ed => m.warmModel(`../models/${ed[1]}`))); });
+stage.addEventListener('pointerover', e => { const b = e.target.closest('.wd-dot'); const t = b && rooms[cur].things[+b.dataset.thing]; if (t?.model) ballJs().then(m => m.warmModel(`../models/${t.model[0]}`)); });
 async function openCard(t, btn) {
   const [label_, href] = t.link || [], id = ++asked, dim = t.photo ? await sizeOf(t.photo[0]) : null; if (id !== asked) return;
   const tall = dim && dim[1] > dim[0] * 1.05;
@@ -252,17 +252,8 @@ async function openCard(t, btn) {
   card.hidden = false; card.getBoundingClientRect(); root.classList.add('wd-carded'); card.focus({ preventScroll: true });
   card.classList.toggle('modelled', !!t.model);
   if (t.model) {
-    const box = $('[data-model]', stand), eds = $('[data-eds]', stand); stand.hidden = false; stand.getBoundingClientRect(); root.classList.add('wd-showing');
-    // a model can come in editions (the official ball and Matt's own): a switch under it swaps one for the other
-    const editions = t.editions || [[null, ...t.model]];
-    const show = i => { const [, file, alt] = editions[i]; box.setAttribute('aria-label', alt); box.classList.remove('failed');
-      $$('button', eds).forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
-      if (unmount) { const u = unmount; unmount = null; u(); }
-      ballJs().then(m => m.mountModel(box, `../models/${file}`, reduced)).then(u => { if (id === asked && $$('button', eds).every((b, k) => (k === i) === (b.getAttribute('aria-pressed') === 'true'))) unmount = u; else u(); }).catch(() => box.classList.add('failed')); };
-    eds.hidden = editions.length < 2;
-    eds.innerHTML = editions.length < 2 ? '' : editions.map(([name], k) => `<button type="button" data-ed="${k}">${esc(name)}</button>`).join('');
-    $$('button', eds).forEach(b => b.addEventListener('click', () => show(+b.dataset.ed)));
-    show(0);
+    const box = $('[data-model]', stand); box.setAttribute('aria-label', t.model[1]); stand.hidden = false; stand.getBoundingClientRect(); root.classList.add('wd-showing');
+    ballJs().then(m => m.mountModel(box, `../models/${t.model[0]}`, reduced)).then(u => { if (id === asked) unmount = u; else u(); }).catch(() => box.classList.add('failed'));
   }
 }
 function closeCard(refocus) {
