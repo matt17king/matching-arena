@@ -78,7 +78,12 @@ const heroTick = () => { if (reduced || scrollY > vh * 1.2) return; bannerImg.st
 /* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes */
 const ideas = $$('[data-idea]'), ideaSteps = $$('[data-list="idea-steps"] span'), ideaCount = $('[data-ideas-count]'); let ideaAt = -1;
 $('.v-ideas').style.setProperty('--len', (ideas.length * 0.85).toFixed(2));
-const coSec = $('.v-proof');
+const coSec = $('.v-proof'), pinned = () => innerWidth > 820;
+// the snap: when scrolling stops with the record nearly in place, it settles exactly into place, where it holds
+let snapT = 0;
+addEventListener('scroll', () => { clearTimeout(snapT); snapT = setTimeout(() => {
+  const p = pins.proof; if (!p || !pinned() || reduced) return; const d = p.top - scrollY;
+  if (d > 4 && d < vh * 0.35) scrollTo({ top: p.top, behavior: 'smooth' }); }, 120); }, { passive: true });
 const track = $('[data-track]'), worldBg = $('[data-world-bg] img'), bar = $('[data-bar]');
 function scenes() {
   // the idea: each word comes up from a whisper as the page is held
@@ -86,7 +91,7 @@ function scenes() {
   sayWords.forEach((w, i) => { const t = reduced ? 1 : clamp(p * 1.5 * n - i); w.style.opacity = lerp(0.14, 1, t).toFixed(3); w.style.filter = t > 0.99 ? 'none' : `blur(${((1 - t) * 0.06).toFixed(3)}em)`; });
   const s = reduced ? 1 : clamp((p - 0.72) / 0.2); saySub.style.opacity = s.toFixed(3); saySub.style.transform = `translateY(${((1 - s) * 18).toFixed(1)}px)`;
   // worked with: the rows drift a little further as the section passes, the middle one the other way
-  if (coSec) { const r = coSec.getBoundingClientRect(); if (r.bottom > 0 && r.top < vh) coSec.style.setProperty('--p', clamp((vh - r.top) / (r.height + vh)).toFixed(4)); }
+  if (coSec) coSec.style.setProperty('--p', pinned() ? prog(pins.proof).toFixed(4) : clamp((vh - coSec.getBoundingClientRect().top) / (coSec.offsetHeight + vh)).toFixed(4));
   // five ideas: one on screen at a time
   const x = prog(pins.ideas) * ideas.length, at = Math.min(ideas.length - 1, Math.floor(x));
   if (at !== ideaAt) { ideaAt = at; ideas.forEach((el, i) => { el.classList.toggle('on', i === at); el.classList.toggle('was', i < at); }); ideaCount.textContent = `${pad2(at + 1)} / ${pad2(ideas.length)}`; }

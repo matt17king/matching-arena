@@ -74,7 +74,9 @@
 </section>
 
 <!-- 3. proof: four numbers (they count up as they arrive), then who it was with, in three drifting rows -->
-<section class="v-sec v-proof" id="record" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".7">
+<!-- On a wide screen it snaps into place and holds for a moment while the logo rows drift; on a phone it simply scrolls. -->
+<section class="pin v-proof" id="record" style="--len:.75" data-pin="proof" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".7">
+  <div class="pin-in">
   <p class="mono v-k" data-r="fade">The record</p>
   <div class="v-stats" data-list="stats" data-count></div>
   <div class="v-with" id="company">
@@ -83,6 +85,7 @@
     <p class="v-co-names" data-list="names" data-r="fade"></p>
   </div>
   <a class="v-more mono" href="./work/" data-r="fade"><span>The full record</span><i aria-hidden="true">→</i></a>
+  </div>
 </section>
 
 <!-- 4. three ideas, one at a time: sport's next fans already exist -->
