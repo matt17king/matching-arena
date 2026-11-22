@@ -54,6 +54,8 @@ if (!field) root.classList.add('no-gl'); else field.lost(() => { field = null; r
 let vw = innerWidth, vh = innerHeight, zones = [], pins = {};
 const top = el => el.getBoundingClientRect().top + scrollY;
 function measure() {
+  // the record holds on any screen it fits on; where it doesn't (a short phone), it scrolls like a normal section
+  const pr = $('.v-proof'); if (pr) { pr.classList.remove('free'); const pi = $('.pin-in', pr); if (pi.scrollHeight > pi.clientHeight + 2) pr.classList.add('free'); }
   vw = innerWidth; vh = innerHeight;
   zones = $$('[data-theme]').map(el => ({ top: top(el), bottom: top(el) + el.offsetHeight, name: el.dataset.theme, blob: el.dataset.blob.split(',').map(Number), energy: +el.dataset.energy }));
   pins = Object.fromEntries($$('[data-pin]').map(el => [el.dataset.pin, { top: top(el), len: Math.max(1, el.offsetHeight - vh) }]));
@@ -78,7 +80,7 @@ const heroTick = () => { if (reduced || scrollY > vh * 1.2) return; bannerImg.st
 /* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes *//* ---------- the scenes */
 const ideas = $$('[data-idea]'), ideaSteps = $$('[data-list="idea-steps"] span'), ideaCount = $('[data-ideas-count]'); let ideaAt = -1;
 $('.v-ideas').style.setProperty('--len', (ideas.length * 0.85).toFixed(2));
-const coSec = $('.v-proof'), pinned = () => innerWidth > 820;
+const coSec = $('.v-proof'), pinned = () => !coSec.classList.contains('free');
 // the snap: when scrolling stops with the record nearly in place, it settles exactly into place, where it holds
 let snapT = 0;
 addEventListener('scroll', () => { clearTimeout(snapT); snapT = setTimeout(() => {
