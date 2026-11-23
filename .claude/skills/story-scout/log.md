@@ -2,6 +2,14 @@
 
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
+## 2026-11-23 (morning run)
+- Suggested 1: F1 x Nike confirmed as apparel partner from 2027, with a Las Vegas capsule dropped the same day (20 Nov; was an unconfirmed pick on 21 Nov)
+- Suggested 2: The GTA VI festival happened: Travis Scott closed with his GTA song "Rhyno" (Miami, 21 Nov; follow-up to 22 Nov pick)
+- Suggested 3: Arsenal's 2027-28 home shirt leaks, modelled on Declan Rice (20-21 Nov, unofficial)
+- Runner-up: Shedeur Sanders' Nike Air DT Max '96 "Particle Pink" (20 Nov)
+- Runner-up: Charli xcx sells her tour looks on Vinted for charity (16 Nov)
+- Avoided: Leicester City ending its BC Game shirt deal after a viral video (betting/crypto, adult content)
+
 ## 2026-11-22 (morning run)
 - Suggested 1: Liverpool speaks India's meme language (Ravi Kishan "Jaldi the late" reel; clubs going Bollywood on Instagram)
 - Suggested 2: GTA VI launched like a city festival (Rockstar's Miami festival 21 Nov with Travis Scott and Cardi B; Cactus Jack bank-vault pop-up 19-22 Nov)
