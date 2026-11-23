@@ -3,7 +3,7 @@
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
 ## 2026-11-23 (morning run)
-- Suggested 1: F1 x Nike confirmed as apparel partner from 2027, with a Las Vegas capsule dropped the same day (20 Nov; was an unconfirmed pick on 21 Nov)
+- Suggested 1: F1 x Nike confirmed as apparel partner from 2027, with a Las Vegas capsule dropped the same day (20 Nov; was an unconfirmed pick on 21 Nov). Picked, written 23 Nov
 - Suggested 2: The GTA VI festival happened: Travis Scott closed with his GTA song "Rhyno" (Miami, 21 Nov; follow-up to 22 Nov pick)
 - Suggested 3: Arsenal's 2027-28 home shirt leaks, modelled on Declan Rice (20-21 Nov, unofficial)
 - Runner-up: Shedeur Sanders' Nike Air DT Max '96 "Particle Pink" (20 Nov)
