@@ -104,7 +104,7 @@ html.v2 .hd-cta { border-color: rgb(var(--bronze-c) / .55); } html.v2 .v-cta-red
 
 /* ---- 6. the stands ---- */
 .v-strip .pin-in { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: clamp(14px, 3vh, 30px); padding: calc(var(--hd) + 2.5vh) 0 5vh; } .v-strip .v-top { margin: 0 var(--gut); }
-.v-track { display: flex; gap: clamp(10px, 1.4vw, 22px); padding: 0 var(--gut); min-height: 0; will-change: transform; }
+.v-track { display: flex; gap: clamp(10px, 1.4vw, 22px); padding: 0 var(--gut); min-height: 0; min-width: 0; will-change: transform; }
 .v-shot { position: relative; flex: none; height: 100%; aspect-ratio: 3 / 4; margin: 0; border-radius: 16px; overflow: hidden; } .v-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .v-shot figcaption { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 9px 12px; border-radius: 12px; background: rgb(var(--raven-c) / .7); color: var(--ice); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .v-shot b { font: 600 16px/1.1 var(--disp); letter-spacing: -.01em; } .v-shot .mono { color: rgb(var(--ice-c) / .8); white-space: nowrap; }
