@@ -2,6 +2,12 @@
 
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
+## 2026-11-23 (extra, asked for new ones)
+- Suggested 1: F1 will show drivers' heart rates live on TV from 2027 (Whoop four-year deal, 19 Nov; Verstappen opting out)
+- Suggested 2: Serena Williams launches Starfire Ventures, targeting a $200M fund (16-17 Nov)
+- Suggested 3: A'ja Wilson x Playa Society x Nike A'Two "Doin A'lot" (20 Nov)
+- Avoided: Gary Neville "wake up" self-slap clip (single source, match not confirmed)
+
 ## 2026-11-23 (morning run)
 - Suggested 1: F1 x Nike confirmed as apparel partner from 2027, with a Las Vegas capsule dropped the same day (20 Nov; was an unconfirmed pick on 21 Nov). Picked, written 23 Nov
 - Suggested 2: The GTA VI festival happened: Travis Scott closed with his GTA song "Rhyno" (Miami, 21 Nov; follow-up to 22 Nov pick)
