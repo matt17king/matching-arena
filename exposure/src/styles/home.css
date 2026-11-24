@@ -177,11 +177,16 @@ html.v2 .hd-cta { border-color: rgb(var(--bronze-c) / .55); } html.v2 .v-cta-red
 /* the ask: the portrait sits in the bottom right, its cut edges on the section's top, right and bottom */
 .v-close { position: relative; overflow: hidden; isolation: isolate; }
 .v-close-pic { position: absolute; z-index: -1; top: 0; right: 0; height: 100%; width: auto; max-width: none; pointer-events: none; user-select: none;
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 16%); mask-image: linear-gradient(180deg, transparent, #000 16%); }   /* the cut top melts into the page */
+  mix-blend-mode: var(--pic-blend, normal);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 16%), linear-gradient(90deg, transparent, #000 22%);
+  mask-image: linear-gradient(180deg, transparent, #000 16%), linear-gradient(90deg, transparent, #000 22%); -webkit-mask-composite: source-in; mask-composite: intersect; }   /* the cut top, and the shoulder on the left, melt into the page */
+@media (min-width: 821px) { .v-close-pic { height: calc(100% + 12vh); } }   /* a little bigger than the section: the extra falls off the bottom, where the page ends */
 .v-close > :not(.v-close-pic) { max-width: min(100%, calc(100vw - 2 * var(--gut) - (100svh * .8 * .62))); }
 @media (min-width: 821px) { .v-close .v-routes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* phones: the portrait is the backdrop of the top of the section, big, cut on the right, fading out behind the words */
 @media (max-width: 820px) {
-  .v-close { padding-top: 62svh; }
-  .v-close-pic { height: 64svh; bottom: auto; -webkit-mask-image: linear-gradient(180deg, transparent, #000 16%, #000 70%, transparent); mask-image: linear-gradient(180deg, transparent, #000 16%, #000 70%, transparent); }
+  .v-close { padding-top: 128vw; }
+  .v-close-pic { height: auto; width: 172vw; right: 0; bottom: auto;
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 9%, #000 54%, transparent 76%); mask-image: linear-gradient(180deg, transparent, #000 9%, #000 54%, transparent 76%); }
   .v-close > :not(.v-close-pic) { max-width: 100%; }
 }
