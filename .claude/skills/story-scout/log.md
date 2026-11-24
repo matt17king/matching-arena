@@ -2,6 +2,11 @@
 
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
+## 2026-11-24 (extra, football only: fan moments, gaming, big brands)
+- Suggested 1: Liverpool 4-0 Man United, won by the clips: Rio Ngumoha trolling United fans, Gary Neville slapping himself live (this weekend; match result not independently confirmed)
+- Suggested 2: Football's sponsors are growing up: Leicester swap a crypto casino for Bossjob after fan backlash (23 Nov), Ajax near a EUR60m deal with bank ABN Amro (23-24 Nov)
+- Note: no fresh football x gaming story found (EA FC 27 sentiment only)
+
 ## 2026-11-24 (extra, first list rejected)
 - Suggested 1: Football's Christmas ad season as the new John Lewis (Creative Boom, 23 Nov; Liverpool, Arsenal, Chelsea, Celtic)
 - Suggested 2: Clubs are becoming fashion labels (PSG x From Future cashmere, 13 Nov, some sold out; Angel City x Pacsun, 2 Nov)
