@@ -2,6 +2,13 @@
 
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
+## 2026-11-24 (morning run)
+- Suggested 1: FIFA's congress set to confirm the US-led bid for the 48-team 2031 Women's World Cup (23 Nov; UK lined up for 2035)
+- Suggested 2: A viral ad starring Kirk Herbstreit trolls the College Football Playoff committee; he says his part was only his bank ad deal (23 Nov)
+- Suggested 3: Tracy McGrady turns his playing career into a sports investment portfolio (FOS feature, 23 Nov)
+- Runner-up: Giannis's GTA VI "Vice City" Nike Freak 8, a player exclusive (17-18 Nov)
+- Avoided: Celtic Christmas film "AI mistake" (fan blogs only); Caitlin Clark "52% aren't Fever fans" stat (unverified)
+
 ## 2026-11-23 (extra, asked for new ones)
 - Suggested 1: F1 will show drivers' heart rates live on TV from 2027 (Whoop four-year deal, 19 Nov; Verstappen opting out)
 - Suggested 2: Serena Williams launches Starfire Ventures, targeting a $200M fund (16-17 Nov)
