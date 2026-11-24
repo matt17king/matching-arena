@@ -2,6 +2,11 @@
 
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
+## 2026-11-24 (extra, first list rejected)
+- Suggested 1: Football's Christmas ad season as the new John Lewis (Creative Boom, 23 Nov; Liverpool, Arsenal, Chelsea, Celtic)
+- Suggested 2: Clubs are becoming fashion labels (PSG x From Future cashmere, 13 Nov, some sold out; Angel City x Pacsun, 2 Nov)
+- Suggested 3: Own-story piece: what putting Molly-Mae Hague and Phil Foden on The Couture Club taught me (evergreen)
+
 ## 2026-11-24 (morning run)
 - Suggested 1: FIFA's congress set to confirm the US-led bid for the 48-team 2031 Women's World Cup (23 Nov; UK lined up for 2035)
 - Suggested 2: A viral ad starring Kirk Herbstreit trolls the College Football Playoff committee; he says his part was only his bank ad deal (23 Nov)
