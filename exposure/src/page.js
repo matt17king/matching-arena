@@ -39,7 +39,7 @@ measure(); theme.snap('raven'); requestAnimationFrame(tick);
    word from a whisper (as on the home page), the two paragraphs follow, and the portrait settles in from a slow zoom */
 { const ab = $('[data-pin="ab"]');
   if (ab) {
-    const say = $('[data-ab-say]', ab); split(say); const words = $$('.w', say);
+    const say = $('[data-ab-say]', ab); split(say); const words = $$('.w', say), nums = $$('.ab-nums li', ab);
     let len = 1, at = 0; const m = () => { at = top(ab); len = Math.max(1, ab.offsetHeight - innerHeight); }; m();
     addEventListener('resize', m); addEventListener('load', m); if ('ResizeObserver' in window) new ResizeObserver(m).observe(document.body);
     const ease = x => 1 - (1 - clamp(x)) ** 3;
@@ -47,7 +47,10 @@ measure(); theme.snap('raven'); requestAnimationFrame(tick);
       const p = reduced ? 1 : clamp((scrollY - at) / len), n = words.length;
       ab.style.setProperty('--p', p.toFixed(4)); ab.style.setProperty('--e', ease(p / .42).toFixed(4));
       words.forEach((w, i) => { const t = reduced ? 1 : clamp((p - .16) * 2.4 * n - i); w.style.opacity = lerp(0, 1, t).toFixed(3); w.style.filter = t > .99 ? 'none' : `blur(${((1 - t) * .08).toFixed(3)}em)`; w.style.transform = `translateY(${((1 - t) * .25).toFixed(3)}em)`; });
-      ab.style.setProperty('--q', ease((p - .58) / .3).toFixed(4));
+      // the line under the statement turns over word by word, then the three numbers rise in turn
+      const v = clamp((p - .5) / .42), k = Math.min(3, Math.floor(v * 4)), f = v * 4 - k;
+      ab.style.setProperty('--v', ease((p - .46) / .08).toFixed(4)); if (ab.dataset.wi !== String(k)) ab.dataset.wi = k;
+      nums.forEach((li, i) => li.style.setProperty('--n', ease((p - .6 - i * .09) / .14).toFixed(4)));
       requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
