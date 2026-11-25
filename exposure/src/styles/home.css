@@ -176,17 +176,29 @@ html.v2 .hd-cta { border-color: rgb(var(--bronze-c) / .55); } html.v2 .v-cta-red
 
 /* the ask: the portrait sits in the bottom right, its cut edges on the section's top, right and bottom */
 .v-close { position: relative; overflow: hidden; isolation: isolate; }
-.v-close-pic { position: absolute; z-index: -1; top: 0; right: 0; height: 100%; width: auto; max-width: none; pointer-events: none; user-select: none;
+.v-close-pic { position: absolute; z-index: -1; top: 0; right: 0; height: 100%; width: auto; aspect-ratio: 1287 / 1600; max-width: none; pointer-events: none; user-select: none;
   mix-blend-mode: var(--pic-blend, normal);
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 16%), linear-gradient(90deg, transparent, #000 22%);
   mask-image: linear-gradient(180deg, transparent, #000 16%), linear-gradient(90deg, transparent, #000 22%); -webkit-mask-composite: source-in; mask-composite: intersect; }   /* the cut top, and the shoulder on the left, melt into the page */
 @media (min-width: 821px) { .v-close-pic { height: calc(100% + 12vh); } }   /* a little bigger than the section: the extra falls off the bottom, where the page ends */
 .v-close > :not(.v-close-pic) { max-width: min(100%, calc(100vw - 2 * var(--gut) - (100svh * .8 * .62))); }
 @media (min-width: 821px) { .v-close .v-routes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-/* phones: the portrait is the backdrop of the top of the section, big, cut on the right, fading out behind the words */
+/* phones: the same idea as the desktop, rearranged for a narrow screen. The words come first and stay compact (the six
+   ways to book become a two-column grid of pills); the portrait sits in the bottom right, cut by the screen's right edge
+   and the end of the page, rising behind the contact details and fading into the red on its top and left. */
 @media (max-width: 820px) {
-  .v-close { padding-top: 128vw; }
-  .v-close-pic { height: auto; width: 172vw; right: 0; bottom: auto;
-    -webkit-mask-image: linear-gradient(180deg, transparent, #000 9%, #000 54%, transparent 76%); mask-image: linear-gradient(180deg, transparent, #000 9%, #000 54%, transparent 76%); }
+  .v-close { min-height: 100svh; align-content: start; gap: 20px; padding: calc(var(--hd) + 4vh) var(--gut) 22px; }
+  .v-close-h { font-size: clamp(44px, 14vw, 72px); max-width: 8ch; }
+  .v-close .v-routes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; border-top: 0; }
+  .v-close .v-routes a { margin: 0; padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 15px; background: rgb(var(--raven-c) / .12); align-items: center; }
+  .v-close .v-routes a:hover { font-style: normal; }
+  .v-close .v-routes i { font-size: 14px; }
+  .v-close-pic { top: auto; bottom: 0; right: -6vw; height: min(62svh, 140vw); width: auto;
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 24%), linear-gradient(90deg, transparent, #000 38%);
+    mask-image: linear-gradient(180deg, transparent, #000 24%), linear-gradient(90deg, transparent, #000 38%); }
   .v-close > :not(.v-close-pic) { max-width: 100%; }
+  .v-close .v-contact { flex-direction: column; gap: 8px; font-size: 15px; margin-top: 6px; }
+  .v-close .v-pages { display: grid; grid-template-columns: 1fr; gap: 2px; font-size: 11px; }
+  .v-close .v-contact, .v-close .v-pages, .v-close .v-foot { max-width: 48%; }
+  .v-close .v-k { margin: 0; }
 }
