@@ -84,6 +84,8 @@ const coSec = $('.v-proof'), pinned = () => !coSec.classList.contains('free');
 // the snap: when scrolling stops with the record nearly in place, it settles exactly into place, where it holds
 let snapT = 0;
 addEventListener('scroll', () => { clearTimeout(snapT); snapT = setTimeout(() => {
+  // the closing section snaps into place too, on any screen, when you stop just short of it
+  const bk = $('#book'); if (bk && !reduced) { const t = bk.getBoundingClientRect().top + scrollY, d2 = t - scrollY; if (d2 > 4 && d2 < vh * 0.5) return scrollTo({ top: t, behavior: 'smooth' }); }
   const p = pins.proof; if (!p || !pinned() || reduced) return; const d = p.top - scrollY;
   if (d > 4 && d < vh * 0.35) scrollTo({ top: p.top, behavior: 'smooth' }); }, 120); }, { passive: true });
 const track = $('[data-track]'), worldBg = $('[data-world-bg] img'), bar = $('[data-bar]');
