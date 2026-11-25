@@ -84,9 +84,20 @@ const coSec = $('.v-proof'), pinned = () => !coSec.classList.contains('free');
 // the snap: when scrolling stops with the record nearly in place, it settles exactly into place, where it holds
 let snapT = 0;
 addEventListener('scroll', () => { clearTimeout(snapT); snapT = setTimeout(() => {
+  // the closing section snaps into place too, on any screen, when you stop just short of it
+  const bk = $('#book'); if (bk && !reduced) { const t = bk.getBoundingClientRect().top + scrollY, d2 = t - scrollY; if (d2 > 4 && d2 < vh * 0.5) return scrollTo({ top: t, behavior: 'smooth' }); }
   const p = pins.proof; if (!p || !pinned() || reduced) return; const d = p.top - scrollY;
   if (d > 4 && d < vh * 0.35) scrollTo({ top: p.top, behavior: 'smooth' }); }, 120); }, { passive: true });
 const track = $('[data-track]'), worldBg = $('[data-world-bg] img'), bar = $('[data-bar]');
+// the stands move as the page scrolls down; a sideways swipe on a trackpad (or shift + wheel) over them moves them too,
+// by scrolling the page the matching amount, so the strip answers whichever way you push it
+{ const strip = $('.v-strip');
+  strip?.addEventListener('wheel', e => {
+    const dx = e.deltaX || (e.shiftKey ? e.deltaY : 0); if (!dx || Math.abs(dx) < Math.abs(e.shiftKey ? 0 : e.deltaY)) return;
+    const pin = pins.strip, over = Math.max(1, track.scrollWidth - track.parentElement.clientWidth); if (!pin) return;
+    const k = prog(pin); if ((dx < 0 && k <= 0) || (dx > 0 && k >= 1)) return;   // at either end, let the page have it
+    e.preventDefault(); scrollTo(0, clamp(scrollY + dx * pin.len / over, pin.top, pin.top + pin.len));
+  }, { passive: false }); }
 function scenes() {
   // the idea: each word comes up from a whisper as the page is held
   const p = prog(pins.say), n = sayWords.length;
@@ -99,7 +110,7 @@ function scenes() {
   if (at !== ideaAt) { ideaAt = at; ideas.forEach((el, i) => { el.classList.toggle('on', i === at); el.classList.toggle('was', i < at); }); ideaCount.textContent = `${pad2(at + 1)} / ${pad2(ideas.length)}`; }
   ideaSteps.forEach((st, i) => { st.style.setProperty('--f', clamp(x - i).toFixed(3)); st.classList.toggle('on', i === at); });
   // the stands: the strip travels its whole length while the section is held
-  const over = Math.max(0, track.scrollWidth - track.clientWidth); track.style.transform = `translate3d(${(-prog(pins.strip) * over).toFixed(1)}px,0,0)`;
+  const over = Math.max(0, track.scrollWidth - track.parentElement.clientWidth); track.style.transform = `translate3d(${(-prog(pins.strip) * over).toFixed(1)}px,0,0)`;
   // the world: the room eases back as it comes up the screen
   if (pins.world && !reduced) { const t = clamp((scrollY + vh - pins.world.top) / (pins.world.h + vh)); worldBg.style.transform = `scale(${(1.18 - t * 0.16).toFixed(4)}) translateY(${((t - 0.5) * -6).toFixed(2)}%)`; }
   bar.style.transform = `scaleX(${clamp(scrollY / Math.max(1, document.documentElement.scrollHeight - vh)).toFixed(4)})`;

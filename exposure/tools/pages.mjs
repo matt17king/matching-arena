@@ -42,7 +42,7 @@ const top = (h2, count, note) => `<header class="v-top mono" data-r="fade"><h2>$
 const lg = (name, file) => `<span class="lg" role="img" aria-label="${esc(name)}" style="-webkit-mask-image:url(../logos/${file});mask-image:url(../logos/${file})"></span>`;
 
 const deepen = (s, n) => n < 2 ? s : s.replace(/(href|src|data-root)="\.\.\//g, `$1="${'../'.repeat(n)}`).replace(/url\(\.\.\//g, `url(${'../'.repeat(n)}`);
-function shell({ id, path = id, crumb, title, desc, h1, lead, body, next, ldExtra, ldType, image, cls = '' }) {
+function shell({ id, path = id, crumb, title, desc, h1, lead, body, next, ldExtra, ldType, image, cls = '', hero }) {
   const url = `${SITE}/${path}/`, at = PAGES.findIndex(p => p[0] === id);
   const depth = path.split('/').length;
   return deepen(`<!DOCTYPE html>
@@ -83,11 +83,11 @@ ${pageLd(path, title, desc, ldExtra, ldType === 'Article' ? 'WebPage' : ldType)}
 </header>
 
 <main>
-<section class="pg-hero" data-theme="raven" data-blob=".28,.9,1,.12" data-energy=".8">
+${hero || `<section class="pg-hero" data-theme="raven" data-blob=".28,.9,1,.12" data-energy=".8">
   <p class="mono pg-crumb" data-r="fade">${crumb || `<span><a href="../">Matt King</a> / ${esc(PAGES[at][1])}</span><span>${pad(at + 1)} / ${pad(PAGES.length)}</span>`}</p>
   <h1 class="pg-h1" data-r="smear" data-split data-smear="50" style="--d:.1s">${h1}</h1>
   <p class="pg-lead" data-r="fade" style="--d:.4s">${lead}</p>
-</section>
+</section>`}
 %%BODY%%
 <section class="pg-next" data-theme="poppy" data-blob=".5,.5,.5,.5" data-energy=".9">
   <p class="mono" data-r="fade">Next</p>
@@ -274,28 +274,40 @@ const about = shell({
   id: 'about', title: 'About',
   desc: `${C.DESCRIPTOR} Matt King leads marketing across eight football rights portfolios at DAZN, and takes sport off the pitch and into culture.`,
   h1: 'Matt <em class="hi">King.</em>', lead: esc(C.DESCRIPTOR), next: ['thinking', 'The thinking'],
+  hero: `<section class="pin ab-hero" id="top" style="--len:1.15" data-pin="ab" data-theme="raven" data-blob=".72,.62,.9,.2" data-energy=".8">
+  <div class="pin-in">
+    <img class="ab-pic" src="../photos/about-portrait.webp" srcset="../photos/about-portrait-sm.webp 900w, ../photos/about-portrait.webp 1600w" sizes="(max-width: 820px) 90vw, 70vw" width="1600" height="1600" alt="Matt King, in black and white" decoding="async" fetchpriority="high">
+    <p class="mono pg-crumb ab-crumb"><span><a href="../">Matt King</a> / About</span><span>01 / ${pad(PAGES.length)}</span></p>
+    <div class="ab-intro">
+      <h1 class="ab-name" data-r="smear" data-split data-smear="50" style="--d:.15s">Matt <em class="hi">King.</em></h1>
+      <p class="ab-desc" data-r="fade" style="--d:.45s">${esc(C.DESCRIPTOR)}</p>
+    </div>
+    <div class="ab-say">
+      <p class="ab-q" data-ab-say>I help sport find <em class="hi">new fans.</em></p>
+      <p class="ab-via" aria-label="Through music, fashion, creators and games."><span class="mono">Through</span><span class="ab-words" aria-hidden="true"><b>music.</b><b>fashion.</b><b>creators.</b><b>games.</b></span></p>
+      <ul class="ab-nums ab-facts">
+        <li><span class="mono">Hometown</span><b>Cheshire</b><i>Where it all started</i></li>
+        <li><span class="mono">Studied</span><b>Webber International University, Florida</b><i>Four years on a scholarship</i></li>
+        <li><span class="mono">Based</span><b>London &amp; Manchester</b><i>And wherever the match is</i></li>
+      </ul>
+    </div>
+    <p class="mono ab-cue" aria-hidden="true"><i></i>Scroll</p>
+  </div>
+</section>`,
   ldExtra: [{ '@type': 'FAQPage', mainEntity: C.FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }],
   body: `
-<section class="v-sec" id="short" data-theme="raven" data-blob=".9,.6,.1,.1" data-energy=".6">
-  ${top('In short', '01', 'Who I am')}
-  <div class="pg-split pg-about"><figure class="pg-ph" data-r="fade"><img src="../photos/portrait.jpg" alt="Matt King" loading="lazy" decoding="async"></figure>
-  <div><p class="pg-big pg-about-q" data-r="fade">I help sport find <em class="hi">new fans.</em></p>
-  <p class="pg-p" data-r="fade" style="--d:.1s">I'm Global Marketing Manager for Football at DAZN. I lead marketing across eight football rights portfolios, from the FIFA World Cup and the UEFA Champions League to Serie A, LaLiga and the Bundesliga, in seven market zones.</p>
-  <p class="pg-p" data-r="fade" style="--d:.15s">My work is about the people who don't watch yet. I reach them through what they already love, the music, the fashion, the creators, and then put the sport in that world.</p></div></div>
-</section>
-
 <section class="v-sec" id="route" data-theme="sky" data-blob=".8,.3,.2,.8" data-energy=".6">
-  ${top('The route', '02', 'Newest first')}
+  ${top('The route', '01', 'Newest first')}
   <ol class="pg-steps pg-career">${C.CAREER.map(([y, n, d]) => `<li data-r="fade"><span class="mono">${esc(y)}</span><h4>${esc(n)}</h4><p>${esc(d)}</p></li>`).join('')}</ol>
 </section>
 
 <section class="v-sec" id="bios" data-theme="raven" data-blob=".1,.2,.92,.85" data-energy=".7">
-  ${top('Bios to copy', '03', 'For organisers, hosts and press')}
+  ${top('Bios to copy', '02', 'For organisers, hosts and press')}
   <div class="pg-bios">${C.BIOS.map(([k, b]) => `<article data-r="fade"><header><span class="mono">${esc(k)} · ${b.split(/\s+/).length} words</span><button class="mono pg-copy" type="button" data-copy>Copy</button></header><p>${esc(b)}</p></article>`).join('')}</div>
 </section>
 
 <section class="v-sec" id="faq" data-theme="raven" data-blob=".85,.8,.1,.3" data-energy=".6">
-  ${top('Questions people ask', '04', '')}
+  ${top('Questions people ask', '03', '')}
   <dl class="pg-faq">${C.FAQ.map(([q, a]) => `<div data-r="fade"><dt>${esc(q)}</dt><dd>${esc(a)}</dd></div>`).join('')}</dl>
 </section>`,
 });
