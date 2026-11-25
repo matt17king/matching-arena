@@ -116,6 +116,7 @@ const slug = t => t.toLowerCase().replace(/<[^>]+>/g, '').replace(/[^a-z0-9]+/g,
 const toc = list => `<nav class="ar-toc" aria-label="In this piece"><p class="mono">In this piece</p><ol>${list.filter(([k]) => k === 'h').map(([, v]) => `<li><a href="#${slug(v)}">${v}</a></li>`).join('')}</ol></nav>`;
 const blocks = (list, R = '../../') => list.map(([k, v]) => k === 'h' ? `<h2 class="ar-h" id="${slug(v)}" data-r="fade">${v}</h2>`
   : k === 'stat' ? `<figure class="ar-stat" data-r="fade"><b>${esc(v[0])}</b><figcaption>${v[1]}${v[2] ? `<span class="mono">${esc(v[2])}</span>` : ''}</figcaption></figure>`
+  : k === 'stats' ? `<figure class="ar-stats" data-r="fade"><figcaption class="mono"><span>${esc(v[0])}</span><span>${esc(v[1] || '')}</span></figcaption><dl>${v[2].map(([n, what], i) => `<div style="--i:${i}"><dt>${esc(n)}</dt><dd>${esc(what)}</dd></div>`).join('')}</dl></figure>`
   : k === 'callout' ? `<aside class="ar-call" data-r="fade"><p class="mono">${esc(v[0])}</p><p>${v[1]}</p></aside>`
   : k === 'img' ? `<figure class="ar-ph ar-in" data-r="fade"><img src="${R}photos/${v[0]}" alt="${esc(v[2] || '')}" loading="lazy" decoding="async"><figcaption>${v[1]}${credit(v[3])}</figcaption></figure>`
   : k === 'p' ? `<p data-r="fade">${v}</p>`
