@@ -242,3 +242,15 @@ html.pg main { position: relative; z-index: 1; }
   .ab-nums b { font-size: 28px; } .ab-nums span { font-size: 11px; } .ab-nums li { padding: 10px 8px 0 0; } .ab-nums li + li { padding-left: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .ab-pic { animation: none; } .ab-cue i { animation: none; } .ab-words b { transition: none; } }
+
+/* the about facts: three things about the person, not the CV. Label, the fact, a quiet aside. */
+.ab-facts { max-width: 700px; }
+.ab-facts li { gap: 8px; align-content: start; }
+.ab-facts .mono { color: var(--bz); font-size: 11px; }
+.ab-facts b { font: 600 clamp(19px, 1.7vw, 28px)/1.05 var(--disp); letter-spacing: -.025em; text-wrap: balance; }
+.ab-facts i { font-style: normal; font-size: 13px; line-height: 1.3; color: var(--mute); }
+@media (max-width: 820px) {
+  .ab-facts { grid-template-columns: minmax(0, 1fr); border-top: 0; }
+  .ab-facts li, .ab-facts li + li { grid-template-columns: 64px 1fr; align-items: baseline; gap: 0 10px; padding: 9px 0; border-left: 0; border-top: 1px solid var(--line); }
+  .ab-facts b { font-size: 19px; } .ab-facts i { display: none; }
+}
