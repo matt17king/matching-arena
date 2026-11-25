@@ -16,7 +16,7 @@ export default {
     ['p', `Then they played the game. It finished 2-2.`],
     ['h', 'Why he earned it'],
     ['p', `De Bruyne arrived from Wolfsburg in 2015 with doubts hanging over him after a spell at Chelsea that hadn't worked. He left ten years later as the creative heart of the best side in the club's history.`],
-    ['stats', ['Kevin De Bruyne at City', '2015 to 2025', [['177', 'Assists'], ['108', 'Goals'], ['421', 'Games'], ['14', 'Major trophies']]]],
+    ['stats', ['Kevin De Bruyne at City', '2015 to 2025', [['421', 'Games'], ['108', 'Goals'], ['177', 'Assists'], ['14', 'Major trophies']]]],
     ['p', `Six Premier League titles, two FA Cups, five League Cups and the Champions League. When he left in May 2025, City gave him a giant display in the stands, a mural in the city and a road at the training ground with his name on it.`],
     ['h', 'Fans follow people, not just badges'],
     ['p', `This is the part clubs sometimes forget. A supporter's love for a player doesn't end when the contract does. The shirt changes; the feeling stays. For ten years De Bruyne was the reason a lot of people watched City at all, and those people didn't stop caring when he moved to Naples.`],
