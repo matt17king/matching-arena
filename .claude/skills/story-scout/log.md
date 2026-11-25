@@ -2,6 +2,12 @@
 
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
+## 2026-11-25 (morning run)
+- Suggested 1: City fans sing for Kevin De Bruyne on his return with Napoli (Champions League, 24 Nov, 2-2)
+- Suggested 2: Mark Goldbridge, fan-channel creator, managing Gold Devils in Baller League UK (new co-manager, 23 Nov)
+- Suggested 3: Creator leagues split: Kings League pauses in Spain until 2027 while Baller League UK carries on (older, ~Sept)
+- Note: quiet again for gaming x football and big brand deals
+
 ## 2026-11-24 (extra, football only: fan moments, gaming, big brands)
 - Suggested 1: Liverpool 4-0 Man United, won by the clips: Rio Ngumoha trolling United fans, Gary Neville slapping himself live (this weekend; match result not independently confirmed)
 - Suggested 2: Football's sponsors are growing up: Leicester swap a crypto casino for Bossjob after fan backlash (23 Nov), Ajax near a EUR60m deal with bank ABN Amro (23-24 Nov)
