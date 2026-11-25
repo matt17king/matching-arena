@@ -34,6 +34,25 @@ addEventListener('pointermove', e => { if (field && e.pointerType !== 'touch') f
 addEventListener('resize', () => { field?.resize?.(); measure(); }); addEventListener('load', measure);
 if ('ResizeObserver' in window) new ResizeObserver(measure).observe(document.body);
 measure(); theme.snap('raven'); requestAnimationFrame(tick);
+
+/* ---------- the about opening: as the page is held, the name lifts and shrinks to a label, the statement arrives word by
+   word from a whisper (as on the home page), the two paragraphs follow, and the portrait settles in from a slow zoom */
+{ const ab = $('[data-pin="ab"]');
+  if (ab) {
+    const say = $('[data-ab-say]', ab); split(say); const words = $$('.w', say);
+    let len = 1, at = 0; const m = () => { at = top(ab); len = Math.max(1, ab.offsetHeight - innerHeight); }; m();
+    addEventListener('resize', m); addEventListener('load', m); if ('ResizeObserver' in window) new ResizeObserver(m).observe(document.body);
+    const ease = x => 1 - (1 - clamp(x)) ** 3;
+    const step = () => {
+      const p = reduced ? 1 : clamp((scrollY - at) / len), n = words.length;
+      ab.style.setProperty('--p', p.toFixed(4)); ab.style.setProperty('--e', ease(p / .42).toFixed(4));
+      words.forEach((w, i) => { const t = reduced ? 1 : clamp((p - .16) * 2.4 * n - i); w.style.opacity = lerp(0, 1, t).toFixed(3); w.style.filter = t > .99 ? 'none' : `blur(${((1 - t) * .08).toFixed(3)}em)`; w.style.transform = `translateY(${((1 - t) * .25).toFixed(3)}em)`; });
+      ab.style.setProperty('--q', ease((p - .58) / .3).toFixed(4));
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+}
 createMenu();
 $$('[data-copy]').forEach(b => b.addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(b.closest('article').querySelector('p').textContent); b.textContent = 'Copied'; } catch { b.textContent = 'Select and copy'; }
