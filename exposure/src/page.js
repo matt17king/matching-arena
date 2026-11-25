@@ -50,6 +50,7 @@ measure(); theme.snap('raven'); requestAnimationFrame(tick);
       // the line under the statement turns over word by word, then the three numbers rise in turn
       const v = clamp((p - .5) / .42), k = Math.min(3, Math.floor(v * 4)), f = v * 4 - k;
       ab.style.setProperty('--v', ease((p - .46) / .08).toFixed(4)); if (ab.dataset.wi !== String(k)) ab.dataset.wi = k;
+      ab.style.setProperty('--l', ease((p - .56) / .12).toFixed(4));   // the rule above the facts draws across just before they rise
       nums.forEach((li, i) => li.style.setProperty('--n', ease((p - .6 - i * .09) / .14).toFixed(4)));
       requestAnimationFrame(step);
     };

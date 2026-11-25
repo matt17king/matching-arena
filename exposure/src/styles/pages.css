@@ -254,3 +254,8 @@ html.pg main { position: relative; z-index: 1; }
   .ab-facts li, .ab-facts li + li { grid-template-columns: 64px 1fr; align-items: baseline; gap: 0 10px; padding: 9px 0; border-left: 0; border-top: 1px solid var(--line); }
   .ab-facts b { font-size: 19px; } .ab-facts i { display: none; }
 }
+
+/* the rule above the facts is drawn in when they arrive, never before (it used to sit across the name) */
+.ab-nums { border-top: 0; position: relative; }
+.ab-nums::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--line-strong); transform-origin: left; transform: scaleX(var(--l, 0)); }
+@media (max-width: 820px) { .ab-nums::before { display: none; } .ab-facts li, .ab-facts li + li { grid-template-columns: 78px 1fr; } .ab-facts b { font-size: 17px; } }
