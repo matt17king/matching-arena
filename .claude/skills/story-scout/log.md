@@ -2,6 +2,12 @@
 
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
+## 2026-11-26 (morning run)
+- Suggested 1: Man City x PUMA x C.P. Company orange fourth kit debuts on the pitch v Napoli (24 Nov; on sale 1 Dec). Picked, written 26 Nov
+- Suggested 2: Sporting's tifo of Ronaldo, Nani and Bruno Fernandes before playing Man United (Champions League, 25 Nov). Picked, written 26 Nov
+- Suggested 3: PSG x Jordan third kit launched with a journey through Abidjan, Dakar, Casablanca and Paris (older). Picked, written 26 Nov
+- Runner-up: EA FC 27 and eFootball Black Friday events
+
 ## 2026-11-25 (morning run)
 - Suggested 1: City fans sing for Kevin De Bruyne on his return with Napoli (Champions League, 24 Nov, 2-2). Picked, written 25 Nov
 - Suggested 2: Mark Goldbridge, fan-channel creator, managing Gold Devils in Baller League UK (new co-manager, 23 Nov)
