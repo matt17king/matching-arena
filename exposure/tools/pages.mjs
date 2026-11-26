@@ -123,6 +123,8 @@ const blocks = (list, R = '../../') => list.map(([k, v]) => k === 'h' ? `<h2 cla
   : k === 'q' ? `<blockquote class="ar-q" data-r="fade"><p>${v}</p></blockquote>`
   : k === 'list' ? `<ul class="ar-list" data-r="fade">${v.map(x => `<li>${x}</li>`).join('')}</ul>`
   : `<ol class="ar-steps">${v.map(([t, d], i) => `<li data-r="fade"><span class="mono">${pad(i + 1)}</span><div><h3>${t}</h3><p>${d}</p></div></li>`).join('')}</ol>`).join('\n');
+const dims = f => { try { const b = readFileSync(new URL('../public/photos/' + f, import.meta.url)); let i = 2;
+  while (i < b.length) { if (b[i] !== 0xFF) { i++; continue; } const m = b[i + 1]; if (m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC) return [b.readUInt16BE(i + 7), b.readUInt16BE(i + 5)]; i += 2 + b.readUInt16BE(i + 2); } } catch {} return [4, 5]; };
 const minutes = a => Math.max(2, Math.round(words(a) / 220));
 const words = a => (String(a.intro || '') + ' ' + blocks(a.body)).replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
 for (const a of ALL) a.read = minutes(a); // idea pages: reading time from the words, like the articles
@@ -208,7 +210,19 @@ const postPages = POSTS.map((w, i) => {
   const path = `writing/${w.slug}`, older = POSTS[i + 1], idea = w.idea && ALL.find(a => a.id === w.idea), url = `${SITE}/${path}/`;
   const more = POSTS.filter(x => x !== w).slice(0, 3), fill = more.length < 3 ? ALL.filter(a => a !== idea).slice(0, 3 - more.length) : [];
   const share = [['LinkedIn', `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`], ['X', `https://x.com/intent/post?url=${encodeURIComponent(url)}&text=${encodeURIComponent(w.title)}`]];
+  const [pw, ph] = w.photo ? dims(w.photo[0]) : [0, 0], wide = pw > ph;
+  const hero = `<section class="pg-hero wr-hero${w.photo ? (wide ? ' wide' : ' tall') : ' bare'}" data-theme="raven" data-blob=".28,.9,1,.12" data-energy=".8">
+  <p class="mono pg-crumb" data-r="fade"><span><a href="../../">Matt King</a> / <a href="../">Writing</a> / ${esc(w.topic)}</span><span>${minutes(w)} min read</span></p>
+  <div class="wr-words">
+    <p class="mono wr-kick" data-r="fade"><i aria-hidden="true"></i>${esc(w.topic)}</p>
+    <h1 class="pg-h1" data-r="smear" data-split data-smear="50" style="--d:.1s">${w.h1}</h1>
+    <p class="pg-lead" data-r="fade" style="--d:.4s">${esc(w.dek)}</p>
+    <p class="mono wr-by" data-r="fade" style="--d:.55s"><span>By <a href="../../about/" rel="author">Matt King</a></span><time datetime="${w.date}">${day(w.date)}</time><span>${minutes(w)} min read</span></p>
+  </div>
+  ${w.photo ? `<figure class="wr-cover" data-r="fade" style="--d:.25s"><div><img src="../../photos/${w.photo[0]}" alt="${esc(w.photo[3])}" width="${pw}" height="${ph}" decoding="async" fetchpriority="high"${w.photo[4] ? ` style="object-position:${w.photo[4]}"` : ''}></div><figcaption><b>${esc(w.photo[1])}</b> ${esc(w.photo[2])}${credit(w.credit)}</figcaption></figure>` : ''}
+</section>`;
   return [path, shell({
+    hero,
     id: 'writing', path, title: w.title, desc: w.dek, image: w.photo?.[0], ldType: 'Article', cls: 'ar-page wr-page',
     crumb: `<span><a href="../">Matt King</a> / <a href="../writing/">Writing</a> / ${esc(w.topic)}</span><span>${day(w.date)}</span>`,
     h1: w.h1, lead: esc(w.dek), next: older ? [`writing/${older.slug}`, plain(older.h1).replace(/\.$/, '')] : ['writing', 'All the writing'],
@@ -220,13 +234,11 @@ const postPages = POSTS.map((w, i) => {
 <section class="v-sec ar" data-theme="raven" data-blob=".9,.6,.1,.1" data-energy=".5">
   <div class="ar-wrap">
     <aside class="ar-side" data-r="fade">
-      <p class="mono ar-meta"><span>By <a href="../../about/">Matt King</a></span><span>${day(w.date)}</span><span>${minutes(w)} min read</span></p>
       ${idea ? `<a class="ar-part" href="../../thinking/${idea.id}/"><span class="mono">Connects to the idea</span><b>${esc(idea.name)}</b><i aria-hidden="true">→</i></a>` : ''}
       ${toc(w.body)}
       <p class="mono ar-share"><span>Share</span>${share.map(([n, u]) => `<a href="${u}" target="_blank" rel="noopener">${n} ↗</a>`).join('')}<button type="button" class="mono" data-copy-link="${url}">Copy link</button></p>
     </aside>
     <article class="ar-body">
-      ${w.photo ? `<figure class="ar-ph" data-r="fade"><img src="../../photos/${w.photo[0]}" alt="${esc(w.photo[3])}" decoding="async" style="${w.coverRatio ? `aspect-ratio:${w.coverRatio};` : ''}${w.photo[4] ? `object-position:${w.photo[4]}` : ''}"><figcaption><b>${esc(w.photo[1])}</b> ${esc(w.photo[2])}${credit(w.credit)}</figcaption></figure>` : ''}
       ${w.intro ? `<p class="ar-intro" data-r="fade">${w.intro}</p>` : ''}
       ${blocks(w.body)}
       ${idea ? `<a class="ar-idea" href="../../thinking/${idea.id}/" data-r="fade"><span class="mono">${idea.n} · The idea behind it</span><b>${idea.title.join(' ')}</b><span>${esc(idea.define)}</span><span class="mono pg-feat-go">Read the idea <i aria-hidden="true">→</i></span></a>` : ''}
