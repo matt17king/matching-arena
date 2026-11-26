@@ -209,7 +209,7 @@ const postPages = POSTS.map((w, i) => {
   const more = POSTS.filter(x => x !== w).slice(0, 3), fill = more.length < 3 ? ALL.filter(a => a !== idea).slice(0, 3 - more.length) : [];
   const share = [['LinkedIn', `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`], ['X', `https://x.com/intent/post?url=${encodeURIComponent(url)}&text=${encodeURIComponent(w.title)}`]];
   return [path, shell({
-    id: 'writing', path, title: w.title, desc: w.dek, image: w.photo?.[0], ldType: 'Article', cls: 'ar-page',
+    id: 'writing', path, title: w.title, desc: w.dek, image: w.photo?.[0], ldType: 'Article', cls: 'ar-page wr-page',
     crumb: `<span><a href="../">Matt King</a> / <a href="../writing/">Writing</a> / ${esc(w.topic)}</span><span>${day(w.date)}</span>`,
     h1: w.h1, lead: esc(w.dek), next: older ? [`writing/${older.slug}`, plain(older.h1).replace(/\.$/, '')] : ['writing', 'All the writing'],
     ldExtra: [{ '@type': 'BlogPosting', '@id': `${url}#article`, headline: w.title, description: w.dek, author: { '@id': ME }, publisher: { '@id': ME }, datePublished: w.date, dateModified: w.updated || w.date,
