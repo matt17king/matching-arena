@@ -81,20 +81,3 @@ if (matchMedia('(hover: hover) and (pointer: fine)').matches && !matchMedia('(pr
     el.addEventListener('pointerleave', () => { el.style.setProperty('--rx', '0deg'); el.style.setProperty('--ry', '0deg'); el.style.setProperty('--lit', 0); });
   });
 }
-
-/* ---------- the time machine: one dial drives the year, the things a fan had, and each line of the story */
-document.querySelectorAll('[data-tm]').forEach(tm => {
-  const range = tm.querySelector('[data-tm-range]'), year = tm.querySelector('[data-tm-year]'), from = +tm.dataset.from, to = +tm.dataset.to;
-  const kit = [...tm.querySelectorAll('.tm-kit li')], rows = [...tm.querySelectorAll('.tm-rows > div')];
-  const set = () => { const t = range.value / 100, y = Math.round(from + (to - from) * t);
-    tm.style.setProperty('--t', t.toFixed(3)); year.textContent = y; range.setAttribute('aria-valuetext', String(y));
-    kit.forEach(li => li.classList.toggle('off', y < +li.dataset.y));
-    rows.forEach((r, i) => r.classList.toggle('past', t >= (i + 1) / (rows.length + 1))); };
-  range.addEventListener('input', set); set();
-  // a nudge the first time it comes into view, so it's clear the dial moves
-  if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const io = new IntersectionObserver(es => { if (!es[0].isIntersecting) return; io.disconnect(); let touched = false; range.addEventListener('pointerdown', () => touched = true, { once: true });
-      const t0 = performance.now(); const hint = now => { if (touched) return; const p = Math.min(1, (now - t0) / 1400); range.value = Math.round(Math.sin(p * Math.PI) * 14); set(); if (p < 1) requestAnimationFrame(hint); }; setTimeout(() => requestAnimationFrame(n => { hint(n); }), 500); }, { threshold: .6 });
-    io.observe(tm);
-  }
-});
