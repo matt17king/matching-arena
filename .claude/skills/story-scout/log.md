@@ -2,6 +2,13 @@
 
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
+## 2026-11-27 (morning run)
+- Suggested 1: EA Sports FC 27 brings back John Motson's commentary with AI, with his family's blessing (live 26 Nov; voice-rights campaigners object). Picked, written 27 Nov
+- Suggested 2: Club Brugge fans' "Founded by Brits" display before playing Liverpool (Champions League, 25 Nov; single source, Tribuna)
+- Suggested 3: Bologna x Macron 25-year kit: the 2001/02 shirt remade, 2,001 numbered (19 Nov, older)
+- Runner-up: Nike replaces adidas as UEFA's match ball maker from 2027-28 (16 Nov, older)
+- Runner-up: Brentford's two-season "Always Twogether" home kit with Joma
+
 ## 2026-11-26 (morning run)
 - Suggested 1: Man City x PUMA x C.P. Company orange fourth kit debuts on the pitch v Napoli (24 Nov; on sale 1 Dec). Picked, written 26 Nov
 - Suggested 2: Sporting's tifo of Ronaldo, Nani and Bruno Fernandes before playing Man United (Champions League, 25 Nov). Picked, written 26 Nov
