@@ -117,6 +117,19 @@ const toc = list => `<nav class="ar-toc" aria-label="In this piece"><p class="mo
 const blocks = (list, R = '../../') => list.map(([k, v]) => k === 'h' ? `<h2 class="ar-h" id="${slug(v)}" data-r="fade">${v}</h2>`
   : k === 'stat' ? `<figure class="ar-stat" data-r="fade"><b>${esc(v[0])}</b><figcaption>${v[1]}${v[2] ? `<span class="mono">${esc(v[2])}</span>` : ''}</figcaption></figure>`
   : k === 'stats' ? `<figure class="ar-stats" data-r="fade"><figcaption class="mono"><span>${esc(v[0])}</span><span>${esc(v[1] || '')}</span></figcaption><dl>${v[2].map(([n, what], i) => `<div style="--i:${i}"><dt>${esc(n)}</dt><dd>${esc(what)}</dd></div>`).join('')}</dl></figure>`
+  : k === 'then' ? `<figure class="ar-tm" data-tm data-from="${v.from || 2026}" data-to="${v.to}" style="--t:0">
+  <figcaption class="mono"><span>Time machine</span><span>Drag the dial back</span></figcaption>
+  <div class="tm-top">
+    <p class="tm-year" aria-hidden="true"><b data-tm-year>${v.from || 2026}</b></p>
+    <div class="tm-dial">
+      <input type="range" min="0" max="100" value="0" step="1" aria-label="Year, from ${v.from || 2026} back to ${v.to}" data-tm-range>
+      <p class="mono tm-ends"><span>${v.from || 2026}</span><span>${v.to}</span></p>
+    </div>
+  </div>
+  <ul class="tm-kit" aria-label="What a fan had">${v.kit.map(([n, y]) => `<li data-y="${y}"><b>${esc(n)}</b><span class="mono">${y}</span></li>`).join('')}</ul>
+  <dl class="tm-rows">${v.rows.map(([label, now, then], i) => `<div data-i="${i}"><dt class="mono">${esc(label)}</dt><dd><span class="tm-now">${now}</span><span class="tm-then">${then}</span></dd></div>`).join('')}</dl>
+  ${v.note ? `<p class="tm-note">${v.note}</p>` : ''}
+</figure>`
   : k === 'callout' ? `<aside class="ar-call" data-r="fade"><p class="mono">${esc(v[0])}</p><p>${v[1]}</p></aside>`
   : k === 'img' ? `<figure class="ar-ph ar-in" data-r="fade"><img src="${R}photos/${v[0]}" alt="${esc(v[2] || '')}" loading="lazy" decoding="async"><figcaption>${v[1]}${credit(v[3])}</figcaption></figure>`
   : k === 'p' ? `<p data-r="fade">${v}</p>`
