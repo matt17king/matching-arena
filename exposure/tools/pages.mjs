@@ -211,15 +211,16 @@ const postPages = POSTS.map((w, i) => {
   const more = POSTS.filter(x => x !== w).slice(0, 3), fill = more.length < 3 ? ALL.filter(a => a !== idea).slice(0, 3 - more.length) : [];
   const share = [['LinkedIn', `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`], ['X', `https://x.com/intent/post?url=${encodeURIComponent(url)}&text=${encodeURIComponent(w.title)}`]];
   const [pw, ph] = w.photo ? dims(w.photo[0]) : [0, 0], wide = pw > ph;
-  const hero = `<section class="pg-hero wr-hero${w.photo ? (wide ? ' wide' : ' tall') : ' bare'}" data-theme="raven" data-blob=".28,.9,1,.12" data-energy=".8">
-  <p class="mono pg-crumb" data-r="fade"><span><a href="../../">Matt King</a> / <a href="../">Writing</a> / ${esc(w.topic)}</span><span>${minutes(w)} min read</span></p>
+  const hero = `<section class="pg-hero wr-hero${w.photo ? (wide ? (pw >= 1000 ? ' cine' : ' wide') : ' tall') : ' bare'}" data-theme="raven" data-blob=".28,.9,1,.12" data-energy=".8">
+  <p class="mono pg-crumb" data-r="fade"><span><a href="../../">Matt King</a> / <a href="../">Writing</a> / ${esc(w.topic)}</span><span>N<sup>o</sup> ${pad(POSTS.length - i)}</span></p>
+  ${w.photo ? `<img class="wr-glow" src="../../photos/${w.photo[0]}" alt="" aria-hidden="true" decoding="async">` : ''}
   <div class="wr-words">
     <p class="mono wr-kick" data-r="fade"><i aria-hidden="true"></i>${esc(w.topic)}</p>
     <h1 class="pg-h1" data-r="smear" data-split data-smear="50" style="--d:.1s">${w.h1}</h1>
     <p class="pg-lead" data-r="fade" style="--d:.4s">${esc(w.dek)}</p>
     <p class="mono wr-by" data-r="fade" style="--d:.55s"><span>By <a href="../../about/" rel="author">Matt King</a></span><time datetime="${w.date}">${day(w.date)}</time><span>${minutes(w)} min read</span></p>
   </div>
-  ${w.photo ? `<figure class="wr-cover" data-r="fade" style="--d:.25s"><div><img src="../../photos/${w.photo[0]}" alt="${esc(w.photo[3])}" width="${pw}" height="${ph}" decoding="async" fetchpriority="high"${w.photo[4] ? ` style="object-position:${w.photo[4]}"` : ''}></div><figcaption><b>${esc(w.photo[1])}</b> ${esc(w.photo[2])}${credit(w.credit)}</figcaption></figure>` : ''}
+  ${w.photo ? `<figure class="wr-cover" data-tilt><div><img src="../../photos/${w.photo[0]}" alt="${esc(w.photo[3])}" width="${pw}" height="${ph}" decoding="async" fetchpriority="high"${w.photo[4] ? ` style="object-position:${w.photo[4]}"` : ''}></div><figcaption><b>${esc(w.photo[1])}</b> ${esc(w.photo[2])}${credit(w.credit)}</figcaption></figure>` : ''}
 </section>`;
   return [path, shell({
     hero,

@@ -7,7 +7,7 @@ export default {
   h1: 'Sporting showed Manchester United <em>who made their heroes.</em>',
   dek: `Before kick-off in Lisbon, Sporting's fans unveiled a display for the club's 120th year with a young Cristiano Ronaldo at its centre. Here's how a selling club turns the players it lost into its proudest story.`,
   idea: 'idols-sell-influencers-inform',
-  photo: ['sporting-1906-tifo.jpg', '1906', 'Side by side: the fans\' drawing of a young Ronaldo in number 28, and the photo it was taken from.', 'Left, part of a giant fan display at Sporting\'s stadium showing a drawn player in green and white hoops wearing number 28. Right, a photo of a young Cristiano Ronaldo in the same Sporting shirt', 'center 60%'],
+  photo: ['sporting-1906-tifo.jpg', '1906', 'Side by side: the fans\' drawing of a young Ronaldo in number 28, and the photo it was taken from.', 'Left, part of a giant fan display at Sporting\'s stadium showing a drawn player in green and white hoops wearing number 28. Right, a photo of a young Cristiano Ronaldo in the same Sporting shirt', 'center 12%'],
   credit: ['ESPN on X', 'https://x.com/ESPNmx/status/2125692972498821439'],
   coverRatio: '4 / 5',
   intro: `Manchester United went to Lisbon on Wednesday for a Champions League game. Before a ball was kicked, the home fans had already made their point. Across one end of the Estádio José Alvalade, a giant display went up: the number 1906, the club's greatest players, and in the middle, a teenage Cristiano Ronaldo in a Sporting shirt.`,

@@ -71,3 +71,13 @@ $$('[data-copy-link]').forEach(b => b.addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(b.dataset.copyLink); b.textContent = 'Copied'; } catch { b.textContent = b.dataset.copyLink; }
   setTimeout(() => (b.textContent = 'Copy link'), 1800);
 }));
+
+/* ---------- article covers lean a little towards the pointer, and a soft light follows it */
+if (matchMedia('(hover: hover) and (pointer: fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  document.querySelectorAll('[data-tilt]').forEach(el => {
+    el.addEventListener('pointermove', e => { const r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      el.style.setProperty('--ry', ((x - .5) * 5).toFixed(2) + 'deg'); el.style.setProperty('--rx', ((.5 - y) * 4).toFixed(2) + 'deg');
+      el.style.setProperty('--px', (x * 100).toFixed(1) + '%'); el.style.setProperty('--py', (y * 100).toFixed(1) + '%'); el.style.setProperty('--lit', 1); });
+    el.addEventListener('pointerleave', () => { el.style.setProperty('--rx', '0deg'); el.style.setProperty('--ry', '0deg'); el.style.setProperty('--lit', 0); });
+  });
+}
