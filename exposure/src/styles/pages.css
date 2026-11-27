@@ -348,7 +348,7 @@ html.pg main { position: relative; z-index: 1; }
   .wr-hero.cine .wr-words { grid-column: 1 / -1; align-self: end; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); column-gap: clamp(28px, 5vw, 96px); align-items: end; }
   .wr-hero.cine .wr-kick, .wr-hero.cine .wr-by { grid-column: 1 / -1; } .wr-hero.cine .pg-h1 { max-width: 17ch; font-size: clamp(40px, 5.4vw, 108px); }
   .wr-hero.cine .wr-cover figcaption { inset: auto var(--gut) clamp(22px, 4vh, 44px) auto; max-width: 52ch; }
-  .wr-hero.cine .wr-by { padding-right: 46ch; }
+  .wr-hero.cine .wr-by { max-width: calc(100% - 44ch); }
 }
 @media (max-width: 820px) {
   .wr-hero.tall, .wr-hero.cine { padding-top: 0; row-gap: 0; }
