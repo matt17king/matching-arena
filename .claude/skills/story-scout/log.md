@@ -2,6 +2,12 @@
 
 Stories already suggested, so the morning scout never repeats one. Newest first.
 
+## 2026-11-28 (morning run)
+- Suggested 1: Esports team FURIA takes over the brand of Brazilian top-flight club Novorizontino, renamed FURIA Novorizontino for 2027 (26 Nov)
+- Suggested 2: Arsenal's fan tifo group, set up after the mocked cannon display, drops a dig at City for a display that lifts the home crowd (reported 27 Nov; match Sun 29 Nov)
+- Suggested 3: Retro kit week: Luton x Admiral 1974-75 remakes at GBP50 and Bayern's 26-27 retro kit (27 Nov), with Bologna x Macron (19 Nov)
+- Runner-up: Arsenal to use the cannon crest on all 27-28 kits (Footy Headlines, leak)
+
 ## 2026-11-27 (morning run)
 - Suggested 1: EA Sports FC 27 brings back John Motson's commentary with AI, with his family's blessing (live 26 Nov; voice-rights campaigners object). Picked, written 27 Nov
 - Suggested 2: Club Brugge fans' "Founded by Brits" display before playing Liverpool (Champions League, 25 Nov; single source, Tribuna)
